@@ -24,6 +24,12 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.KeyCharacterMap;
 
+/* For the hardware keyboard lights */
+import android.os.IPowerManager;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+
+
 /**
  * This base class encapsulates the behavior for tracking the state of
  * meta keys such as SHIFT, ALT and SYM as well as the pseudo-meta state of selecting text.
@@ -214,6 +220,14 @@ public abstract class MetaKeyKeyListener {
         adjust(content, CAP);
         adjust(content, ALT);
         adjust(content, SYM);
+        try {
+            IPowerManager power = IPowerManager.Stub.asInterface(
+                ServiceManager.getService("power"));
+            if (getMetaState(content, META_SHIFT_ON) <= 0)
+                power.setKeyboardLight(false, 1);
+            if (getMetaState(content, META_ALT_ON) <= 0)
+                power.setKeyboardLight(false, 2);
+        } catch (RemoteException doe) {}
     }
 
     /**
@@ -266,12 +280,32 @@ public abstract class MetaKeyKeyListener {
     public boolean onKeyDown(View view, Editable content, int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT || keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT) {
             press(content, CAP);
+            try {
+                IPowerManager power = IPowerManager.Stub.asInterface(
+                    ServiceManager.getService("power"));
+                int state = content.getSpanFlags(CAP);
+                if (state == PRESSED || state == LOCKED) {
+                    power.setKeyboardLight(true, 1);
+                } else {
+                    power.setKeyboardLight(false, 1);
+                }
+            } catch (RemoteException doe) {}
             return true;
         }
 
         if (keyCode == KeyEvent.KEYCODE_ALT_LEFT || keyCode == KeyEvent.KEYCODE_ALT_RIGHT
                 || keyCode == KeyEvent.KEYCODE_NUM) {
             press(content, ALT);
+            try {
+                IPowerManager power = IPowerManager.Stub.asInterface(
+                    ServiceManager.getService("power"));
+                int state = content.getSpanFlags(ALT);
+                if (state == PRESSED || state == LOCKED) {
+                    power.setKeyboardLight(true, 2);
+                } else {
+                    power.setKeyboardLight(false, 2);
+                }
+            } catch (RemoteException doe) {}
             return true;
         }
 
