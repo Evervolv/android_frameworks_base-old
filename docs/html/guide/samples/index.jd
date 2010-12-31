@@ -1,0 +1,15 @@
+guide=true
+page.title=Sample Code
+@jd:body
+
+
+<script type="text/javascript">
+  window.location = toRoot + "resources/samples/index.html";
+</script>
+
+<p><strong>This document has moved. Please go to <a
+href="http://developer.android.com/resources/samples/index.html">List of Sample
+Apps</a>.</strong></p>
+
+
+

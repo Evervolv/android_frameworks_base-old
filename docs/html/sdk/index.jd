@@ -1,0 +1,34 @@
+page.title=Android SDK
+sdk.redirect=0
+
+sdk.win_installer=installer_r08-windows.exe
+sdk.win_installer_bytes=TODO
+sdk.win_installer_checksum=TODO
+
+sdk.win_download=android-sdk_r08-windows.zip
+sdk.win_bytes=TODO
+sdk.win_checksum=TODO
+
+sdk.mac_download=android-sdk_r08-mac_x86.zip
+sdk.mac_bytes=TODO
+sdk.mac_checksum=TODO
+
+sdk.linux_download=android-sdk_r08-linux_x86.tgz
+sdk.linux_bytes=TODO
+sdk.linux_checksum=TODO
+
+@jd:body
+
+<p>Here's an overview of the steps you must follow to set up the Android SDK:</p>
+
+<ol>
+  <li>Prepare your development computer and ensure it meets the system requirements.</li>
+  <li>Install the SDK starter package from the table above. (If you're on Windows, download the
+installer for help with the initial setup.)</li>
+  <li>Install the ADT Plugin for Eclipse (if you'll be developing in Eclipse).</li>
+  <li>Add Android platforms and other components to your SDK.</li>
+  <li>Explore the contents of the Android SDK (optional).</li>
+</ol>
+
+<p>To get started, download the appropriate package from the table above, then read the guide to <a
+href="installing.html">Installing the SDK</a>.</p>

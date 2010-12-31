@@ -1,0 +1,158 @@
+page.title=Android Supported Media Formats
+@jd:body
+
+<p>The <a href="#core">Core Media Formats</a> table below describes the media format support built into the Android platform. Note that any given mobile device may provide support for additional formats or file types not listed in the table. </p>
+
+<p>As an application developer, you are free to make use of any media codec that is available on any Android-powered device, including those provided by the Android platform and those that are device-specific.</p>
+
+<h2 id="core">Core Media Formats</h2>
+
+<table>
+<tbody>
+<tr>
+
+<th>Type</th>
+<th>Format</th>
+<th>Encoder</th>
+<th>Decoder</th>
+<th>Details</th>
+<th>File Type(s) Supported</th>
+</tr>
+
+<tr>
+<td rowspan="9">Audio</td>
+<td>AAC LC/LTP</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">X</td>
+<td rowspan="3">Mono/Stereo content in any combination of standard bit rates up to 160 kbps and sampling rates from 8 to 48kHz</td>
+<td rowspan="3">3GPP (.3gp) and MPEG-4 (.mp4, .m4a). No support for raw AAC (.aac)</td>
+</tr>
+
+<tr>
+<td>HE-AACv1 (AAC+)</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+</tr>
+
+<tr>
+<td>HE-AACv2 (enhanced AAC+)</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+</tr>
+
+<tr>
+<td>AMR-NB</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">X</td>
+<td>4.75 to 12.2 kbps sampled @ 8kHz</td>
+<td>3GPP (.3gp)
+</td>
+</tr>
+
+<tr>
+<td>AMR-WB</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">X</td>
+<td>9 rates from 6.60 kbit/s to 23.85 kbit/s sampled @ 16kHz</td>
+<td>3GPP (.3gp)</td>
+</tr>
+
+<tr>
+<td>MP3</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>Mono/Stereo 8-320Kbps constant (CBR) or variable bit-rate (VBR)
+</td>
+<td>MP3 (.mp3)</td>
+</tr>
+
+<tr>
+<td>MIDI</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>MIDI Type 0 and 1. DLS Version 1 and 2. XMF and Mobile XMF. Support for ringtone formats RTTTL/RTX, OTA, and iMelody </td>
+<td>Type 0 and 1 (.mid, .xmf, .mxmf). Also RTTTL/RTX (.rtttl, .rtx), OTA (.ota), and iMelody (.imy)</td>
+</tr>
+
+<tr>
+<td>Ogg Vorbis</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>Ogg (.ogg)</td>
+</tr>
+
+<tr>
+<td>PCM/WAVE</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>8- and 16-bit linear PCM (rates up to limit of hardware)</td>
+<td>WAVE (.wav)</td>
+</tr>
+
+<tr>
+<td rowspan="4">Image</td>
+<td>JPEG</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">X</td>
+<td>Base+progressive</td>
+<td>JPEG (.jpg)</td>
+</tr>
+
+<tr>
+<td>GIF</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>GIF (.gif)</td>
+</tr>
+
+<tr>
+<td>PNG</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>PNG (.png)</td>
+</tr>
+
+<tr>
+<td>BMP</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>BMP (.bmp)</td>
+</tr>
+
+ 
+<tr>
+<td rowspan="3">Video</td>
+<td>H.263</td>
+<td style="text-align: center;">X</td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>3GPP (.3gp) and MPEG-4 (.mp4)</td>
+</tr>
+
+<tr>
+<td>H.264 AVC</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>3GPP (.3gp) and MPEG-4 (.mp4)</td>
+</tr>
+
+<tr>
+<td>MPEG-4 SP</td>
+<td>&nbsp;</td>
+<td style="text-align: center;">X</td>
+<td>&nbsp;</td>
+<td>3GPP (.3gp)</td>
+</tr>
+
+</tbody></table>
+
+
+
+
+
+

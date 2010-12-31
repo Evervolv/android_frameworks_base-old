@@ -1,0 +1,81 @@
+page.title=Screen Sizes and Densities
+@jd:body
+
+<style type="text/css">
+
+div.dashboard-panel {
+  max-width:1000px;
+  margin:0 0 2em 0;
+  padding:20px 20px 0 20px;
+  border:1px solid #d3ecf5;
+  border-radius:7px;
+  -moz-border-radius:7px;
+  -webkit-border-radius:7px;
+  background-color: #DAF3FC;
+  box-shadow:2px 3px 1px #eee;
+  -moz-box-shadow:2px 3px 1px #eee;
+  -webkit-box-shadow:2px 3px 1px #eee;
+  overflow:hidden;
+}
+#jd-content div.dashboard-panel img {
+  margin:0 20px 20px 0;
+  padding:0;
+  border:1px solid #ccc;
+  float:left;
+}
+#jd-content div.dashboard-panel table {
+  margin:0 0 20px 0;
+  float:left;
+  background-color:#fff;
+}
+div.dashboard-panel p {
+  clear:left;
+}
+div.dashboard-panel th {
+  white-space:nowrap;
+}
+</style>
+
+<p>This page provides data about the relative number of active devices
+using a particular type of screen, including the screen size and density. For information about how
+your application can support multiple screen types, see <a
+href="{@docRoot}guide/practices/screens_support.html">Supporting Multiple Screens</a>.</p>
+
+<p class="note"><strong>Note:</strong> This data is based on the number
+of Android devices that have accessed Android Market within a 14-day period
+ending on the data collection date noted below.</p>
+
+
+<div class="dashboard-panel">
+
+<img alt="" width="460" height="250"
+src="http://chart.apis.google.com/chart?&cht=p&chs=460x250&chd=t:2.3,0.4,45.9,51.2&chl=Small%20/%
+20ldpi|Normal%20/%20ldpi|Normal%20/%20mdpi|Normal%20/%20hdpi&chco=c4df9b,6fad0c" />
+
+<table>
+<tr>
+<th></th>
+<th scope="col">Low Density</th>
+<th scope="col">Medium Density</th>
+<th scope="col">High Density</th>
+</tr>
+<tr><th scope="row">Small</th> 
+<td class='cent hi'>2.3%</td> 
+<td></td> 
+<td></td> 
+</tr> 
+<tr><th scope="row">Normal</th> 
+<td class='cent '>0.4%</td> 
+<td class='cent hi'>45.9%</td> 
+<td class='cent hi'>51.2%</td> 
+</tr> 
+<tr><th scope="row">Large</th> 
+<td></td> 
+<td></td> 
+<td></td> 
+</tr> 
+</table>
+
+<p><em>Data collected during two weeks ending on August 2, 2010</em></p>
+</div>
+
