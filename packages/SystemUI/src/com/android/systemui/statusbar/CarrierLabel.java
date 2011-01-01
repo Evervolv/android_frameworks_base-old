@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.provider.Settings;
 import android.provider.Telephony;
 import android.util.AttributeSet;
 import android.util.Slog;
@@ -32,11 +33,10 @@ import java.util.TimeZone;
 
 import com.android.internal.R;
 
-/**
- * This widget display an analogic clock with two hands for hours and
- * minutes.
- */
+
 public class CarrierLabel extends TextView {
+	private String mCarrierCap;
+	
     private boolean mAttached;
 
     public CarrierLabel(Context context) {
@@ -87,28 +87,11 @@ public class CarrierLabel extends TextView {
     };
 
     void updateNetworkName(boolean showSpn, String spn, boolean showPlmn, String plmn) {
-        if (false) {
-            Slog.d("CarrierLabel", "updateNetworkName showSpn=" + showSpn + " spn=" + spn
-                    + " showPlmn=" + showPlmn + " plmn=" + plmn);
-        }
-        StringBuilder str = new StringBuilder();
-        boolean something = false;
-        if (showPlmn && plmn != null) {
-            str.append(plmn);
-            something = true;
-        }
-        if (showSpn && spn != null) {
-            if (something) {
-                str.append('\n');
-            }
-            str.append(spn);
-            something = true;
-        }
-        if (something) {
-            setText(str.toString());
-        } else {
-            setText(com.android.internal.R.string.lockscreen_carrier_default);
-        }
+
+    	mCarrierCap = Settings.System.getString(getContext().getContentResolver(), Settings.System.CARRIER_CAP);
+    	
+    	setText(mCarrierCap);
+
     }
 
     
