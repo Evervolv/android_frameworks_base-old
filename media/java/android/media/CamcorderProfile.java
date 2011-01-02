@@ -56,6 +56,7 @@ public class CamcorderProfile
      */
     public static final int QUALITY_LOW  = 0;
     public static final int QUALITY_HIGH = 1;
+    public static final int QUALITY_HD   = 2;
 
     /**
      * Default recording duration in seconds before the session is terminated.
