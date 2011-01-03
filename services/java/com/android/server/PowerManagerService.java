@@ -467,7 +467,7 @@ class PowerManagerService extends IPowerManager.Stub
                 }
                 if (transitionScale > 0.5f) {
                     // Uncomment this if you want the screen-on animation.
-                    // mAnimationSetting |= ANIM_SETTING_ON;
+                    mAnimationSetting |= ANIM_SETTING_ON;
                 }
             }
         }

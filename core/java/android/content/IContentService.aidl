@@ -129,3 +129,4 @@ interface IContentService {
 
     void removeStatusChangeListener(ISyncStatusObserver callback);
 }
+
