@@ -1075,9 +1075,15 @@ class MountService extends IMountService.Stub
             return;
         }
 
-        mConnector = new NativeDaemonConnector(this, "vold", 10, "VoldConnector");
+        /*
+         * Create the connection to vold with a maximum queue of twice the
+         * amount of containers we'd ever expect to have. This keeps an
+         * "asec list" from blocking a thread repeatedly.
+         */
+        mConnector = new NativeDaemonConnector(this, "vold",
+                PackageManagerService.MAX_CONTAINERS * 2, VOLD_TAG);
         mReady = false;
-        Thread thread = new Thread(mConnector, NativeDaemonConnector.class.getName());
+        Thread thread = new Thread(mConnector, VOLD_TAG);
         thread.start();
     }
 

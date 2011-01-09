@@ -58,7 +58,16 @@ import java.util.Map;
  */
 public final class Settings {
 
-    // Intent actions for Settings
+    /**
+     * Intent actions for Settings
+     *
+     * @hide
+     */
+    public static final String SETTINGS_CHANGED = "android.settings.SETTINGS_CHANGED_ACTION";
+
+    public Settings() {
+        /* Empty for API conflicts */
+    }
 
     /**
      * Activity Action: Show system settings.
@@ -1300,6 +1309,136 @@ public final class Settings {
         public static final int SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1;
 
         /**
+         * Indicates that custom light sensor settings has changed.
+         * The value is random and changes reloads light settings.
+         *
+         * @hide
+         */
+        public static final String LIGHTS_CHANGED = "lights_changed";
+
+        /**
+         * Whether custom light sensor levels & values are enabled. The value is
+         * boolean (1 or 0).
+         *
+         * @hide
+         */
+        public static final String LIGHT_SENSOR_CUSTOM = "light_sensor_custom";
+
+        /**
+         * Screen dim value to use if LIGHT_SENSOR_CUSTOM is set. The value is int.
+         * Default is android.os.BRIGHTNESS_DIM.
+         *
+         * @hide
+         */
+        public static final String LIGHT_SCREEN_DIM = "light_screen_dim";
+
+        /**
+         * Custom light sensor levels. The value is a comma separated int array
+         * with length N.
+         * Example: "100,300,3000".
+         *
+         * @hide
+         */
+        public static final String LIGHT_SENSOR_LEVELS = "light_sensor_levels";
+
+        /**
+         * Custom light sensor lcd values. The value is a comma separated int array
+         * with length N+1.
+         * Example: "10,50,100,255".
+         *
+         * @hide
+         */
+        public static final String LIGHT_SENSOR_LCD_VALUES = "light_sensor_lcd_values";
+
+        /**
+         * Custom light sensor lcd values. The value is a comma separated int array
+         * with length N+1.
+         * Example: "10,50,100,255".
+         *
+         * @hide
+         */
+        public static final String LIGHT_SENSOR_BUTTON_VALUES = "light_sensor_button_values";
+
+        /**
+         * Custom light sensor lcd values. The value is a comma separated int array
+         * with length N+1.
+         * Example: "10,50,100,255".
+         *
+         * @hide
+         */
+        public static final String LIGHT_SENSOR_KEYBOARD_VALUES = "light_sensor_keyboard_values";
+
+        /**
+         * Whether light sensor is allowed to decrease when calculating automatic
+         * backlight. The value is boolean (1 or 0).
+         *
+         * @hide
+         */
+        public static final String LIGHT_DECREASE = "light_decrease";
+
+        /**
+         * Light sensor hysteresis for decreasing backlight. The value is
+         * int (0-99) representing % (0-0.99 as float). Example:
+         *
+         * Levels     Output
+         * 0 - 100    50
+         * 100 - 200  100
+         * 200 - Inf  255
+         *
+         * Current sensor value is 150 which gives light value 100. Hysteresis is 50.
+         * Current level lower bound is 100 and previous lower bound is 0.
+         * Sensor value must drop below 100-(100-0)*(50/100)=50 for output to become 50
+         * (corresponding to the 0 - 100 level).
+         * @hide
+         */
+        public static final String LIGHT_HYSTERESIS = "light_hysteresis";
+
+        /**
+         * Whether light sensor used when calculating automatic backlight should
+         * be filtered through an moving average filter.
+         * The value is boolean (1 or 0).
+         *
+         * @hide
+         */
+        public static final String LIGHT_FILTER = "light_filter";
+
+        /**
+         * Window length of filter used when calculating automatic backlight.
+         * One minute means that the average sensor value last minute is used.
+         * The value is integer (milliseconds)
+         *
+         * @hide
+         */
+        public static final String LIGHT_FILTER_WINDOW = "light_filter_window";
+
+        /**
+         * Reset threshold of filter used when calculating automatic backlight.
+         * Sudden large jumps in sensor value resets the filter. This is used
+         * to make the filter respond quickly to large enough changes in input
+         * while still filtering small changes. Example:
+         *
+         * Current filter value (average) is 100 and sensor value is changing to
+         * 10, 150, 100, 30, 50. The filter is continously taking the average of
+         * the samples. Now the user goes outside and the value jumps over 1000.
+         * The difference between current average and new sample is larger than
+         * the reset threshold and filter is reset. It begins calculating a new
+         * average on samples around 1000 (say, 800, 1200, 1000, 1100 etc.)
+         *
+         * The value is integer (lux)
+         *
+         * @hide
+         */
+        public static final String LIGHT_FILTER_RESET = "light_filter_reset";
+
+        /**
+         * Sample interval of filter used when calculating automatic backlight.
+         * The value is integer (milliseconds)
+         *
+         * @hide
+         */
+        public static final String LIGHT_FILTER_INTERVAL = "light_filter_interval";
+
+        /**
          * Control whether the process CPU usage meter should be shown.
          */
         public static final String SHOW_PROCESSES = "show_processes";
@@ -1398,6 +1537,15 @@ public final class Settings {
             "notifications_use_ring_volume";
 
         /**
+         * Whether notifications should request audio focus. Could be disabled
+         * if a users favorite app behaves badly when audio focus is requested.
+         * Value is boolean.
+         *
+         * @hide
+         */
+        public static final String NOTIFICATIONS_AUDIO_FOCUS = "notifications_audio_focus";
+
+        /**
          * Whether silent mode should allow vibration feedback. This is used
          * internally in AudioService and the Sound settings activity to
          * coordinate decoupling of vibrate and silent modes. This setting
@@ -1407,14 +1555,6 @@ public final class Settings {
          * @hide
          */
         public static final String VIBRATE_IN_SILENT = "vibrate_in_silent";
-
-        /**
-         * Whether volume button should also set complete silence after
-         * vibration.
-         *
-         * @hide
-         */
-        public static final String VOLUME_CONTROL_SILENT = "volume_contol_silent";
 
         /**
          * The mapping of stream type (integer) to its setting.
@@ -1576,6 +1716,70 @@ public final class Settings {
          * disabled by the application.
          */
         public static final String ACCELEROMETER_ROTATION = "accelerometer_rotation";
+        
+        /**
+         * Specifies the number of recent apps to show (8, 12, 16)
+         * @hide
+         */
+        public static final String RECENT_APPS_NUMBER = "recent_apps_number";
+        
+        /**
+         * Specifies the number of recent apps to show (8, 12, 16)
+         * @hide
+         */
+        public static final String RECENT_APPS_SHOW_TITLE = "recent_apps_show_title";
+        
+        /**
+         * Specifies whether or not to use a custom app instead of the recent applications dialog
+         * @hide
+         */
+        public static final String USE_CUSTOM_APP = "use_custom_app";
+        
+        /**
+         * Stores the uri of the custom application to use
+         * @hide
+         */
+        public static final String SELECTED_CUSTOM_APP = "selected_custom_app";
+
+        /**
+         * Stores the uri of the defined application for user key 1
+         * @hide
+         */
+        public static final String USER_DEFINED_KEY1_APP = "user_defined_key1_app";
+
+        /**
+         * Stores the uri of the defined application for user key 2
+         * @hide
+         */
+        public static final String USER_DEFINED_KEY2_APP = "user_defined_key2_app";
+
+        /**
+         * Stores the uri of the defined application for user key 3
+         * @hide
+         */
+        public static final String USER_DEFINED_KEY3_APP = "user_defined_key3_app";
+
+        /**
+         * Specifies whether to prompt on the power dialog
+         * @hide
+         */
+        public static final String POWER_DIALOG_PROMPT = "power_dialog_prompt";
+
+        /**
+         * How many ms to delay before enabling the screen lock when the screen
+         * goes off due to timeout
+         *
+         * @hide
+         */
+        public static final String SCREEN_LOCK_TIMEOUT_DELAY = "screen_lock_timeout_delay";
+
+        /**
+         * How many ms to delay before enabling the screen lock when the screen
+         * is turned off by the user
+         *
+         * @hide
+         */
+        public static final String SCREEN_LOCK_SCREENOFF_DELAY = "screen_lock_screenoff_delay";
 
         /**
          * Whether the audible DTMF tones are played by the dialer when dialing. The value is
@@ -1721,6 +1925,27 @@ public final class Settings {
         public static final String NOTIFICATION_LIGHT_PULSE = "notification_light_pulse";
 
         /**
+         * Whether the notification LED should repeatedly blink when a notification is
+         * pending. The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String NOTIFICATION_LIGHT_BLINK = "notification_light_blink";
+
+        /**
+         * Whether to show turn off the notification LED (and charging light
+         * off) when screen is on. The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String NOTIFICATION_LIGHT_ALWAYS_ON = "notification_light_always_on";
+
+        /**
+         * Whether to turn on the amber LED while charging (and notifications light off).
+         * The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String NOTIFICATION_LIGHT_CHARGING = "notification_light_charging";
+
+        /**
          * Show pointer location on screen?
          * 0 = no
          * 1 = yes
@@ -1830,6 +2055,241 @@ public final class Settings {
         public static final String TORCH_STATE = "torch_state";
 
         /**
+         * Whether to keep the home app at a higher OOM adjustement
+         * @hide
+         */
+        public static final String LOCK_HOME_IN_MEMORY = "lock_home_in_memory";
+
+        /**
+         * Whether to keep the messaging app at a higher OOM adjustement
+         * @hide
+         */
+        public static final String LOCK_MMS_IN_MEMORY = "lock_mms_in_memory";
+
+        /**
+         * Whether to wake the screen with the trackball. The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
+
+        /**
+         * Whether to unlock the screen with the trackball.  The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String TRACKBALL_UNLOCK_SCREEN = "trackball_unlock_screen";
+
+        /**
+         * Whether to use the custom quick unlock screen control
+         * @hide
+         */
+        public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL =
+            "lockscreen_quick_unlock_control";
+
+        /**
+         * Whether to use the custom Phone and Messaging SlidingTab
+         * @hide
+         */
+        public static final String LOCKSCREEN_PHONE_MESSAGING_TAB = "lockscreen_phone_messaging_tab";
+
+        /**
+         * App to launch with the custom messaging tab
+         * @hide
+         */
+        public static final String LOCKSCREEN_MESSAGING_TAB_APP = "lockscreen_messaging_tab_app";
+
+        /**
+         * Sets the lockscreen style
+         * @hide
+         */
+        public static final String LOCKSCREEN_STYLE_PREF = "lockscreen_style_pref";
+
+        /**
+         * Pulse the Trackball with Screen On.  The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String TRACKBALL_SCREEN_ON = "trackball_screen_on";
+
+         /**
+          * Pulse notifications in Succession.  The value is boolean (1 or 0).
+          * @hide
+          */
+         public static final String TRACKBALL_NOTIFICATION_SUCCESSION = "trackball_sucession";
+
+         /**
+          * Pulse notifications in Succession.  The value is boolean (1 or 0).
+          * @hide
+          */
+         public static final String TRACKBALL_NOTIFICATION_RANDOM = "trackball_random_colors";
+
+         /**
+          * Pulse notifications in Succession.  The value is boolean (1 or 0).
+          * @hide
+          */
+         public static final String TRACKBALL_NOTIFICATION_PULSE_ORDER = "trackball_pulse_in_order";
+
+	/**
+          * Beldn Notification Colors.  The value is boolean (1 or 0).
+          * @hide
+          */
+         public static final String TRACKBALL_NOTIFICATION_BLEND_COLOR = "trackball_blend_color";
+
+        /**
+         * Trackball Notification Colors. The value is String  pkg=color|pkg=color
+         * @hide
+         */
+        public static final String NOTIFICATION_PACKAGE_COLORS = "|";
+
+        /**
+         * Trackball Notification List. The value is String  pkg|pkg
+         * @hide
+         */
+        public static final String NOTIFICATION_PACKAGE_LIST = "|";
+
+        /**
+         * Trackball Notification Colors Debugging. The value is boolean (1 or 0)
+         * @hide
+         */
+        public static final String NOTIFICATION_PACKAGE_COLORS_GET_PACK = "0";
+
+        /**
+         * Whether to unlock the menu key.  The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String MENU_UNLOCK_SCREEN = "menu_unlock_screen";
+
+        /**
+         * Whether to enable quiet hours.
+         * @hide
+         */
+        public static final String QUIET_HOURS_ENABLED = "quiet_hours_enabled";
+
+        /**
+         * Sets when quiet hours starts. This is stored in minutes from the start of the day.
+         * @hide
+         */
+        public static final String QUIET_HOURS_START = "quiet_hours_start";
+
+        /**
+         * Sets when quiet hours end. This is stored in minutes from the start of the day.
+         * @hide
+         */
+        public static final String QUIET_HOURS_END = "quiet_hours_end";
+
+        /**
+         * Whether to remove the sound from outgoing notifications during quiet hours.
+         * @hide
+         */
+        public static final String QUIET_HOURS_MUTE = "quiet_hours_mute";
+
+        /**
+         * Whether to remove the vibration from outgoing notifications during quiet hours.
+         * @hide
+         */
+        public static final String QUIET_HOURS_STILL = "quiet_hours_still";
+
+        /**
+         * Whether to attempt to dim the LED color during quiet hours.
+         * @hide
+         */
+        public static final String QUIET_HOURS_DIM = "quiet_hours_dim";
+
+        /**
+         * Whether to use custom notification bar
+         * @hide
+         */
+        public static final String LOCKSCREEN_MUSIC_CONTROLS = "lockscreen_music_controls";
+
+        /**
+         * Whether to use custom notification bar
+         * @hide
+         */
+        public static final String LOCKSCREEN_ALWAYS_MUSIC_CONTROLS = "lockscreen_always_music_controls";
+        
+        /**
+         * Whether to listen for gestures on the lockscreen
+         * @hide
+         */
+        public static final String LOCKSCREEN_GESTURES_ENABLED = "lockscreen_gestures_enabled";
+
+        /**
+         * Whether to show the gesture trail on the lockscreen
+         * @hide
+         */
+        public static final String LOCKSCREEN_GESTURES_TRAIL = "lockscreen_gestures_trail";
+
+        /**
+         * Sensitivity for parsing gestures on the lockscreen
+         * @hide
+         */
+        public static final String LOCKSCREEN_GESTURES_SENSITIVITY = "lockscreen_gestures_sensitivity";
+
+        /**
+         * Color value for gestures on lockscreen
+         * @hide
+         */
+        public static final String LOCKSCREEN_GESTURES_COLOR = "lockscreen_gestures_color";
+
+        /**
+         * Use the Notification Power Widget? (Who wouldn't!)
+         *
+         * @hide
+         */
+        public static final String EXPANDED_VIEW_WIDGET = "expanded_view_widget";
+
+        /**
+         * Whether to hide the notification screen after clicking on a widget
+         * button
+         *
+         * @hide
+         */
+        public static final String EXPANDED_HIDE_ONCHANGE = "expanded_hide_onchange";
+
+        /**
+         * Notification Indicator Color
+         *
+         * @hide
+         */
+        public static final String EXPANDED_VIEW_WIDGET_COLOR = "expanded_widget_color";
+
+        /**
+         * Widget Buttons to Use
+         *
+         * @hide
+         */
+        public static final String WIDGET_BUTTONS = "expanded_widget_buttons";
+
+        /** @hide */
+        public static final String EXPANDED_BRIGHTNESS_MODE = "expanded_brightness_mode";
+
+        /** @hide */
+        public static final String EXPANDED_NETWORK_MODE = "expanded_network_mode";
+
+        /** @hide */
+        public static final String EXPANDED_SCREENTIMEOUT_MODE = "expanded_screentimeout_mode";
+
+        /** @hide */
+        public static final String EXPANDED_RING_MODE = "expanded_ring_mode";
+
+        /** @hide */
+        public static final String EXPANDED_FLASH_MODE = "expanded_flash_mode";
+
+        /** @hide */
+        public static final String ELECTRON_BEAM_ANIMATION_ON = "electron_beam_animation_on";
+
+        /** @hide */
+        public static final String ELECTRON_BEAM_ANIMATION_OFF = "electron_beam_animation_off";
+
+        /** @hide */
+        public static final String OVERSCROLL_EFFECT = "overscroll_effect";
+
+        /**
+         * Sets the overscroller weight (edge bounce effect on lists)
+         * @hide
+         */
+        public static final String OVERSCROLL_WEIGHT = "overscroll_weight";
+
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          * @hide
@@ -1892,6 +2352,27 @@ public final class Settings {
             NOTIFICATION_LIGHT_PULSE,
             SIP_CALL_OPTIONS,
             SIP_RECEIVE_CALLS,
+            NOTIFICATION_LIGHT_BLINK,
+            NOTIFICATION_LIGHT_ALWAYS_ON,
+            NOTIFICATION_LIGHT_CHARGING,
+            QUIET_HOURS_ENABLED,
+            QUIET_HOURS_START,
+            QUIET_HOURS_END,
+            QUIET_HOURS_MUTE,
+            QUIET_HOURS_STILL,
+            QUIET_HOURS_DIM,
+            HAPTIC_FEEDBACK_UP_ENABLED,
+            HAPTIC_FEEDBACK_ALL_ENABLED,
+            HAPTIC_DOWN_ARRAY,
+            HAPTIC_UP_ARRAY,
+            HAPTIC_LONG_ARRAY,
+            HAPTIC_DOWN_ARRAY_DEFAULT,
+            HAPTIC_UP_ARRAY_DEFAULT,
+            HAPTIC_LONG_ARRAY_DEFAULT,
+            HAPTIC_TAP_ARRAY,
+            HAPTIC_TAP_ARRAY_DEFAULT,
+            LOCKSCREEN_GESTURES_SENSITIVITY,
+            LOCKSCREEN_GESTURES_COLOR
         };
 
         // Settings moved to Settings.Secure
@@ -2510,6 +2991,48 @@ public final class Settings {
          */
         public static final String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED =
             "lock_pattern_tactile_feedback_enabled";
+
+        /**
+         * LOCK_DOTS_VISIBLE
+         * @hide
+         */
+        public static final String LOCK_DOTS_VISIBLE = "lock_pattern_dotsvisible";
+
+        /**
+         * LOCK_SHOW_ERROR_PATH
+         * @hide
+         */
+        public static final String LOCK_SHOW_ERROR_PATH = "lock_pattern_show_error_path";
+
+        /**
+         * LOCK_INCORRECT_DELAY
+         * @hide
+         */
+        public static final String LOCK_INCORRECT_DELAY = "lock_pattern_incorrect_delay";
+
+        /**
+         * SHOW_UNLOCK_TEXT
+         * @hide
+         */
+        public static final String SHOW_UNLOCK_TEXT = "lock_pattern_show_unlock_text";
+
+        /**
+         * SHOW_UNLOCK_ERR_TEXT
+         * @hide
+         */
+        public static final String SHOW_UNLOCK_ERR_TEXT = "lock_pattern_show_unlock_err_text";
+
+        /**
+         * LOCK_SHOW_CUSTOM_MSG
+         * @hide
+         */
+        public static final String LOCK_SHOW_CUSTOM_MSG = "lock_screen_show_custom_msg";
+
+        /**
+         * LOCK_CUSTOM_MSG
+         * @hide
+         */
+        public static final String LOCK_CUSTOM_MSG = "lock_screen_custom_msg";
 
         /**
          * Whether assisted GPS should be enabled or not.
@@ -3570,6 +4093,32 @@ public final class Settings {
          */
         public static final String INET_CONDITION_DEBOUNCE_DOWN_DELAY =
                 "inet_condition_debounce_down_delay";
+
+        /**
+         * Whether to allow move of any app to external storage
+         * @hide
+         */
+        public static final String ALLOW_MOVE_ALL_APPS_EXTERNAL =
+                "allow_move_all_apps_external";
+
+        /**
+         * Whether to allow killing of the foreground process by long-pressing
+         * the device's BACK button.
+         * @hide
+         */
+        public static final String KILL_APP_LONGPRESS_BACK = "kill_app_on_longpress_back";
+        
+        /**
+         * Whether to disable the lockscreen unlock tab
+         * @hide
+         */
+        public static final String LOCKSCREEN_GESTURES_DISABLE_UNLOCK = "lockscreen_gestures_disable_unlock";
+
+        /**
+         * Virtual network roaming
+         * @hide
+         */
+        public static final String MVNO_ROAMING = "button_mvno_roaming_key";
 
         /**
          * @hide

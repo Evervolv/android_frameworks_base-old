@@ -1801,7 +1801,7 @@ void OMXCodec::on_message(const omx_message &msg) {
                     && mPortStatus[kPortIndexInput] != SHUTTING_DOWN) {
                 CHECK_EQ(mPortStatus[kPortIndexInput], ENABLED);
                 drainInputBuffer(&buffers->editItemAt(i));
-            } else if (mState == EXECUTING_TO_IDLE && mPortStatus[kPortIndexInput] == SHUTTING_DOWN) {
+            } else if ((mQuirks & kRequiresFlushBeforeShutdown) && mState == EXECUTING_TO_IDLE && mPortStatus[kPortIndexInput] == SHUTTING_DOWN) {
                 if (countBuffersWeOwn(mPortBuffers[kPortIndexInput]) == mPortBuffers[kPortIndexInput].size()
                     && countBuffersWeOwn(mPortBuffers[kPortIndexOutput]) == mPortBuffers[kPortIndexOutput].size()) {
                     CODEC_LOGV("Finished emptying both ports, now completing "
@@ -1981,6 +1981,10 @@ void OMXCodec::onEvent(OMX_EVENTTYPE event, OMX_U32 data1, OMX_U32 data2) {
 
         case OMX_EventError:
         {
+            if (data1 && (OMX_S32)data1 == OMX_ErrorSameState) {
+                /* Don't raise fatal errors for samestate changes */
+                break;
+            }
             CODEC_LOGE("ERROR(0x%08lx, %ld)", data1, data2);
 
             setState(ERROR);

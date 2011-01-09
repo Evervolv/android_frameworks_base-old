@@ -85,13 +85,18 @@ SurfaceFlinger::SurfaceFlinger()
         mFreezeDisplayTime(0),
         mDebugRegion(0),
         mDebugBackground(0),
+        mRenderEffect(0),
+        mRenderColorR(0),
+        mRenderColorG(0),
+        mRenderColorB(0),
         mDebugInSwapBuffers(0),
         mLastSwapBufferTime(0),
         mDebugInTransaction(0),
         mLastTransactionTime(0),
         mBootFinished(false),
         mConsoleSignals(0),
-        mSecureFrameBuffer(0)
+        mSecureFrameBuffer(0),
+        mUseDithering(true)
 {
     init();
 }
@@ -106,9 +111,22 @@ void SurfaceFlinger::init()
     mDebugRegion = atoi(value);
     property_get("debug.sf.showbackground", value, "0");
     mDebugBackground = atoi(value);
+    property_get("debug.sf.render_effect", value, "0");
+    mRenderEffect = atoi(value);
+    property_get("persist.sys.use_dithering", value, "1");
+    mUseDithering = atoi(value) == 1;
 
     LOGI_IF(mDebugRegion,       "showupdates enabled");
     LOGI_IF(mDebugBackground,   "showbackground enabled");
+    LOGI_IF(mUseDithering,      "dithering enabled");
+
+    // default calibration color set (disabled by default)
+    property_get("debug.sf.render_color_red", value, "975");
+    mRenderColorR = atoi(value);
+    property_get("debug.sf.render_color_green", value, "937");
+    mRenderColorG = atoi(value);
+    property_get("debug.sf.render_color_blue", value, "824");
+    mRenderColorB = atoi(value);
 }
 
 SurfaceFlinger::~SurfaceFlinger()
@@ -1167,6 +1185,12 @@ sp<ISurface> SurfaceFlinger::createSurface(const sp<Client>& client, int pid,
             params->width = w;
             params->height = h;
             params->format = format;
+
+#ifdef NO_RGBX_8888
+            if (params->format == PIXEL_FORMAT_RGBX_8888)
+                params->format = PIXEL_FORMAT_RGBA_8888;
+#endif
+
             if (normalLayer != 0) {
                 Mutex::Autolock _l(mStateLock);
                 mLayerMap.add(surfaceHandle->asBinder(), normalLayer);
@@ -1529,12 +1553,30 @@ status_t SurfaceFlinger::onTransact(
                 reply->writeInt32(0);
                 reply->writeInt32(mDebugRegion);
                 reply->writeInt32(mDebugBackground);
+                reply->writeInt32(mRenderEffect);
                 return NO_ERROR;
             case 1013: {
                 Mutex::Autolock _l(mStateLock);
                 const DisplayHardware& hw(graphicPlane(0).displayHardware());
                 reply->writeInt32(hw.getPageFlipCount());
             }
+            case 1014: { // RENDER_EFFECT
+                // TODO: filter to only allow valid effects
+                mRenderEffect = data.readInt32();
+                return NO_ERROR;
+            }
+	    case 1015: { // RENDER_COLOR_RED
+		mRenderColorR = data.readInt32();
+		return NO_ERROR;
+	    }
+	    case 1016: { // RENDER_COLOR_GREEN
+                mRenderColorG = data.readInt32();
+		return NO_ERROR;
+	    }
+	    case 1017: { // RENDER_COLOR_BLUE
+                mRenderColorB = data.readInt32();
+		return NO_ERROR;
+	    }
             return NO_ERROR;
         }
     }
@@ -1606,8 +1648,10 @@ status_t SurfaceFlinger::electronBeamOffAnimationImplLocked()
 {
     status_t result = PERMISSION_DENIED;
 
+#ifndef HAS_LIMITED_EGL
     if (!GLExtensions::getInstance().haveFramebufferObject())
         return INVALID_OPERATION;
+#endif
 
     // get screen geometry
     const DisplayHardware& hw(graphicPlane(0).displayHardware());
@@ -1749,9 +1793,10 @@ status_t SurfaceFlinger::electronBeamOnAnimationImplLocked()
 {
     status_t result = PERMISSION_DENIED;
 
+#ifndef HAS_LIMITED_EGL
     if (!GLExtensions::getInstance().haveFramebufferObject())
         return INVALID_OPERATION;
-
+#endif
 
     // get screen geometry
     const DisplayHardware& hw(graphicPlane(0).displayHardware());

@@ -39,7 +39,11 @@ public class LightsService {
     static final int LIGHT_ID_ATTENTION = 5;
     static final int LIGHT_ID_BLUETOOTH = 6;
     static final int LIGHT_ID_WIFI = 7;
-    static final int LIGHT_ID_COUNT = 8;
+    static final int LIGHT_ID_CAPS = 8;
+    static final int LIGHT_ID_FUNC = 9;
+    static final int LIGHT_ID_WIMAX = 10;
+    static final int LIGHT_ID_FLASHLIGHT = 11;
+    static final int LIGHT_ID_COUNT = 12;
 
     static final int LIGHT_FLASH_NONE = 0;
     static final int LIGHT_FLASH_TIMED = 1;
@@ -56,6 +60,17 @@ public class LightsService {
     static final int BRIGHTNESS_MODE_SENSOR = 1;
 
     private final Light mLights[] = new Light[LIGHT_ID_COUNT];
+
+    private static final String FLASHLIGHT_FILE;
+    private static final String FLASHLIGHT_FILE_SPOTLIGHT = "/sys/class/leds/spotlight/brightness";
+    static {
+        File ff = new File(FLASHLIGHT_FILE_SPOTLIGHT);
+        if (ff.exists()) {
+            FLASHLIGHT_FILE = FLASHLIGHT_FILE_SPOTLIGHT;
+        } else {
+            FLASHLIGHT_FILE = "/sys/class/leds/flashlight/brightness";
+        }
+    }
 
     public final class Light {
 
@@ -94,12 +109,19 @@ public class LightsService {
 
         public void pulse(int color, int onMS) {
             synchronized (this) {
-                if (mColor == 0 && !mFlashing) {
+		if (mColor == 0 && !mFlashing) {
                     setLightLocked(color, LIGHT_FLASH_HARDWARE, onMS, 1000, BRIGHTNESS_MODE_USER);
                     mH.sendMessageDelayed(Message.obtain(mH, 1, this), onMS);
                 }
             }
         }
+
+	public void notificationPulse(int color, int onMs, int offMs) {
+		synchronized (this) {
+			setLightLocked(color, LIGHT_FLASH_TIMED, onMs, 1000, BRIGHTNESS_MODE_USER);
+                	mH.sendMessageDelayed(Message.obtain(mH, 1, this), onMs);
+		}
+	}
 
         public void turnOff() {
             synchronized (this) {
@@ -114,13 +136,13 @@ public class LightsService {
         }
 
         private void setLightLocked(int color, int mode, int onMS, int offMS, int brightnessMode) {
-            if (color != mColor || mode != mMode || onMS != mOnMS || offMS != mOffMS) {
-                mColor = color;
-                mMode = mode;
-                mOnMS = onMS;
-                mOffMS = offMS;
-                setLight_native(mNativePointer, mId, color, mode, onMS, offMS, brightnessMode);
-            }
+		if (color != mColor || mode != mMode || onMS != mOnMS || offMS != mOffMS) {
+                	mColor = color;
+                	mMode = mode;
+                	mOnMS = onMS;
+                	mOffMS = offMS;
+                	setLight_native(mNativePointer, mId, color, mode, onMS, offMS, brightnessMode);
+            	}
         }
 
         private int mId;
@@ -136,8 +158,6 @@ public class LightsService {
      * IHardwareService API. This is expected to go away in the next release.
      */
     private final IHardwareService.Stub mLegacyFlashlightHack = new IHardwareService.Stub() {
-
-        private static final String FLASHLIGHT_FILE = "/sys/class/leds/spotlight/brightness";
 
         public boolean getFlashlightEnabled() {
             try {

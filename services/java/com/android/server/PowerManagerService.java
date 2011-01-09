@@ -80,6 +80,7 @@ class PowerManagerService extends IPowerManager.Stub
         implements LocalPowerManager, Watchdog.Monitor {
 
     private static final String TAG = "PowerManagerService";
+    private static final String TAGF = "LightFilter";
     static final String PARTIAL_NAME = "PowerManagerService";
 
     private static final boolean LOG_PARTIAL_WL = false;
@@ -195,6 +196,8 @@ class PowerManagerService extends IPowerManager.Stub
     private LightsService.Light mButtonLight;
     private LightsService.Light mKeyboardLight;
     private LightsService.Light mAttentionLight;
+    private LightsService.Light mCapsLight;
+    private LightsService.Light mFnLight;
     private UnsynchronizedWakeLock mBroadcastWakeLock;
     private UnsynchronizedWakeLock mStayOnWhilePluggedInScreenDimLock;
     private UnsynchronizedWakeLock mStayOnWhilePluggedInPartialLock;
@@ -246,10 +249,42 @@ class PowerManagerService extends IPowerManager.Stub
     private int mWarningSpewThrottleCount;
     private long mWarningSpewThrottleTime;
     private int mAnimationSetting = ANIM_SETTING_OFF;
+    private boolean mFlashlightAffectsLightSensor;
+    private boolean mIgnoreLightSensor;
 
     // Must match with the ISurfaceComposer constants in C++.
     private static final int ANIM_SETTING_ON = 0x01;
     private static final int ANIM_SETTING_OFF = 0x10;
+
+    // Custom light housekeeping
+    private long mLightSettingsTag = -1;
+
+    // Light sensor levels / values
+    private boolean mLightDecrease;
+    private float mLightHysteresis;
+    private boolean mCustomLightEnabled;
+    private int[] mCustomLightLevels;
+    private int[] mCustomLcdValues;
+    private int[] mCustomButtonValues;
+    private int[] mCustomKeyboardValues;
+    private int mLastLcdValue;
+    private int mLastButtonValue;
+    private int mLastKeyboardValue;
+    private int mScreenDim = Power.BRIGHTNESS_DIM;
+    private boolean mAlwaysOnAndDimmed;
+
+    // Light sensor filter, times in milliseconds
+    private boolean mLightFilterEnabled;
+    private boolean mLightFilterRunning;
+    private int mLightFilterSample = -1;
+    private int[] mLightFilterSamples;
+    private int mLightFilterIndex;
+    private int mLightFilterSampleCounter;
+    private int mLightFilterSum;
+    private int mLightFilterEqualCounter;
+    private int mLightFilterWindow;
+    private int mLightFilterInterval;
+    private int mLightFilterReset;
 
     // Used when logging number and duration of touch-down cycles
     private long mTotalTouchDownTime;
@@ -504,6 +539,8 @@ class PowerManagerService extends IPowerManager.Stub
         mButtonLight = lights.getLight(LightsService.LIGHT_ID_BUTTONS);
         mKeyboardLight = lights.getLight(LightsService.LIGHT_ID_KEYBOARD);
         mAttentionLight = lights.getLight(LightsService.LIGHT_ID_ATTENTION);
+        mCapsLight = lights.getLight(LightsService.LIGHT_ID_CAPS);
+        mFnLight = lights.getLight(LightsService.LIGHT_ID_FUNC);
 
         nativeInit();
         synchronized (mLocks) {
@@ -2334,6 +2371,108 @@ class PowerManagerService extends IPowerManager.Stub
         }
     };
 
+    private Runnable mLightFilterTask = new Runnable() {
+        public void run() {
+            synchronized (mLocks) {
+                boolean again = false;
+                if (mLightFilterSample > 0 && !isScreenTurningOffLocked()) {
+                    int discarded = mLightFilterSamples[mLightFilterIndex];
+                    mLightFilterSamples[mLightFilterIndex] = mLightFilterSample;
+                    mLightFilterIndex = (mLightFilterIndex + 1) %
+                            mLightFilterSamples.length;
+                    mLightFilterSampleCounter = Math.min(mLightFilterSampleCounter + 1,
+                             mLightFilterSamples.length);
+                    if (mLightFilterSampleCounter < mLightFilterSamples.length) {
+                        discarded = 0; // Don't subtract if window isn't full
+                    }
+                    // Add new value...
+                    mLightFilterSum += mLightFilterSample;
+                    // ... and subtract discarded value
+                    mLightFilterSum -= discarded;
+                    // Count can't be zero here
+                    int average = Math.round(
+                                (float)mLightFilterSum / mLightFilterSampleCounter);
+                    if (average != (int)mLightSensorValue) {
+                        lightSensorChangedLocked(average);
+                    }
+                    if ((int)mLightSensorValue != mLightFilterSample) {
+                        mLightFilterEqualCounter = 0;
+                        again = true;
+                        if (mDebugLightSensor) {
+                            Slog.d(TAGF, "Tick: " + (int)mLightSensorValue + "::" +
+                                    mLightFilterSample + " sum:" + mLightFilterSum +
+                                    " samples:" + mLightFilterSampleCounter);
+                        }
+                    } else {
+                        mLightFilterEqualCounter++;
+                        again = mLightFilterEqualCounter < mLightFilterSamples.length;
+                        if (mDebugLightSensor) {
+                            Slog.d(TAGF, "Done: " + (int)mLightSensorValue + " " +
+                            mLightFilterEqualCounter + "/" + mLightFilterSamples.length +
+                            " sum:" + mLightFilterSum + " samples:" + mLightFilterSampleCounter);
+                        }
+                    }
+                }
+                if (again) {
+                    mHandler.postDelayed(mLightFilterTask, mLightFilterInterval);
+                } else {
+                    lightFilterStop();
+                }
+            }
+        }
+    };
+
+    private void lightFilterStop() {
+        if (mDebugLightSensor) {
+            Slog.d(TAGF, "stop");
+        }
+        mLightFilterRunning = false;
+        mHandler.removeCallbacks(mLightFilterTask);
+        mLightFilterSample = -1;
+    }
+
+    private void lightFilterReset(int initial) {
+        mLightFilterEqualCounter = 0;
+        mLightFilterIndex = 0;
+        mLightFilterSamples = new int[(mLightFilterWindow / mLightFilterInterval)];
+        mLightFilterSampleCounter = initial == -1 ? 0 : mLightFilterSamples.length;
+        mLightFilterSum = initial == -1 ? 0 : initial * mLightFilterSamples.length;
+        java.util.Arrays.fill(mLightFilterSamples, initial);
+        if (mDebugLightSensor) {
+            Slog.d(TAGF, "reset: " + initial);
+        }
+    }
+
+    private void resetLastLightValues() {
+        mLastLcdValue = -1;
+        mLastButtonValue = -1;
+        mLastKeyboardValue = -1;
+    }
+
+    public int getLightSensorValue() {
+        return (int) mLightSensorValue;
+    }
+
+    public int getRawLightSensorValue() {
+        if (mLightFilterEnabled && mLightFilterSample != -1) {
+            return mLightFilterSample;
+        } else {
+            return getLightSensorValue();
+        }
+    }
+
+    public int getLightSensorScreenBrightness() {
+        return mLightSensorScreenBrightness;
+    }
+
+    public int getLightSensorButtonBrightness() {
+        return mLightSensorButtonBrightness;
+    }
+
+    public int getLightSensorKeyboardBrightness() {
+        return mLightSensorKeyboardBrightness;
+    }
+
     private void dockStateChanged(int state) {
         synchronized (mLocks) {
             mIsDocked = (state != Intent.EXTRA_DOCK_STATE_UNDOCKED);
@@ -2545,6 +2684,11 @@ class PowerManagerService extends IPowerManager.Stub
                         }
                     }
                     userActivity(SystemClock.uptimeMillis(), false, BUTTON_EVENT, true);
+                }
+                // If hiding keyboard, turn off leds
+                if (!visible) {
+                    setKeyboardLight(false, 1);
+                    setKeyboardLight(false, 2);
                 }
             }
         }
@@ -2923,6 +3067,21 @@ class PowerManagerService extends IPowerManager.Stub
         }
     }
 
+    public void setKeyboardLight(boolean on, int key) {
+        if (key == 1) {
+            if (on) 
+                mCapsLight.setColor(0x00ffffff);
+            else
+                mCapsLight.turnOff();
+        } else if (key == 2) {
+            if (on) 
+                mFnLight.setColor(0x00ffffff);
+            else
+                mFnLight.turnOff();
+        }
+    }
+
+
     SensorEventListener mProximityListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
             long milliseconds = SystemClock.elapsedRealtime();
@@ -2981,6 +3140,41 @@ class PowerManagerService extends IPowerManager.Stub
                     Slog.d(TAG, "onSensorChanged: light value: " + value);
                 }
                 mHandler.removeCallbacks(mAutoBrightnessTask);
+                mLightFilterSample = value;
+                if (mAutoBrightessEnabled && mLightFilterEnabled) {
+                    if (mLightFilterRunning && mLightSensorValue != -1) {
+                        // Large changes -> quick response
+                        int diff = value - (int)mLightSensorValue;
+                        if (mLightFilterReset != -1 && diff > mLightFilterReset && // Only increasing
+                                mLightSensorValue < 1500) { // Only "indoors"
+                            if (mDebugLightSensor) {
+                                Slog.d(TAGF, "reset cause: " + value +
+                                        " " + mLightSensorValue + " " + diff);
+                            }
+                            // Push filter faster towards sensor value
+                            lightFilterReset((int)(mLightSensorValue + diff / 2f));
+                        }
+                        if (mDebugLightSensor) {
+                            Slog.d(TAGF, "sample: " + value);
+                        }
+                    } else {
+                        if (mLightSensorValue == -1 ||
+                                milliseconds < mLastScreenOnTime + mLightSensorWarmupTime) {
+                            // process the value immediately if screen has just turned on
+                            lightFilterReset(-1);
+                            lightSensorChangedLocked(value);
+                        }
+                        if (!mLightFilterRunning) {
+                            if (mDebugLightSensor) {
+                                Slog.d(TAGF, "start: " + value);
+                            }
+                            mLightFilterRunning = true;
+                            mHandler.postDelayed(mLightFilterTask, LIGHT_SENSOR_DELAY);
+                        }
+                    }
+                    return;
+                }
+
                 if (mLightSensorValue != value) {
                     if (mLightSensorValue == -1 ||
                             milliseconds < mLastScreenOnTime + mLightSensorWarmupTime) {

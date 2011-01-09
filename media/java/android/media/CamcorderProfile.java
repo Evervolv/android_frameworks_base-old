@@ -147,7 +147,7 @@ public class CamcorderProfile
      * @param quality the target quality level for the camcorder profile
      */
     public static CamcorderProfile get(int cameraId, int quality) {
-        if (quality < QUALITY_LOW || quality > QUALITY_HIGH) {
+        if (quality < QUALITY_LOW || quality > QUALITY_HD) {
             String errMessage = "Unsupported quality level: " + quality;
             throw new IllegalArgumentException(errMessage);
         }

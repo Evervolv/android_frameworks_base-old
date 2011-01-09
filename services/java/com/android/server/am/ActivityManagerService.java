@@ -1674,7 +1674,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (cr.binding != null && cr.binding.service != null
                         && cr.binding.service.app != null
                         && cr.binding.service.app.lruSeq != mLruSeq) {
-                    updateLruProcessInternalLocked(cr.binding.service.app, oomAdj,
+                    updateLruProcessInternalLocked(cr.binding.service.app, false,
                             updateActivityTime, i+1);
                 }
             }
@@ -1682,7 +1682,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         if (app.conProviders.size() > 0) {
             for (ContentProviderRecord cpr : app.conProviders.keySet()) {
                 if (cpr.app != null && cpr.app.lruSeq != mLruSeq) {
-                    updateLruProcessInternalLocked(cpr.app, oomAdj,
+                    updateLruProcessInternalLocked(cpr.app, false,
                             updateActivityTime, i+1);
                 }
             }
@@ -3678,9 +3678,11 @@ public final class ActivityManagerService extends ActivityManagerNative
                 String[] pkgs = intent.getStringArrayExtra(Intent.EXTRA_PACKAGES);
                 if (pkgs != null) {
                     for (String pkg : pkgs) {
-                        if (forceStopPackageLocked(pkg, -1, false, false, false)) {
-                            setResultCode(Activity.RESULT_OK);
-                            return;
+                        synchronized (ActivityManagerService.this) {
+                         if (forceStopPackageLocked(pkg, -1, false, false, false)) {
+                             setResultCode(Activity.RESULT_OK);
+                             return;
+                         }
                         }
                     }
                 }
@@ -4693,7 +4695,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             if (localLOGV) Slog.v(
                 TAG, "getTasks: max=" + maxNum + ", flags=" + flags
                 + ", receiver=" + receiver);
-
+	    /** This could be bad? Possibly, Might look into better way to do it: Pedlar
             if (checkCallingPermission(android.Manifest.permission.GET_TASKS)
                     != PackageManager.PERMISSION_GRANTED) {
                 if (receiver != null) {
@@ -4710,7 +4712,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                         + " requires " + android.Manifest.permission.GET_TASKS;
                 Slog.w(TAG, msg);
                 throw new SecurityException(msg);
-            }
+            } **/
 
             int pos = mMainStack.mHistory.size()-1;
             ActivityRecord next =
@@ -4822,8 +4824,8 @@ public final class ActivityManagerService extends ActivityManagerNative
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum,
             int flags) {
         synchronized (this) {
-            enforceCallingPermission(android.Manifest.permission.GET_TASKS,
-                    "getRecentTasks()");
+            //enforceCallingPermission(android.Manifest.permission.GET_TASKS,
+            //        "getRecentTasks()");
 
             IPackageManager pm = AppGlobals.getPackageManager();
             
@@ -9775,6 +9777,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (DEBUG_SERVICE) Slog.v(TAG,
                         "doneExecuting remove stopping " + r);
                 mStoppingServices.remove(r);
+                r.bindings.clear();
             }
             updateOomAdjLocked(r.app);
         }
@@ -9920,6 +9923,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             }
 
             ProcessRecord proc = mBackupTarget.app;
+            mBackupTarget.app = null;
             mBackupTarget = null;
             mBackupAppName = null;
 
@@ -11008,6 +11012,9 @@ public final class ActivityManagerService extends ActivityManagerNative
                             performReceiveLocked(r.callerApp, r.resultTo,
                                 new Intent(r.intent), r.resultCode,
                                 r.resultData, r.resultExtras, false, false);
+                            // Set this to null so that the reference
+                            // (local and remote) isnt kept in the mBroadcastHistory.
+                            r.resultTo = null;
                         } catch (RemoteException e) {
                             Slog.w(TAG, "Failure sending broadcast result of " + r.intent, e);
                         }
@@ -11509,7 +11516,15 @@ public final class ActivityManagerService extends ActivityManagerNative
         int adj;
         int schedGroup;
         int N;
-        if (app == TOP_APP) {
+        if ("com.android.mms".equals(app.processName) &&
+            Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.LOCK_MMS_IN_MEMORY, 0) == 1 ) {
+            // MMS can die in situations of heavy memory pressure.
+            // Always push it to the top.
+            adj = FOREGROUND_APP_ADJ;
+            schedGroup = Process.THREAD_GROUP_DEFAULT;
+            app.adjType = "mms";
+        } else if (app == TOP_APP) {
             // The last app on the list is the foreground app.
             adj = FOREGROUND_APP_ADJ;
             schedGroup = Process.THREAD_GROUP_DEFAULT;
@@ -11551,7 +11566,8 @@ public final class ActivityManagerService extends ActivityManagerNative
         } else if (app == mHomeProcess) {
             // This process is hosting what we currently consider to be the
             // home app, so we don't want to let it go into the background.
-            adj = HOME_APP_ADJ;
+            adj =  Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.LOCK_HOME_IN_MEMORY, 0) == 1 ? VISIBLE_APP_ADJ : HOME_APP_ADJ;
             schedGroup = Process.THREAD_GROUP_BG_NONINTERACTIVE;
             app.adjType = "home";
         } else if ((N=app.activities.size()) != 0) {
