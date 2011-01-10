@@ -1945,7 +1945,7 @@ void OMXCodec::on_message(const omx_message &msg) {
 
                 mFilledBuffers.push_back(i);
                 mBufferFilled.signal();
-            } else if (mState == EXECUTING_TO_IDLE) {
+            } else if ((mQuirks & kRequiresFlushBeforeShutdown) && mState == EXECUTING_TO_IDLE) {
                 if (countBuffersWeOwn(mPortBuffers[kPortIndexInput]) == mPortBuffers[kPortIndexInput].size()
                     && countBuffersWeOwn(mPortBuffers[kPortIndexOutput]) == mPortBuffers[kPortIndexOutput].size()) {
                     CODEC_LOGV("Finished flushing both ports, now completing "
