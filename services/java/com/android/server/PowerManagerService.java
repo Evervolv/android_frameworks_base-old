@@ -304,8 +304,8 @@ class PowerManagerService extends IPowerManager.Stub
 
     
     
-    boolean mUseScreenOnAnim = false;
-    boolean mUseScreenOffAnim = false;
+    private boolean mUseScreenOnAnim = false;
+    private boolean mUseScreenOffAnim = false;
     
     /*
     static PrintStream mLog;
@@ -511,7 +511,7 @@ class PowerManagerService extends IPowerManager.Stub
                     mAnimationSetting |= ANIM_SETTING_OFF;
                 }
                 if (transitionScale > 0.5f && mUseScreenOnAnim) {
-                    mAnimationSetting |= ANIM_SETTING_ON;
+                    mAnimationSetting |= ANIM_SETTING_ON;	
                 }
             }
         }

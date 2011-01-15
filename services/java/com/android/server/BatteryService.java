@@ -16,6 +16,7 @@
 
 package com.android.server;
 
+
 import com.android.internal.app.IBatteryStats;
 import com.android.server.am.BatteryStatsService;
 
@@ -44,6 +45,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static android.provider.Settings.System.BATTERY_OPTION;
 
 /**
  * <p>BatteryService monitors the charging status, and charge level of the device
@@ -120,6 +122,10 @@ class BatteryService extends Binder {
 
     private boolean mSentLowBatteryBroadcast = false;
 
+    
+    private int mBatteryOption = 1;
+    
+    
     public BatteryService(Context context) {
         mContext = context;
         mBatteryStats = BatteryStatsService.getService();
@@ -131,6 +137,8 @@ class BatteryService extends Binder {
 
         mUEventObserver.startObserving("SUBSYSTEM=power_supply");
 
+        mBatteryOption = Settings.System.getInt(mContext.getContentResolver(), BATTERY_OPTION, 1);
+        
         // set initial status
         update();
     }
@@ -436,17 +444,26 @@ class BatteryService extends Binder {
             }
         }
     }
-
+    
     private final int getIcon(int level) {
         if (mBatteryStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
             return com.android.internal.R.drawable.stat_sys_battery_charge;
         } else if (mBatteryStatus == BatteryManager.BATTERY_STATUS_DISCHARGING ||
-                mBatteryStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING ||
-                mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL) {
-            return com.android.internal.R.drawable.stat_sys_battery;
+            mBatteryStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING ||
+            mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL) {
+    	
+        	if (mBatteryOption == 0 ) {
+        		return com.android.internal.R.drawable.stat_sys_battery;
+        	} else if (mBatteryOption == 1 ) {
+        		return com.android.internal.R.drawable.stat_sys_battery_stock;
+        	} else {
+        		return com.android.internal.R.drawable.stat_sys_battery;
+        	}
+        	
         } else {
             return com.android.internal.R.drawable.stat_sys_battery_unknown;
         }
+	
     }
 
     @Override
