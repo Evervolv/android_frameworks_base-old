@@ -67,6 +67,8 @@ import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
 import static android.provider.Settings.System.STAY_ON_WHILE_PLUGGED_IN;
 import static android.provider.Settings.System.WINDOW_ANIMATION_SCALE;
 import static android.provider.Settings.System.TRANSITION_ANIMATION_SCALE;
+import static android.provider.Settings.System.USE_SCREENON_ANIM;
+import static android.provider.Settings.System.USE_SCREENOFF_ANIM;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -300,6 +302,11 @@ class PowerManagerService extends IPowerManager.Stub
     private native void nativeSetPowerState(boolean screenOn, boolean screenBright);
     private native void nativeStartSurfaceFlingerAnimation(int mode);
 
+    
+    
+    boolean mUseScreenOnAnim = false;
+    boolean mUseScreenOffAnim = false;
+    
     /*
     static PrintStream mLog;
     static {
@@ -493,15 +500,17 @@ class PowerManagerService extends IPowerManager.Stub
 
                 // recalculate everything
                 setScreenOffTimeoutsLocked();
+                
+                mUseScreenOnAnim = Settings.System.getInt(mContext.getContentResolver(), USE_SCREENON_ANIM, 0) == 1;
+                mUseScreenOffAnim = Settings.System.getInt(mContext.getContentResolver(), USE_SCREENOFF_ANIM, 1) == 1;
 
                 final float windowScale = getFloat(WINDOW_ANIMATION_SCALE, 1.0f);
                 final float transitionScale = getFloat(TRANSITION_ANIMATION_SCALE, 1.0f);
                 mAnimationSetting = 0;
-                if (windowScale > 0.5f) {
+                if (windowScale > 0.5f && mUseScreenOffAnim) {
                     mAnimationSetting |= ANIM_SETTING_OFF;
                 }
-                if (transitionScale > 0.5f) {
-                    // Uncomment this if you want the screen-on animation.
+                if (transitionScale > 0.5f && mUseScreenOnAnim) {
                     mAnimationSetting |= ANIM_SETTING_ON;
                 }
             }

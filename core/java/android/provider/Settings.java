@@ -2616,6 +2616,13 @@ public final class Settings {
 		public static final String USE_STOCK_LAUNCHER = "use_stock_launcher";
 		
 		public static final String USE_ROTARY_LOCKSCREEN = "use_rotary_lockscreen";
+		
+		public static final String USE_SCREENON_ANIM = "use_screenon_anim";
+		
+		public static final String USE_SCREENOFF_ANIM = "use_screenoff_anim";
+		
+		public static final String BATTERY_OPTION = "battery_option";
+		
     }
 
     /**
