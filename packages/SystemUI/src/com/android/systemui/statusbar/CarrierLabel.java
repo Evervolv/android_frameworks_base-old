@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.provider.Settings;
 import android.provider.Telephony;
 import android.util.AttributeSet;
@@ -90,8 +91,16 @@ public class CarrierLabel extends TextView {
 
     	mCarrierCap = Settings.System.getString(getContext().getContentResolver(), Settings.System.CARRIER_CAP);
     	
-    	setText(mCarrierCap);
+    	if (mCarrierCap != null){
+    		
+    		setText(mCarrierCap);
 
+    	} else {
+  
+    		mCarrierCap = Build.ROMVER;
+    		setText(mCarrierCap);
+    	}
+    		
     }
 
     

@@ -27,7 +27,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.ColorStateList;
-
+import android.media.AudioManager;
 import android.telephony.PhoneStateListener;
 import android.text.format.DateFormat;
 import android.view.KeyEvent;
@@ -76,6 +76,12 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     private TextView mEmergencyCallText;
     private Button mEmergencyCallButton;
     private String mCarrierCap;
+    private ImageButton mPlayIcon;
+    private ImageButton mPauseIcon;
+    private ImageButton mRewindIcon;
+    private ImageButton mForwardIcon;
+    private AudioManager am = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
+    private boolean wasActive = am.isMusicActive();
     // current configuration state of keyboard and display
     private int mKeyboardHidden;
     private int mCreationOrientation;
@@ -219,11 +225,31 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
         
         mDate = (TextView) findViewById(R.id.date);
         
-        // Date color settings
-        // mDate.setTextColor(0xff000000); 
-        
         mStatus1 = (TextView) findViewById(R.id.status1);
         mStatus2 = (TextView) findViewById(R.id.status2);
+
+        mPlayIcon = (ImageButton) findViewById(R.id.musicControlPlay);
+        mPauseIcon = (ImageButton) findViewById(R.id.musicControlPause); 
+        mRewindIcon = (ImageButton) findViewById(R.id.musicControlPrevious); 
+        mForwardIcon = (ImageButton) findViewById(R.id.musicControlNext); 
+        if (wasActive) {
+            if(am.isMusicActive()) {
+                mPauseIcon.setVisibility(View.VISIBLE);
+                mPlayIcon.setVisibility(View.GONE);
+                mRewindIcon.setVisibility(View.VISIBLE);
+                mForwardIcon.setVisibility(View.VISIBLE);
+            } else {
+                mPlayIcon.setVisibility(View.VISIBLE);
+                mPauseIcon.setVisibility(View.GONE);
+                mRewindIcon.setVisibility(View.GONE);
+                mForwardIcon.setVisibility(View.GONE);
+            }
+        } else {
+            mPlayIcon.setVisibility(View.GONE);
+            mPauseIcon.setVisibility(View.GONE);
+            mRewindIcon.setVisibility(View.GONE);
+            mForwardIcon.setVisibility(View.GONE);
+        }
 
         mScreenLocked = (TextView) findViewById(R.id.screenLocked);
 
@@ -246,6 +272,50 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
             public void onClick(View v) {
                 mCallback.takeEmergencyCallAction();
             }
+        });
+
+        mPlayIcon.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(!am.isMusicActive() && wasActive) {
+                    mPauseIcon.setVisibility(View.VISIBLE);
+                    mPlayIcon.setVisibility(View.GONE);
+                    mRewindIcon.setVisibility(View.VISIBLE);
+                    mForwardIcon.setVisibility(View.VISIBLE);
+                    Intent intent;
+                    intent = new Intent("com.android.music.musicservicecommand.togglepause");
+                    getContext().sendBroadcast(intent);
+                }
+            }
+        });
+
+        mPauseIcon.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(am.isMusicActive()) {
+                    mPlayIcon.setVisibility(View.VISIBLE);
+                    mPauseIcon.setVisibility(View.GONE);
+                    mRewindIcon.setVisibility(View.GONE);
+                    mForwardIcon.setVisibility(View.GONE);
+                    Intent intent;
+                    intent = new Intent("com.android.music.musicservicecommand.togglepause");
+                    getContext().sendBroadcast(intent);
+                }
+            }  
+        });
+
+        mRewindIcon.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent;
+                intent = new Intent("com.android.music.musicservicecommand.previous");
+                getContext().sendBroadcast(intent);
+             }
+        });
+
+        mForwardIcon.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent;
+                intent = new Intent("com.android.music.musicservicecommand.next");
+                getContext().sendBroadcast(intent);
+             }
         });
 
 
@@ -607,18 +677,17 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
             	
             	mCarrierCap = Settings.System.getString(getContext().getContentResolver(), Settings.System.CARRIER_CAP);
             	
-            	if (mCarrierCap == ""){
+            	if (mCarrierCap != null){
             		
-            		mCarrierCap = Build.ROMVER;
             		mCarrier.setText(mCarrierCap);
-            	
-            	} else if (mCarrierCap != null){
-            	
+
+            	} else {
+          
+            		mCarrierCap = Build.ROMVER;
             		mCarrier.setText(mCarrierCap);
             	
             	}
             	
-            	//mCarrier.setText(Settings.System.getString(getContext().getContentResolver(), Settings.System.CARRIER_CAP));
                 // Empty now, but used for sliding tab feedback
                 mScreenLocked.setText("");
 
@@ -831,5 +900,4 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     public void onPhoneStateChanged(String newState) {
         mLockPatternUtils.updateEmergencyCallButtonState(mEmergencyCallButton);
     }
-    
 }
