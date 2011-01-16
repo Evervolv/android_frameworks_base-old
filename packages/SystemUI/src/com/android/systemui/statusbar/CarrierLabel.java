@@ -97,7 +97,7 @@ public class CarrierLabel extends TextView {
 
     	} else {
   
-    		mCarrierCap = Build.ROMVER;
+    		mCarrierCap =  getContext().getString(R.string.lockscreen_carrier_default);
     		setText(mCarrierCap);
     	}
     		

@@ -683,7 +683,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
             	} else {
           
-            		mCarrierCap = Build.ROMVER;
+            		mCarrierCap = getContext().getString(R.string.lockscreen_carrier_default);
             		mCarrier.setText(mCarrierCap);
             	
             	}
