@@ -25,6 +25,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
@@ -57,8 +58,9 @@ public class Clock extends TextView {
     private static final int AM_PM_STYLE_SMALL   = 1;
     private static final int AM_PM_STYLE_GONE    = 2;
 
-    private static final int AM_PM_STYLE = AM_PM_STYLE_GONE;
-
+    private int AM_PM_STYLE = AM_PM_STYLE_NORMAL;
+    private boolean mHideAmPm;
+    
     public Clock(Context context) {
         this(context, null);
     }
@@ -123,10 +125,22 @@ public class Clock extends TextView {
 
     final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
-        setText(getSmallTime());
+        
+        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUS_CLOCK, 1) == 1) {
+        	setText(getSmallTime());
+        }
     }
 
     private final CharSequence getSmallTime() {
+    	
+    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.STATUS_CLOCK_FORMAT, 0) != 1);
+    	
+    	if (mHideAmPm) {
+    		AM_PM_STYLE = AM_PM_STYLE_GONE;
+    	} else {	
+    		AM_PM_STYLE = AM_PM_STYLE_NORMAL;
+    	}
+    	
         Context context = getContext();
         boolean b24 = DateFormat.is24HourFormat(context);
         int res;
@@ -134,7 +148,7 @@ public class Clock extends TextView {
         if (b24) {
             res = R.string.twenty_four_hour_time_format;
         } else {
-            res = R.string.twelve_hour_time_format;
+        	res = R.string.twelve_hour_time_format;
         }
 
         final char MAGIC1 = '\uEF00';
