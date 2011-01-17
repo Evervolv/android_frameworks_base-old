@@ -126,6 +126,7 @@ public class Clock extends TextView {
     final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
         
+        // This is wrong?
         if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUS_CLOCK, 1) == 1) {
         	setText(getSmallTime());
         }
@@ -133,9 +134,10 @@ public class Clock extends TextView {
 
     private final CharSequence getSmallTime() {
     	
-    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.STATUS_CLOCK_FORMAT, 0) != 1);
+    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_TWELVE_HOUR_CLOCK_PERIOD, 1) == 1);
     	
-    	if (mHideAmPm) {
+    	// I know this is wrong... but I'm not sure what im doing wrong.
+    	if (!mHideAmPm) {
     		AM_PM_STYLE = AM_PM_STYLE_GONE;
     	} else {	
     		AM_PM_STYLE = AM_PM_STYLE_NORMAL;
