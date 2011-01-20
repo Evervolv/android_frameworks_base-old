@@ -127,14 +127,14 @@ public class Clock extends TextView {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
         
         // This is wrong?
-        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUS_CLOCK, 1) == 1) {
+        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK, 1) == 1) {
         	setText(getSmallTime());
         }
     }
 
     private final CharSequence getSmallTime() {
     	
-    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_TWELVE_HOUR_CLOCK_PERIOD, 1) == 1);
+    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK_AMPM, 1) == 1);
     	
     	// I know this is wrong... but I'm not sure what im doing wrong.
     	if (!mHideAmPm) {

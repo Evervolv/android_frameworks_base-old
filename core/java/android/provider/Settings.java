@@ -1557,6 +1557,14 @@ public final class Settings {
         public static final String VIBRATE_IN_SILENT = "vibrate_in_silent";
 
         /**
+         * Whether volume button should also set complete silence after
+         * vibration.
+         *
+         * @hide
+         */
+        public static final String VOLUME_CONTROL_SILENT = "volume_contol_silent";
+
+        /**
          * The mapping of stream type (integer) to its setting.
          */
         public static final String[] VOLUME_SETTINGS = {
@@ -2092,18 +2100,16 @@ public final class Settings {
         public static final String LOCKSCREEN_PHONE_MESSAGING_TAB = "lockscreen_phone_messaging_tab";
 
      	/**
-         * Specifies whether to show AM/PM indicators for 12-hour clock: 0/1/2
+         * Specifies whether to show AM/PM indicators for 12-hour.
          * @hide
          */
-    	public static final String STATUS_CLOCK_FORMAT = "status_clock_format";
+    	public static final String SHOW_CLOCK_AMPM = "status_clock_format";
         
      	/**
          * Specifies whether to show status clock: 0 or 1
          * @hide
          */
-    	public static final String SHOW_STATUS_CLOCK = "show_status_clock";
-
-    	public static final String SHOW_TWELVE_HOUR_CLOCK_PERIOD = "show_twelve_hour_clock_period";
+    	public static final String SHOW_CLOCK = "show_status_clock";
     	
         /**
          * App to launch with the custom messaging tab
@@ -2343,6 +2349,7 @@ public final class Settings {
             VOLUME_NOTIFICATION + APPEND_FOR_LAST_AUDIBLE,
             VOLUME_BLUETOOTH_SCO + APPEND_FOR_LAST_AUDIBLE,
             VIBRATE_IN_SILENT,
+            VOLUME_CONTROL_SILENT,
             TEXT_AUTO_REPLACE,
             TEXT_AUTO_CAPS,
             TEXT_AUTO_PUNCTUATE,
