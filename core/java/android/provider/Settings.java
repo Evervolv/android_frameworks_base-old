@@ -2644,6 +2644,8 @@ public final class Settings {
 		
 		public static final String BATTERY_OPTION = "battery_option";
 		
+		public static final String USE_TRANSPARENT_STATUSBAR = "use_transparent_statusbar";
+		
     }
 
     /**
