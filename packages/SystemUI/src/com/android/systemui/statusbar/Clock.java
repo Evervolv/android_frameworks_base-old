@@ -60,6 +60,7 @@ public class Clock extends TextView {
 
     private int AM_PM_STYLE = AM_PM_STYLE_NORMAL;
     private boolean mHideAmPm;
+    private boolean mHideClock;
     
     public Clock(Context context) {
         this(context, null);
@@ -126,9 +127,12 @@ public class Clock extends TextView {
     final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
         
-        // This is wrong?
-        if (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK, 1) == 1) {
+        mHideClock = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK, 1) == 1);
+        if (!mHideClock) {
         	setText(getSmallTime());
+        	this.setVisibility(VISIBLE);
+        } else {
+        	this.setVisibility(GONE);
         }
     }
 
@@ -137,7 +141,7 @@ public class Clock extends TextView {
     	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK_AMPM, 1) == 1);
     	
     	// I know this is wrong... but I'm not sure what im doing wrong.
-    	if (!mHideAmPm) {
+    	if (mHideAmPm) {
     		AM_PM_STYLE = AM_PM_STYLE_GONE;
     	} else {	
     		AM_PM_STYLE = AM_PM_STYLE_NORMAL;
