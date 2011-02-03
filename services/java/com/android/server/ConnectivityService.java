@@ -510,7 +510,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
 
         // HACK! - return a stub NetworkInfo object to make bad apps happy.
         if (ConnectivityManager.TYPE_WIMAX == networkType) {
-            return NetworkInfo.getEmptyWimaxNetworkInfo(); 
+            return NetworkInfo.getEmptyWimaxNetworkInfo();
         }
 
         if (ConnectivityManager.isNetworkTypeValid(networkType)) {
