@@ -110,26 +110,21 @@ SensorDevice::SensorDevice()
             SENSORS_HARDWARE_MODULE_ID, strerror(-err));
 
     if (mSensorModule) {
-        err = sensors_open(&mSensorModule->common, &mSensorDevice);
-
 #ifdef ENABLE_SENSORS_COMPAT
-        if (err) {
-            if (!sensors_control_open(&mSensorModule->common, &mSensorControlDevice)) {
-                if (sensors_data_open(&mSensorModule->common, &mSensorDataDevice)) {
-                    LOGE_IF(err, "couldn't open device for module %s (%s)",
-                            SENSORS_HARDWARE_MODULE_ID, strerror(-err));
-                } else {
-                    LOGD("Opened sensors in backwards compat mode");
-                    mOldSensorsCompatMode = true;
-                }
-            } else {
-                LOGE_IF(err, "couldn't open device for module %s (%s)",
+        if (!sensors_control_open(&mSensorModule->common, &mSensorControlDevice)) {
+            if (sensors_data_open(&mSensorModule->common, &mSensorDataDevice)) {
+                LOGE("couldn't open data device in backwards-compat mode for module %s (%s)",
                         SENSORS_HARDWARE_MODULE_ID, strerror(-err));
+            } else {
+                LOGD("Opened sensors in backwards compat mode");
+                mOldSensorsCompatMode = true;
             }
         } else {
-            mOldSensorsCompatMode = false;
+            LOGE("couldn't open control device in backwards-compat mode for module %s (%s)",
+                    SENSORS_HARDWARE_MODULE_ID, strerror(-err));
         }
 #else
+        err = sensors_open(&mSensorModule->common, &mSensorDevice);
         LOGE_IF(err, "couldn't open device for module %s (%s)",
                 SENSORS_HARDWARE_MODULE_ID, strerror(-err));
 #endif
@@ -187,7 +182,7 @@ ssize_t SensorDevice::poll(sensors_event_t* buffer, size_t count) {
     if (!mSensorDevice && !mOldSensorsCompatMode) return NO_INIT;
     if (mOldSensorsCompatMode) {
         size_t pollsDone = 0;
-        LOGV("%d buffers were requested",count);
+        //LOGV("%d buffers were requested",count);
         while (!mOldSensorsEnabled) {
             sleep(1);
             LOGV("Waiting...");
@@ -195,19 +190,23 @@ ssize_t SensorDevice::poll(sensors_event_t* buffer, size_t count) {
         while (pollsDone < (size_t)mOldSensorsEnabled && pollsDone < count) {
             sensors_data_t oldBuffer;
             long result =  mSensorDataDevice->poll(mSensorDataDevice, &oldBuffer);
-            if (!result || result > SENSOR_TYPE_ROTATION_VECTOR) {
-                LOGV("Useless result at round %d",pollsDone);
+            if (result == 0x7FFFFFFF) {
+                return pollsDone;
+            }
+            if (!oldBuffer.time) {
+                LOGV("Useless output at round %u from %d",pollsDone,oldBuffer.sensor);
+                count--;
                 continue;
             }
+            buffer[pollsDone].version = sizeof(struct sensors_event_t);
             buffer[pollsDone].timestamp = oldBuffer.time;
-            buffer[pollsDone].sensor = oldBuffer.sensor;
+            buffer[pollsDone].sensor = result;
             buffer[pollsDone].type = oldBuffer.sensor;
-            buffer[pollsDone].acceleration = oldBuffer.acceleration;
-            buffer[pollsDone].magnetic = oldBuffer.magnetic;
-            buffer[pollsDone].orientation = oldBuffer.orientation;
+            /* This part is a union. Regardless of the sensor type,
+             * we only need to copy a sensors_vec_t and a float */
+            buffer[pollsDone].acceleration = oldBuffer.vector;
             buffer[pollsDone].temperature = oldBuffer.temperature;
-            buffer[pollsDone].distance = oldBuffer.distance;
-            buffer[pollsDone].light = oldBuffer.light;
+            LOGV("Adding results for sensor %d", buffer[pollsDone].sensor);
             pollsDone++;
         }
         return pollsDone;
@@ -243,7 +242,7 @@ status_t SensorDevice::activate(void* ident, int handle, int enabled)
         if (mOldSensorsCompatMode) {
             if (enabled)
                 mOldSensorsEnabled++;
-            else
+            else if (mOldSensorsEnabled > 0)
                 mOldSensorsEnabled--;
             LOGV("Activation for %d (%d)",handle,enabled);
             if (enabled) {

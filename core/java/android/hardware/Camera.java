@@ -971,6 +971,43 @@ public class Camera {
     };
 
     /**
+     * Handles the Touch Co-ordinate.
+     */
+    public class Coordinate {
+        /**
+         * Sets the x,y co-ordinates for a touch event
+         *
+         * @param x the x co-ordinate (pixels)
+         * @param y the y co-ordinate (pixels)
+         */
+        public Coordinate(int x, int y) {
+            xCoordinate = x;
+            yCoordinate = y;
+        }
+        /**
+         * Compares {@code obj} to this co-ordinate.
+         *
+         * @param obj the object to compare this co-ordinate with.
+         * @return {@code true} if the xCoordinate and yCoordinate of {@code obj} is the
+         *         same as those of this coordinate. {@code false} otherwise.
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof Coordinate)) {
+                return false;
+            }
+            Coordinate c = (Coordinate) obj;
+            return xCoordinate == c.xCoordinate && yCoordinate == c.yCoordinate;
+        }
+
+        /** x co-ordinate for the touch event*/
+        public int xCoordinate;
+
+        /** y co-ordinate for the touch event */
+        public int yCoordinate;
+    };
+
+    /**
      * Camera service settings.
      *
      * <p>To make camera parameters take effect, applications have to call
@@ -993,6 +1030,9 @@ public class Camera {
         private static final String KEY_PREVIEW_FORMAT = "preview-format";
         private static final String KEY_PREVIEW_FRAME_RATE = "preview-frame-rate";
         private static final String KEY_PREVIEW_FPS_RANGE = "preview-fps-range";
+        private static final String KEY_PREVIEW_FRAME_RATE_MODE = "preview-frame-rate-mode";
+        private static final String KEY_PREVIEW_FRAME_RATE_AUTO_MODE = "frame-rate-auto";
+        private static final String KEY_PREVIEW_FRAME_RATE_FIXED_MODE = "frame-rate-fixed";
         private static final String KEY_PICTURE_SIZE = "picture-size";
         private static final String KEY_PICTURE_FORMAT = "picture-format";
         private static final String KEY_JPEG_THUMBNAIL_SIZE = "jpeg-thumbnail-size";
@@ -1008,6 +1048,9 @@ public class Camera {
         private static final String KEY_GPS_PROCESSING_METHOD = "gps-processing-method";
         private static final String KEY_WHITE_BALANCE = "whitebalance";
         private static final String KEY_EFFECT = "effect";
+        private static final String KEY_TOUCH_AF_AEC = "touch-af-aec";
+        private static final String KEY_TOUCH_INDEX_AEC = "touch-index-aec";
+        private static final String KEY_TOUCH_INDEX_AF = "touch-index-af";
         private static final String KEY_ANTIBANDING = "antibanding";
         private static final String KEY_SCENE_MODE = "scene-mode";
         private static final String KEY_FLASH_MODE = "flash-mode";
@@ -1068,6 +1111,10 @@ public class Camera {
         public static final String EFFECT_WHITEBOARD = "whiteboard";
         public static final String EFFECT_BLACKBOARD = "blackboard";
         public static final String EFFECT_AQUA = "aqua";
+
+        // Values for touch af/aec settings.
+        public static final String TOUCH_AF_AEC_OFF = "touch-off";
+        public static final String TOUCH_AF_AEC_ON = "touch-on";
 
         // Values for auto exposure settings.
         public static final String AUTO_EXPOSURE_FRAME_AVG = "meter-average";
@@ -2011,6 +2058,86 @@ public class Camera {
             return split(str);
         }
 
+        /**
+         * Gets the current Touch AF/AEC setting.
+         *
+         * @return one of TOUCH_AF_AEC_XXX string constant. null if Touch AF/AEC
+         *         setting is not supported.
+         *
+         */
+        public String getTouchAfAec() {
+            return get(KEY_TOUCH_AF_AEC);
+        }
+
+        /**
+         * Sets the current TOUCH AF/AEC setting.
+         *
+         * @param value TOUCH_AF_AEC_XXX string constants.
+         *
+         */
+        public void setTouchAfAec(String value) {
+            set(KEY_TOUCH_AF_AEC, value);
+        }
+
+       /**
+         * Gets the supported Touch AF/AEC setting.
+         *
+         * @return a List of TOUCH_AF_AEC_XXX string constants. null if TOUCH AF/AEC
+         *         setting is not supported.
+         *
+         */
+        public List<String> getSupportedTouchAfAec() {
+            String str = get(KEY_TOUCH_AF_AEC + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+        /**
+         * Sets the touch co-ordinate for Touch AEC.
+         *
+         * @param x  the x co-ordinate of the touch event
+         * @param y the y co-ordinate of the touch event
+         *
+         */
+        public void setTouchIndexAec(int x, int y) {
+            String v = Integer.toString(x) + "x" + Integer.toString(y);
+            set(KEY_TOUCH_INDEX_AEC, v);
+        }
+
+        /**
+         * Returns the touch co-ordinates of the touch event.
+         *
+         * @return a Index object with the x and y co-ordinated
+         *          for the touch event
+         *
+         */
+        public Coordinate getTouchIndexAec() {
+            String pair = get(KEY_TOUCH_INDEX_AEC);
+            return strToCoordinate(pair);
+        }
+
+        /**
+         * Sets the touch co-ordinate for Touch AF.
+         *
+         * @param x  the x co-ordinate of the touch event
+         * @param y the y co-ordinate of the touch event
+         *
+         */
+        public void setTouchIndexAf(int x, int y) {
+            String v = Integer.toString(x) + "x" + Integer.toString(y);
+            set(KEY_TOUCH_INDEX_AF, v);
+        }
+
+        /**
+         * Returns the touch co-ordinates of the touch event.
+         *
+         * @return a Index object with the x and y co-ordinated
+         *          for the touch event
+         *
+         */
+        public Coordinate getTouchIndexAf() {
+            String pair = get(KEY_TOUCH_INDEX_AF);
+            return strToCoordinate(pair);
+        }
 
         /**
          * Get Sharpness level
@@ -2205,6 +2332,36 @@ public class Camera {
          */
         public List<String> getSupportedAntibanding() {
             String str = get(KEY_ANTIBANDING + SUPPORTED_VALUES_SUFFIX);
+            return split(str);
+        }
+
+        /**
+         * Gets the frame rate mode setting.
+         *
+         * @return one of FRAME_RATE_XXX_MODE string constant. null if this
+         *         setting is not supported.
+         */
+        public String getPreviewFrameRateMode() {
+            return get(KEY_PREVIEW_FRAME_RATE_MODE);
+        }
+
+        /**
+         * Sets the frame rate mode.
+         *
+         * @param value FRAME_RATE_XXX_MODE string constants.
+         */
+        public void setPreviewFrameRateMode(String value) {
+            set(KEY_PREVIEW_FRAME_RATE_MODE, value);
+        }
+
+        /**
+         * Gets the supported frame rate modes.
+         *
+         * @return a List of FRAME_RATE_XXX_MODE string constant. null if this
+         *         setting is not supported.
+         */
+        public List<String> getSupportedPreviewFrameRateModes() {
+            String str = get(KEY_PREVIEW_FRAME_RATE_MODE + SUPPORTED_VALUES_SUFFIX);
             return split(str);
         }
 
@@ -2808,6 +2965,37 @@ public class Camera {
 
             if (rangeList.size() == 0) return null;
             return rangeList;
+        }
+
+        // Splits a comma delimited string to an ArrayList of Coordinate.
+        // Return null if the passing string is null or the Coordinate is 0.
+        private ArrayList<Coordinate> splitCoordinate(String str) {
+            if (str == null) return null;
+
+            StringTokenizer tokenizer = new StringTokenizer(str, ",");
+            ArrayList<Coordinate> coordinateList = new ArrayList<Coordinate>();
+            while (tokenizer.hasMoreElements()) {
+                Coordinate c = strToCoordinate(tokenizer.nextToken());
+                if (c != null) coordinateList.add(c);
+            }
+            if (coordinateList.size() == 0) return null;
+            return coordinateList;
+        }
+
+        // Parses a string (ex: "500x500") to Coordinate object.
+        // Return null if the passing string is null.
+        private Coordinate strToCoordinate(String str) {
+            if (str == null) return null;
+
+            int pos = str.indexOf('x');
+            if (pos != -1) {
+                String x = str.substring(0, pos);
+                String y = str.substring(pos + 1);
+                return new Coordinate(Integer.parseInt(x),
+                                Integer.parseInt(y));
+            }
+            Log.e(TAG, "Invalid Coordinate parameter string=" + str);
+            return null;
         }
     };
 }

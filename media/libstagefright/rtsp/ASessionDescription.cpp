@@ -187,7 +187,7 @@ void ASessionDescription::getFormatType(
     AString format;
     getFormat(index, &format);
 
-    char *lastSpacePos = strrchr(format.c_str(), ' ');
+    const char *lastSpacePos = strrchr(format.c_str(), ' ');
     CHECK(lastSpacePos != NULL);
 
     char *end;
@@ -246,6 +246,10 @@ bool ASessionDescription::getDurationUs(int64_t *durationUs) const {
     }
 
     if (value == "npt=now-") {
+        return false;
+    }
+
+    if (value == "npt=0-") {
         return false;
     }
 

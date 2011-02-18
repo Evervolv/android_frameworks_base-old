@@ -62,6 +62,8 @@ public:
     void setPreviewFrameRate(int fps);
     int getPreviewFrameRate() const;
     void getPreviewFpsRange(int *min_fps, int *max_fps) const;
+    void setPreviewFrameRateMode(const char *mode);
+    const char *getPreviewFrameRateMode() const;
     void setPreviewFormat(const char *format);
     const char *getPreviewFormat() const;
     void setPictureSize(int width, int height);
@@ -69,6 +71,10 @@ public:
     void getSupportedPictureSizes(Vector<Size> &sizes) const;
     void setPictureFormat(const char *format);
     const char *getPictureFormat() const;
+    void setTouchIndexAec(int x, int y);
+    void getTouchIndexAec(int *x, int *y) const;
+    void setTouchIndexAf(int x, int y);
+    void getTouchIndexAf(int *x, int *y) const;
 
     void dump() const;
     status_t dump(int fd, const Vector<String16>& args) const;
@@ -111,6 +117,12 @@ public:
     // Supported number of preview frames per second.
     // Example value: "24,15,10". Read.
     static const char KEY_SUPPORTED_PREVIEW_FRAME_RATES[];
+    // The mode of preview frame rate.
+    // Example value: "frame-rate-auto, frame-rate-fixed".
+    static const char KEY_PREVIEW_FRAME_RATE_MODE[];
+    static const char KEY_SUPPORTED_PREVIEW_FRAME_RATE_MODES[];
+    static const char KEY_PREVIEW_FRAME_RATE_AUTO_MODE[];
+    static const char KEY_PREVIEW_FRAME_RATE_FIXED_MODE[];
     // The dimensions for captured pictures in pixels (width x height).
     // Example value: "1024x768". Read/write.
     static const char KEY_PICTURE_SIZE[];
@@ -218,6 +230,13 @@ public:
     // Supported color effect settings.
     // Example value: "none,mono,sepia". Read only.
     static const char KEY_SUPPORTED_EFFECTS[];
+    //Touch Af/AEC settings.
+    static const char KEY_TOUCH_AF_AEC[];
+    static const char KEY_SUPPORTED_TOUCH_AF_AEC[];
+    //Touch Index for AEC.
+    static const char KEY_TOUCH_INDEX_AEC[];
+    //Touch Index for AF.
+    static const char KEY_TOUCH_INDEX_AF[];
     // Current antibanding setting.
     // Example value: "auto" or ANTIBANDING_XXX constants. Read/write.
     static const char KEY_ANTIBANDING[];
@@ -327,7 +346,9 @@ public:
 
     //Continuous AF.
     static const char KEY_CAF[];
+    static const char KEY_CONTINUOUS_AF[];
     static const char KEY_SUPPORTED_CAF[];
+    static const char KEY_SUPPORTED_CONTINUOUS_AF[];
 
     // Values for white balance settings.
     static const char WHITE_BALANCE_AUTO[];
@@ -349,6 +370,10 @@ public:
     static const char EFFECT_WHITEBOARD[];
     static const char EFFECT_BLACKBOARD[];
     static const char EFFECT_AQUA[];
+
+    // Values for Touch AF/AEC
+    static const char TOUCH_AF_AEC_OFF[] ;
+    static const char TOUCH_AF_AEC_ON[] ;
 
     // Values for antibanding settings.
     static const char ANTIBANDING_AUTO[];
@@ -432,6 +457,9 @@ public:
     // Values for Continuous AF
     static const char CAF_OFF[] ;
     static const char CAF_ON[] ;
+    // Proprietaries from CodeAurora use these...
+    static const char CONTINUOUS_AF_OFF[] ;
+    static const char CONTINUOUS_AF_ON[] ;
 
     static const char ISO_AUTO[];
     static const char ISO_HJR[] ;
