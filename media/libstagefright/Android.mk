@@ -52,6 +52,11 @@ LOCAL_SRC_FILES:=                         \
         XINGSeeker.cpp                    \
         avc_utils.cpp                     \
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+    LOCAL_SRC_FILES += ExtendedExtractor.cpp
+    LOCAL_SRC_FILES += ExtendedWriter.cpp
+endif
+
 LOCAL_C_INCLUDES:= \
 	$(JNI_H_INCLUDE) \
         $(TOP)/frameworks/base/include/media/stagefright/openmax \
@@ -62,12 +67,10 @@ LOCAL_C_INCLUDES:= \
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
 
-LOCAL_SRC_FILES += \
-    ExtendedExtractor.cpp
-
 LOCAL_C_INCLUDES += \
     $(TOP)/hardware/qcom/display/libgralloc \
-    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
+    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc \
+    $(TOP)/system/core/include
 
 LOCAL_CFLAGS += -DQCOM_HARDWARE
 
