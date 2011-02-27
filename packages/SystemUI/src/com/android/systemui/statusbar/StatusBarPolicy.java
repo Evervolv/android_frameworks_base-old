@@ -434,6 +434,7 @@ public class StatusBarPolicy {
         mService = (StatusBarManager)context.getSystemService(Context.STATUS_BAR_SERVICE);
         mSignalStrength = new SignalStrength();
         mBatteryStats = BatteryStatsService.getService();
+        mWimaxSettingsHelper = new WimaxSettingsHelper(context);
 
         // storage
         mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
@@ -467,9 +468,11 @@ public class StatusBarPolicy {
         // wifi will get updated by the sticky intents
 
         // wimax
-        mService.setIcon("wimax", sWimaxSignalImages[0][0], 0);
-        mService.setIconVisibility("wimax", false);
-        // wimax will get updated by the sticky intents
+        if (mWimaxSettingsHelper.isWimaxSupported()) {
+            mService.setIcon("wimax", sWimaxSignalImages[0][0], 0);
+            mService.setIconVisibility("wimax", false);
+            // wimax will get updated by the sticky intents
+        }
 
         // TTY status
         mService.setIcon("tty",  R.drawable.stat_sys_tty_mode, 0);
