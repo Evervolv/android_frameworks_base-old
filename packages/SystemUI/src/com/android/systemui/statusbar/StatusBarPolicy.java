@@ -72,8 +72,9 @@ import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cdma.EriInfo;
 import com.android.internal.telephony.cdma.TtyIntent;
 import com.android.server.am.BatteryStatsService;
-
 import com.android.systemui.R;
+import com.android.wimax.WimaxConstants;
+import com.android.wimax.WimaxSettingsHelper;
 
 /**
  * This class contains all of the policy about which icons are installed in the status
@@ -125,12 +126,16 @@ public class StatusBarPolicy {
           R.drawable.stat_sys_signal_1,
           R.drawable.stat_sys_signal_2,
           R.drawable.stat_sys_signal_3,
-          R.drawable.stat_sys_signal_4 },
+          R.drawable.stat_sys_signal_4,
+          R.drawable.stat_sys_signal_5,
+          R.drawable.stat_sys_signal_6 },
         { R.drawable.stat_sys_signal_0_fully,
           R.drawable.stat_sys_signal_1_fully,
           R.drawable.stat_sys_signal_2_fully,
           R.drawable.stat_sys_signal_3_fully,
-          R.drawable.stat_sys_signal_4_fully }
+          R.drawable.stat_sys_signal_4_fully,
+          R.drawable.stat_sys_signal_5_fully,
+          R.drawable.stat_sys_signal_6_fully }
     };
     private static final int[][] sSignalImages_r = {
         { R.drawable.stat_sys_r_signal_0,
@@ -341,6 +346,24 @@ public class StatusBarPolicy {
     private int mLastWifiSignalLevel = -1;
     private boolean mIsWifiConnected = false;
 
+    // wimax
+    private static final int[][] sWimaxSignalImages = {
+            { R.drawable.stat_sys_wimax_signal_1,
+              R.drawable.stat_sys_wimax_signal_2,
+              R.drawable.stat_sys_wimax_signal_3,
+              R.drawable.stat_sys_wimax_signal_4 },
+            { R.drawable.stat_sys_wimax_signal_1_fully,
+              R.drawable.stat_sys_wimax_signal_2_fully,
+              R.drawable.stat_sys_wimax_signal_3_fully,
+              R.drawable.stat_sys_wimax_signal_4_fully }
+        };
+    private static final int sWimaxTemporarilyNotConnectedImage = 
+            R.drawable.stat_sys_wimax_signal_0;
+
+    private int mLastWimaxSignalLevel = -1;
+    private boolean mIsWimaxConnected = false;
+    private WimaxSettingsHelper mWimaxSettingsHelper;
+
     // state of inet connection - 0 not connected, 100 connected
     private int mInetCondition = 0;
 
@@ -378,6 +401,11 @@ public class StatusBarPolicy {
                     action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION) ||
                     action.equals(WifiManager.RSSI_CHANGED_ACTION)) {
                 updateWifi(intent);
+            }
+            else if (action.equals(WimaxConstants.NETWORK_STATE_CHANGED_ACTION) ||
+                    action.equals(WimaxConstants.WIMAX_ENABLED_CHANGED_ACTION) ||
+                    action.equals(WimaxConstants.RSSI_CHANGED_ACTION)) {
+                updateWimax(intent);
             }
             else if (action.equals(LocationManager.GPS_ENABLED_CHANGE_ACTION) ||
                     action.equals(LocationManager.GPS_FIX_CHANGE_ACTION)) {
@@ -438,6 +466,11 @@ public class StatusBarPolicy {
         mService.setIconVisibility("wifi", false);
         // wifi will get updated by the sticky intents
 
+        // wimax
+        mService.setIcon("wimax", sWimaxSignalImages[0][0], 0);
+        mService.setIconVisibility("wimax", false);
+        // wimax will get updated by the sticky intents
+
         // TTY status
         mService.setIcon("tty",  R.drawable.stat_sys_tty_mode, 0);
         mService.setIconVisibility("tty", false);
@@ -477,6 +510,8 @@ public class StatusBarPolicy {
         mService.setIcon("volume", R.drawable.stat_sys_ringer_silent, 0);
         mService.setIconVisibility("volume", false);
         updateVolume();
+        // wimax
+        mWimaxSettingsHelper = new WimaxSettingsHelper(context);
 
         IntentFilter filter = new IntentFilter();
 
@@ -497,6 +532,9 @@ public class StatusBarPolicy {
         filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.RSSI_CHANGED_ACTION);
+        filter.addAction(WimaxConstants.WIMAX_ENABLED_CHANGED_ACTION);
+        filter.addAction(WimaxConstants.NETWORK_STATE_CHANGED_ACTION);
+        filter.addAction(WimaxConstants.RSSI_CHANGED_ACTION);
         filter.addAction(LocationManager.GPS_ENABLED_CHANGE_ACTION);
         filter.addAction(LocationManager.GPS_FIX_CHANGE_ACTION);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
@@ -744,6 +782,30 @@ public class StatusBarPolicy {
             }
             updateSignalStrength(); // apply any change in mInetCondition
             break;
+        case ConnectivityManager.TYPE_WIMAX:
+            mInetCondition = inetCondition;
+            if (info.isConnected()) {
+                mIsWimaxConnected = true;
+                int iconId;
+                if (mLastWimaxSignalLevel == -1) {
+                    iconId = sWimaxSignalImages[mInetCondition][0];
+                } else {
+                    iconId = sWimaxSignalImages[mInetCondition][mLastWimaxSignalLevel];
+                }
+                mService.setIcon("wimax", iconId, 0);
+                // Show the icon since wi-fi is connected
+                mService.setIconVisibility("wimax", true);
+            } else {
+                mLastWimaxSignalLevel = -1;
+                mIsWimaxConnected = false;
+                int iconId = sWimaxSignalImages[0][0];
+
+                mService.setIcon("wimax", iconId, 0);
+                // Hide the icon since we're not connected
+                mService.setIconVisibility("wimax", false);
+            }
+            updateSignalStrength(); // apply any change in mInetCondition
+            break;
         }
     }
 
@@ -899,16 +961,44 @@ public class StatusBarPolicy {
         int levelDbm = 0;
         int levelEcio = 0;
 
-        if (cdmaDbm >= -75) levelDbm = 4;
-        else if (cdmaDbm >= -85) levelDbm = 3;
-        else if (cdmaDbm >= -95) levelDbm = 2;
-        else if (cdmaDbm >= -100) levelDbm = 1;
+        /*
+         * HTC's signal to icon
+
+			0 -> anything worse than -110
+			1 -> -110
+			2 -> -105
+			3 -> -100
+			4 -> -95
+			5 -> -85
+			6 -> -75
+         */
+        
+        if (cdmaDbm >= -75) levelDbm = 6;
+        else if (cdmaDbm >= -85) levelDbm = 5;
+        else if (cdmaDbm >= -95) levelDbm = 4;
+        else if (cdmaDbm >= -100) levelDbm = 3;
+        else if (cdmaDbm >= -105) levelDbm = 2;
+        else if (cdmaDbm >= -110) levelDbm = 1;
         else levelDbm = 0;
 
+        /*
+         * HTC's signal to icon
+
+			0 -> anything worse than -150
+			1 -> -150
+			2 -> -140
+			3 -> -130
+			4 -> -120
+			5 -> -110
+			6 -> -90
+         */
+        
         // Ec/Io are in dB*10
-        if (cdmaEcio >= -90) levelEcio = 4;
-        else if (cdmaEcio >= -110) levelEcio = 3;
-        else if (cdmaEcio >= -130) levelEcio = 2;
+        if (cdmaEcio >= -90) levelEcio = 6;
+        else if (cdmaEcio >= -110) levelEcio = 5;
+        else if (cdmaEcio >= -120) levelEcio = 4;
+        else if (cdmaEcio >= -130) levelEcio = 3;
+        else if (cdmaEcio >= -140) levelEcio = 2;
         else if (cdmaEcio >= -150) levelEcio = 1;
         else levelEcio = 0;
 
@@ -921,15 +1011,27 @@ public class StatusBarPolicy {
         int levelEvdoDbm = 0;
         int levelEvdoSnr = 0;
 
-        if (evdoDbm >= -65) levelEvdoDbm = 4;
-        else if (evdoDbm >= -75) levelEvdoDbm = 3;
-        else if (evdoDbm >= -90) levelEvdoDbm = 2;
+        /*
+         * HTC values again?
+         */
+        
+        if (evdoDbm >= -75) levelEvdoDbm = 6;
+        else if (evdoDbm >= -85) levelEvdoDbm = 5;
+        else if (evdoDbm >= -90) levelEvdoDbm = 4;
+        else if (evdoDbm >= -95) levelEvdoDbm = 3;
+        else if (evdoDbm >= -100) levelEvdoDbm = 2;
         else if (evdoDbm >= -105) levelEvdoDbm = 1;
         else levelEvdoDbm = 0;
 
-        if (evdoSnr >= 7) levelEvdoSnr = 4;
-        else if (evdoSnr >= 5) levelEvdoSnr = 3;
-        else if (evdoSnr >= 3) levelEvdoSnr = 2;
+        /*
+         * Values i made up, could not decipher HTC's.
+         */
+        
+        if (evdoSnr >= 8) levelEvdoSnr = 6;
+        else if (evdoSnr >= 6) levelEvdoSnr = 5;
+        else if (evdoSnr >= 5) levelEvdoSnr = 4;
+        else if (evdoSnr >= 4) levelEvdoSnr = 3;
+        else if (evdoSnr >= 2) levelEvdoSnr = 2;
         else if (evdoSnr >= 1) levelEvdoSnr = 1;
         else levelEvdoSnr = 0;
 
@@ -1120,6 +1222,73 @@ public class StatusBarPolicy {
                     iconId = sWifiTemporarilyNotConnectedImage;
                 }
                 mService.setIcon("wifi", iconId, 0);
+            }
+        }
+    }
+
+    private final void updateWimax(Intent intent) {
+        final String action = intent.getAction();
+        if (action.equals(WimaxConstants.WIMAX_ENABLED_CHANGED_ACTION)) {
+
+	    int wimaxStatus = intent.getIntExtra(WimaxConstants.CURRENT_WIMAX_ENABLED_STATE,
+	            WimaxConstants.WIMAX_ENABLED_STATE_UNKNOWN);
+            final boolean enabled = (wimaxStatus == WimaxConstants.WIMAX_ENABLED_STATE_ENABLED);
+
+            if (!enabled) {
+                // If disabled, hide the icon. (We show icon when connected.)
+                mService.setIconVisibility("wimax", false);
+            }
+
+        } else if (action.equals(WimaxConstants.NETWORK_STATE_CHANGED_ACTION)) {
+
+            final NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WimaxConstants.EXTRA_NETWORK_INFO);
+
+            int iconId;
+            if (networkInfo != null && networkInfo.isConnected()) {
+                mIsWimaxConnected = true;
+                if (mLastWimaxSignalLevel == -1) {
+                    iconId = sWimaxSignalImages[mInetCondition][0];
+                } else {
+                    if (mLastWimaxSignalLevel > 3) {
+                        mLastWimaxSignalLevel = 3;
+                    } else if (mLastWimaxSignalLevel <= 0) {
+                        mLastWimaxSignalLevel = 0;
+                    }
+                    iconId = sWimaxSignalImages[mInetCondition][mLastWimaxSignalLevel];
+                }
+
+                // Show the icon since wimax is connected
+                mService.setIconVisibility("wimax", true);
+
+            } else {
+                mIsWimaxConnected = false;
+                iconId = sWimaxSignalImages[mInetCondition][0];
+
+                // Hide the icon since we're not connected
+                mService.setIconVisibility("wimax", false);
+            }
+
+            mService.setIcon("wimax", iconId, 0);
+        } else if (action.equals(WimaxConstants.RSSI_CHANGED_ACTION)) {
+            int rssi = intent.getIntExtra(WimaxConstants.EXTRA_NEW_RSSI_LEVEL, -200);
+            int newSignalLevel = mWimaxSettingsHelper.calculateSignalLevel(rssi, 4);
+
+            int iconId;
+
+            if (newSignalLevel > 3) {
+                newSignalLevel = 3;
+            } else if (mLastWimaxSignalLevel <= 0) {
+                newSignalLevel = 0;
+            }
+
+            if (newSignalLevel != mLastWimaxSignalLevel) {
+                mLastWimaxSignalLevel = newSignalLevel;
+                if (mIsWimaxConnected) {
+                    iconId = sWimaxSignalImages[mInetCondition][newSignalLevel];
+                } else {
+                    iconId = sWimaxTemporarilyNotConnectedImage;
+                }
+                mService.setIcon("wimax", iconId, 0);
             }
         }
     }
