@@ -980,6 +980,22 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         setTypeface(tf, styleIndex);
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        if (enabled == isEnabled()) {
+            return;
+        }
+
+        if (!enabled) {
+            // Hide the soft input if the currently active TextView is disabled
+            InputMethodManager imm = InputMethodManager.peekInstance();
+            if (imm != null && imm.isActive(this)) {
+                imm.hideSoftInputFromWindow(getWindowToken(), 0);
+            }
+        }
+        super.setEnabled(enabled);
+    }
+
     /**
      * Sets the typeface and style in which the text should be displayed,
      * and turns on the fake bold and italic bits in the Paint if the
@@ -2822,7 +2838,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
         public void drawText(Canvas c, int start, int end,
                              float x, float y, Paint p) {
-            c.drawText(mChars, start + mStart, end - start, x, y, p,false);
+            c.drawText(mChars, start + mStart, end - start, x, y, p);
         }
 
         public float measureText(int start, int end, Paint p) {
@@ -4590,7 +4606,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
     
     @Override public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        if (onCheckIsTextEditor()) {
+        if (onCheckIsTextEditor() && isEnabled()) {
             if (mInputMethodState == null) {
                 mInputMethodState = new InputMethodState();
             }
@@ -6853,7 +6869,8 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             return superResult;
         }
 
-        if ((mMovement != null || onCheckIsTextEditor()) && mText instanceof Spannable && mLayout != null) {
+        if ((mMovement != null || onCheckIsTextEditor()) && isEnabled() &&
+                mText instanceof Spannable && mLayout != null) {
             boolean handled = false;
 
             // Save previous selection, in case this event is used to show the IME.
@@ -7167,8 +7184,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
 
     private boolean canSelectText() {
-        return hasSelectionController() && mText.length() != 0 &&
-               mSelectionModifierCursorController != null;
+        return hasSelectionController() && mText.length() != 0;
     }
 
     private boolean textCanBeSelected() {

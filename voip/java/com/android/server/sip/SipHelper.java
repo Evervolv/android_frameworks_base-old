@@ -145,22 +145,15 @@ class SipHelper {
         return viaHeaders;
     }
 
-    public Address createContactAddress(SipProfile profile)
+    private ContactHeader createContactHeader(SipProfile profile)
             throws ParseException, SipException {
         ListeningPoint lp = getListeningPoint();
-
         SipURI contactURI =
                 createSipUri(profile.getUserName(), profile.getProtocol(), lp);
 
         Address contactAddress = mAddressFactory.createAddress(contactURI);
         contactAddress.setDisplayName(profile.getDisplayName());
 
-        return contactAddress;
-    }
-
-    private ContactHeader createContactHeader(SipProfile profile)
-            throws ParseException, SipException {
-        Address contactAddress = createContactAddress(profile);
         return mHeaderFactory.createContactHeader(contactAddress);
     }
 
@@ -233,7 +226,7 @@ class SipHelper {
                 requestType, callIdHeader, cSeqHeader, fromHeader,
                 toHeader, viaHeaders, maxForwards);
         Header userAgentHeader = mHeaderFactory.createHeader("User-Agent",
-                userProfile.getUserAgent());
+                "SIPAUA/0.1.001");
         request.addHeader(userAgentHeader);
         return request;
     }
@@ -267,11 +260,6 @@ class SipHelper {
             Request request = mMessageFactory.createRequest(requestURI,
                     Request.INVITE, callIdHeader, cSeqHeader, fromHeader,
                     toHeader, viaHeaders, maxForwards);
-
-
-            Header userAgentHeader = mHeaderFactory.createHeader("User-Agent",
-                    caller.getUserAgent());
-            request.addHeader(userAgentHeader);
 
             request.addHeader(createContactHeader(caller));
             request.setContent(sessionDescription,
