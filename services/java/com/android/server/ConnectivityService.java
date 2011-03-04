@@ -259,12 +259,21 @@ public class ConnectivityService extends IConnectivityManager.Stub {
     private ConnectivityService(Context context) {
         if (DBG) Slog.v(TAG, "ConnectivityService starting up");
 
-        // setup our unique device name
-        String id = Settings.Secure.getString(context.getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        if (id != null && id.length() > 0) {
-            String name = new String("android_").concat(id);
-            SystemProperties.set("net.hostname", name);
+        // try to get our custom device name
+        String hostname = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.DEVICE_HOSTNAME);
+        if (hostname != null && hostname.length() > 0) {
+            SystemProperties.set("net.hostname", hostname);
+            Slog.i(TAG, "hostname has been set: " + hostname);
+        } else {
+            // otherwise setup our unique device name
+            String id = Settings.Secure.getString(context.getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+            if (id != null && id.length() > 0) {
+                String name = new String("android-").concat(id);
+                SystemProperties.set("net.hostname", name);
+                Slog.i(TAG, "hostname has been set: " + name);
+            }
         }
 
         mContext = context;
@@ -999,10 +1008,10 @@ public class ConnectivityService extends IConnectivityManager.Stub {
         Slog.d(TAG, "Connectivityervice::handleDisconnect() - disconnecting netType(" + prevNetType + ")");
         mNetTrackers[prevNetType].setTeardownRequested(false);
 
-	    if (prevNetType == ConnectivityManager.TYPE_WIMAX || prevNetType == ConnectivityManager.TYPE_WIFI) {
+        if (prevNetType == ConnectivityManager.TYPE_WIMAX || prevNetType == ConnectivityManager.TYPE_WIFI) {
             mWimaxConnected = false;
 
-            if (mNetTrackers[ConnectivityManager.TYPE_MOBILE] != null) {
+            if (mNetTrackers[ConnectivityManager.TYPE_MOBILE] != null && getMobileDataEnabled()) {
                 if (DBG) {
                     Slog.d(TAG, "starting up " + mNetTrackers[ConnectivityManager.TYPE_MOBILE]);
                 }
@@ -1018,7 +1027,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                     Slog.d(TAG, "Unable to perform WiMAX rescan!");
                 }
             }
-	    }
+        }
 
         /*
          * If the disconnected network is not the active one, then don't report
@@ -1082,6 +1091,7 @@ public class ConnectivityService extends IConnectivityManager.Stub {
                     // a positive report we don't want to overwrite, but if not we need to clear this now
                     // to turn our cellular sig strength white
                     mDefaultInetConditionPublished = 0;
+                    intent.putExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, true);
                 }
                 intent.putExtra(ConnectivityManager.EXTRA_OTHER_NETWORK_INFO, switchTo);
             } else {

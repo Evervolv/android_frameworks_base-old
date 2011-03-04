@@ -163,6 +163,12 @@ public class LockPatternKeyguardView extends KeyguardViewBase {
      */
     private Configuration mConfiguration;
 
+    private Runnable mRecreateRunnable = new Runnable() {
+        public void run() {
+            recreateScreens();
+        }
+    };
+
     /**
      * @return Whether we are stuck on the lock screen because the sim is
      *   missing.
@@ -244,7 +250,8 @@ public class LockPatternKeyguardView extends KeyguardViewBase {
 
             public void recreateMe(Configuration config) {
                 mConfiguration = config;
-                recreateScreens();
+                removeCallbacks(mRecreateRunnable);
+                post(mRecreateRunnable);
             }
 
             public void takeEmergencyCallAction() {
@@ -463,6 +470,12 @@ public class LockPatternKeyguardView extends KeyguardViewBase {
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        removeCallbacks(mRecreateRunnable);
+        super.onDetachedFromWindow();
+    }
+
+    @Override
     public void wakeWhenReadyTq(int keyCode) {
         if (DEBUG) Log.d(TAG, "onWakeKey");
         if (keyCode == KeyEvent.KEYCODE_MENU && isSecure() && (mMode == Mode.LockScreen)
@@ -495,8 +508,10 @@ public class LockPatternKeyguardView extends KeyguardViewBase {
     public void cleanUp() {
         ((KeyguardScreen) mLockScreen).onPause();
         ((KeyguardScreen) mLockScreen).cleanUp();
+        this.removeView(mLockScreen);
         ((KeyguardScreen) mUnlockScreen).onPause();
         ((KeyguardScreen) mUnlockScreen).cleanUp();
+        this.removeView(mUnlockScreen);
     }
 
     private boolean isSecure() {
