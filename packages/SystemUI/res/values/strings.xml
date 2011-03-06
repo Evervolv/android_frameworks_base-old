@@ -51,4 +51,6 @@
          power usage activity to find out what drained the battery. -->
     <string name="battery_low_why">Battery use</string>
 
+    <string name="message">This is a test message, power control widgets will be placed here.</string>
+
 </resources>
