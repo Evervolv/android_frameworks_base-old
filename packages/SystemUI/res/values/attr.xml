@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<declare-styleable name="DockPanel">
+		<attr name="handleButtonDrawableId" format="reference" />
+		<attr name="contentLayoutId" format="reference" />
+		<attr name="dockPosition" format="enum" />
+		<attr name="isOpen" format="boolean" />
+		<attr name="animationDuration" format="integer" />
+	</declare-styleable>
+</resources>
