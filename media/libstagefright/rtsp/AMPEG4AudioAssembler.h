@@ -27,11 +27,9 @@
 namespace android {
 
 struct AMessage;
-struct AString;
 
 struct AMPEG4AudioAssembler : public ARTPAssembler {
-    AMPEG4AudioAssembler(
-            const sp<AMessage> &notify, const AString &params);
+    AMPEG4AudioAssembler(const sp<AMessage> &notify);
 
 protected:
     virtual ~AMPEG4AudioAssembler();
@@ -42,13 +40,6 @@ protected:
 
 private:
     sp<AMessage> mNotifyMsg;
-
-    bool mMuxConfigPresent;
-    unsigned mNumSubFrames;
-    unsigned mFrameLengthType;
-    bool mOtherDataPresent;
-    unsigned mOtherDataLenBits;
-
     uint32_t mAccessUnitRTPTime;
     bool mNextExpectedSeqNoValid;
     uint32_t mNextExpectedSeqNo;
@@ -57,8 +48,6 @@ private:
 
     AssemblyStatus addPacket(const sp<ARTPSource> &source);
     void submitAccessUnit();
-
-    sp<ABuffer> removeLATMFraming(const sp<ABuffer> &buffer);
 
     DISALLOW_EVIL_CONSTRUCTORS(AMPEG4AudioAssembler);
 };

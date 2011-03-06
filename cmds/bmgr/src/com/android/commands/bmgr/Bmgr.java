@@ -217,7 +217,8 @@ public final class Bmgr {
 
         // The rest of the 'list' options work with a restore session on the current transport
         try {
-            mRestore = mBmgr.beginRestoreSession(null, null);
+            String curTransport = mBmgr.getCurrentTransport();
+            mRestore = mBmgr.beginRestoreSession(curTransport);
             if (mRestore == null) {
                 System.err.println(BMGR_NOT_RUNNING_ERR);
                 return;
@@ -348,7 +349,8 @@ public final class Bmgr {
 
     private void doRestorePackage(String pkg) {
         try {
-            mRestore = mBmgr.beginRestoreSession(pkg, null);
+            String curTransport = mBmgr.getCurrentTransport();
+            mRestore = mBmgr.beginRestoreSession(curTransport);
             if (mRestore == null) {
                 System.err.println(BMGR_NOT_RUNNING_ERR);
                 return;
@@ -376,7 +378,8 @@ public final class Bmgr {
 
         try {
             boolean didRestore = false;
-            mRestore = mBmgr.beginRestoreSession(null, null);
+            String curTransport = mBmgr.getCurrentTransport();
+            mRestore = mBmgr.beginRestoreSession(curTransport);
             if (mRestore == null) {
                 System.err.println(BMGR_NOT_RUNNING_ERR);
                 return;

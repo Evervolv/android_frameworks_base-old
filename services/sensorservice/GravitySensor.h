@@ -33,15 +33,17 @@ namespace android {
 class GravitySensor : public SensorInterface {
     SensorDevice& mSensorDevice;
     Sensor mAccelerometer;
+    bool mEnabled;
     double mAccTime;
 
     SecondOrderLowPassFilter mLowPass;
-    CascadedBiquadFilter mX, mY, mZ;
+    BiquadFilter mX, mY, mZ;
 
 public:
     GravitySensor(sensor_t const* list, size_t count);
     virtual bool process(sensors_event_t* outEvent,
             const sensors_event_t& event);
+    virtual bool isEnabled() const;
     virtual status_t activate(void* ident, bool enabled);
     virtual status_t setDelay(void* ident, int handle, int64_t ns);
     virtual Sensor getSensor() const;

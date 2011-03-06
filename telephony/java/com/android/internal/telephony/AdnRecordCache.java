@@ -186,12 +186,7 @@ public final class AdnRecordCache extends Handler implements IccConstants {
         }
 
         ArrayList<AdnRecord>  oldAdnList;
-
-        if (efid == EF_PBR) {
-            oldAdnList = mUsimPhoneBookManager.loadEfFilesFromUsim();
-        } else {
-            oldAdnList = getRecordsIfLoaded(efid);
-        }
+        oldAdnList = getRecordsIfLoaded(efid);
 
         if (oldAdnList == null) {
             sendErrorResponse(response, "Adn list not exist for EF:" + efid);
@@ -211,17 +206,6 @@ public final class AdnRecordCache extends Handler implements IccConstants {
         if (index == -1) {
             sendErrorResponse(response, "Adn record don't exist for " + oldAdn);
             return;
-        }
-
-        if (efid == EF_PBR) {
-            AdnRecord foundAdn = oldAdnList.get(index-1);
-            efid = foundAdn.efid;
-            extensionEF = foundAdn.extRecord;
-            index = foundAdn.recordNumber;
-
-            newAdn.efid = efid;
-            newAdn.extRecord = extensionEF;
-            newAdn.recordNumber = index;
         }
 
         Message pendingResponse = userWriteResponse.get(efid);
@@ -347,7 +331,6 @@ public final class AdnRecordCache extends Handler implements IccConstants {
 
                 if (ar.exception == null) {
                     adnLikeFiles.get(efid).set(index - 1, adn);
-                    mUsimPhoneBookManager.invalidateCache();
                 }
 
                 Message response = userWriteResponse.get(efid);

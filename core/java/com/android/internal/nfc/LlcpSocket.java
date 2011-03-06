@@ -193,7 +193,7 @@ public class LlcpSocket {
 				throw new IOException();
 			}
 		} catch (RemoteException e) {
-			Log.e(TAG, "RemoteException in receive(): ", e);
+			Log.e(TAG, "RemoteException in send(): ", e);
 		}
 
 		return receivedLength;

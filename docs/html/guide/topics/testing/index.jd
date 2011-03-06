@@ -73,7 +73,6 @@ page.title=Testing
         to test applications and devices.
     </li>
 </ul>
-<!--
 <h4>Samples</h4>
 <ul>
     <li>
@@ -83,4 +82,3 @@ page.title=Testing
         testing a {@link android.app.Service}.
     </li>
 </ul>
--->

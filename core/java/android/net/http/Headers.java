@@ -262,14 +262,7 @@ public final class Headers {
             break;
         case HASH_CACHE_CONTROL:
             if (name.equals(CACHE_CONTROL)) {
-                // In case where we receive more than one header, create a ',' separated list.
-                // This should be ok, according to RFC 2616 chapter 4.2
-                if (mHeaders[IDX_CACHE_CONTROL] != null &&
-                    mHeaders[IDX_CACHE_CONTROL].length() > 0) {
-                    mHeaders[IDX_CACHE_CONTROL] += (',' + val);
-                } else {
-                    mHeaders[IDX_CACHE_CONTROL] = val;
-                }
+                mHeaders[IDX_CACHE_CONTROL] = val;
             }
             break;
         case HASH_LAST_MODIFIED:

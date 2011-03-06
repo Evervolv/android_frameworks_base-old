@@ -784,8 +784,7 @@ bool AudioSystem::isBluetoothScoDevice(audio_devices device)
     if ((popCount(device) == 1 ) &&
         (device & (AudioSystem::DEVICE_OUT_BLUETOOTH_SCO |
                    AudioSystem::DEVICE_OUT_BLUETOOTH_SCO_HEADSET |
-                   AudioSystem::DEVICE_OUT_BLUETOOTH_SCO_CARKIT |
-                   AudioSystem::DEVICE_IN_BLUETOOTH_SCO_HEADSET))) {
+                   AudioSystem::DEVICE_OUT_BLUETOOTH_SCO_CARKIT))) {
         return true;
     } else {
         return false;
@@ -860,7 +859,6 @@ const char *AudioParameter::keyFrameCount = "frame_count";
 const char *AudioParameter::keyFmOn = "fm_on";
 const char *AudioParameter::keyFmOff = "fm_off";
 #endif
-const char *AudioParameter::keyInputSource = "input_source";
 
 AudioParameter::AudioParameter(const String8& keyValuePairs)
 {

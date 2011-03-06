@@ -17,7 +17,6 @@
 package com.android.internal.telephony.sip;
 
 import android.content.Context;
-import android.media.AudioManager;
 import android.net.rtp.AudioGroup;
 import android.net.sip.SipAudioCall;
 import android.net.sip.SipErrorCode;
@@ -127,7 +126,7 @@ public class SipPhone extends SipPhoneBase {
                     (ringingCall.getState() == Call.State.WAITING)) {
                 if (DEBUG) Log.d(LOG_TAG, "acceptCall");
                 // Always unmute when answering a new call
-                ringingCall.setMute(false);
+                setMute(false);
                 ringingCall.acceptCall();
             } else {
                 throw new CallStateException("phone not ringing");
@@ -171,7 +170,7 @@ public class SipPhone extends SipPhoneBase {
             throw new CallStateException("cannot dial in current state");
         }
 
-        foregroundCall.setMute(false);
+        setMute(false);
         try {
             Connection c = foregroundCall.dial(dialString);
             return c;
@@ -289,13 +288,16 @@ public class SipPhone extends SipPhoneBase {
 
     @Override
     public void setEchoSuppressionEnabled(boolean enabled) {
-        // TODO: Remove the enabled argument. We should check the speakerphone
-        // state with AudioManager instead of keeping a state here so the
-        // method with a state argument is redundant. Also rename the method
-        // to something like onSpeaerphoneStateChanged(). Echo suppression may
-        // not be available on every device.
         synchronized (SipPhone.class) {
-            foregroundCall.setAudioGroupMode();
+            AudioGroup audioGroup = foregroundCall.getAudioGroup();
+            if (audioGroup == null) return;
+            int mode = audioGroup.getMode();
+            audioGroup.setMode(enabled
+                    ? AudioGroup.MODE_ECHO_SUPPRESSION
+                    : AudioGroup.MODE_NORMAL);
+            if (DEBUG) Log.d(LOG_TAG, String.format(
+                    "audioGroup mode change: %d --> %d", mode,
+                    audioGroup.getMode()));
         }
     }
 
@@ -306,9 +308,7 @@ public class SipPhone extends SipPhoneBase {
     }
 
     public boolean getMute() {
-        return (foregroundCall.getState().isAlive()
-                ? foregroundCall.getMute()
-                : backgroundCall.getMute());
+        return foregroundCall.getMute();
     }
 
     public Call getForegroundCall() {
@@ -383,20 +383,19 @@ public class SipPhone extends SipPhoneBase {
         Connection dial(String originalNumber) throws SipException {
             String calleeSipUri = originalNumber;
             if (!calleeSipUri.contains("@")) {
-                calleeSipUri = mProfile.getUriString().replaceFirst(
-                        mProfile.getUserName() + "@",
-                        calleeSipUri + "@");
+                calleeSipUri += "@" + getSipDomain(mProfile);
             }
             try {
                 SipProfile callee =
                         new SipProfile.Builder(calleeSipUri).build();
                 SipConnection c = new SipConnection(this, callee,
                         originalNumber);
-                c.dial();
                 connections.add(c);
+                c.dial();
                 setState(Call.State.DIALING);
                 return c;
             } catch (ParseException e) {
+                // TODO: notify someone
                 throw new SipException("dial", e);
             }
         }
@@ -450,33 +449,13 @@ public class SipPhone extends SipPhoneBase {
             ((SipConnection) connections.get(0)).acceptCall();
         }
 
-        private boolean isSpeakerOn() {
-            return ((AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE))
-                    .isSpeakerphoneOn();
-        }
-
-        void setAudioGroupMode() {
-            AudioGroup audioGroup = getAudioGroup();
-            if (audioGroup == null) return;
-            int mode = audioGroup.getMode();
-            if (state == State.HOLDING) {
-                audioGroup.setMode(AudioGroup.MODE_ON_HOLD);
-            } else if (getMute()) {
-                audioGroup.setMode(AudioGroup.MODE_MUTED);
-            } else if (isSpeakerOn()) {
-                audioGroup.setMode(AudioGroup.MODE_ECHO_SUPPRESSION);
-            } else {
-                audioGroup.setMode(AudioGroup.MODE_NORMAL);
-            }
-            if (DEBUG) Log.d(LOG_TAG, String.format(
-                    "audioGroup mode change: %d --> %d", mode,
-                    audioGroup.getMode()));
-        }
-
         void hold() throws CallStateException {
             setState(State.HOLDING);
+            AudioGroup audioGroup = getAudioGroup();
+            if (audioGroup != null) {
+                audioGroup.setMode(AudioGroup.MODE_ON_HOLD);
+            }
             for (Connection c : connections) ((SipConnection) c).hold();
-            setAudioGroupMode();
         }
 
         void unhold() throws CallStateException {
@@ -485,19 +464,19 @@ public class SipPhone extends SipPhoneBase {
             for (Connection c : connections) {
                 ((SipConnection) c).unhold(audioGroup);
             }
-            setAudioGroupMode();
         }
 
         void setMute(boolean muted) {
-            for (Connection c : connections) {
-                ((SipConnection) c).setMute(muted);
-            }
+            AudioGroup audioGroup = getAudioGroup();
+            if (audioGroup == null) return;
+            audioGroup.setMode(
+                    muted ? AudioGroup.MODE_MUTED : AudioGroup.MODE_NORMAL);
         }
 
         boolean getMute() {
-            return connections.isEmpty()
-                    ? false
-                    : ((SipConnection) connections.get(0)).getMute();
+            AudioGroup audioGroup = getAudioGroup();
+            if (audioGroup == null) return false;
+            return (audioGroup.getMode() == AudioGroup.MODE_MUTED);
         }
 
         void merge(SipCall that) throws CallStateException {
@@ -678,6 +657,12 @@ public class SipPhone extends SipPhoneBase {
             @Override
             protected void onError(DisconnectCause cause) {
                 if (DEBUG) Log.d(LOG_TAG, "SIP error: " + cause);
+                if (mSipAudioCall.isInCall()
+                        && (cause != DisconnectCause.LOST_SIGNAL)) {
+                    // Don't end the call when in a call.
+                    return;
+                }
+
                 onCallEnded(cause);
             }
         };
@@ -754,17 +739,6 @@ public class SipPhone extends SipPhoneBase {
             } catch (SipException e) {
                 throw new CallStateException("unhold(): " + e);
             }
-        }
-
-        void setMute(boolean muted) {
-            if ((mSipAudioCall != null) && (muted != mSipAudioCall.isMuted())) {
-                mSipAudioCall.toggleMute();
-            }
-        }
-
-        boolean getMute() {
-            return (mSipAudioCall == null) ? false
-                                           : mSipAudioCall.isMuted();
         }
 
         @Override

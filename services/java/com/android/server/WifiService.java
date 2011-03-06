@@ -63,7 +63,6 @@ import android.os.PowerManager;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.os.SystemProperties;
 import android.os.WorkSource;
 import android.provider.Settings;
 import android.util.Slog;
@@ -175,8 +174,6 @@ public class WifiService extends IWifiManager.Stub {
     private static final int MESSAGE_SET_CHANNELS       = 8;
     private static final int MESSAGE_ENABLE_NETWORKS    = 9;
     private static final int MESSAGE_START_SCAN         = 10;
-    private static final int MESSAGE_REPORT_WORKSOURCE  = 11;
-    private static final int MESSAGE_ENABLE_RSSI_POLLING = 12;
 
 
     private final  WifiHandler mWifiHandler;
@@ -781,11 +778,7 @@ public class WifiService extends IWifiManager.Stub {
          * Unload the driver if going to a failed state
          */
         if ((mWifiApState == WIFI_AP_STATE_FAILED) && (flag == DriverAction.DRIVER_UNLOAD)) {
-            if (SystemProperties.getBoolean("wifi.hotspot.ti", false)) {
-                mWifiStateTracker.unloadHotspotDriver();
-            } else {
-                mWifiStateTracker.unloadDriver();
-            }
+            mWifiStateTracker.unloadDriver();
         }
 
         long ident = Binder.clearCallingIdentity();
@@ -1729,8 +1722,8 @@ public class WifiService extends IWifiManager.Stub {
                 mScreenOff = false;
                 // Once the screen is on, we are not keeping WIFI running
                 // because of any locks so clear that tracking immediately.
-                sendReportWorkSourceMessage();
-                sendEnableRssiPollingMessage(true);
+                reportStartWorkSource();
+                mWifiStateTracker.enableRssiPolling(true);
                 /* DHCP or other temporary failures in the past can prevent
                  * a disabled network from being connected to, enable on screen on
                  */
@@ -1742,7 +1735,7 @@ public class WifiService extends IWifiManager.Stub {
                     Slog.d(TAG, "ACTION_SCREEN_OFF");
                 }
                 mScreenOff = true;
-                sendEnableRssiPollingMessage(false);
+                mWifiStateTracker.enableRssiPolling(false);
                 /*
                  * Set a timer to put Wi-Fi to sleep, but only if the screen is off
                  * AND the "stay on while plugged in" setting doesn't match the
@@ -1780,7 +1773,7 @@ public class WifiService extends IWifiManager.Stub {
                     Slog.d(TAG, "got ACTION_DEVICE_IDLE");
                 }
                 mDeviceIdle = true;
-                sendReportWorkSourceMessage();
+                reportStartWorkSource();
             } else if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
                 /*
                  * Set a timer to put Wi-Fi to sleep, but only if the screen is off
@@ -1885,15 +1878,6 @@ public class WifiService extends IWifiManager.Stub {
     private void sendEnableNetworksMessage() {
         Message.obtain(mWifiHandler, MESSAGE_ENABLE_NETWORKS).sendToTarget();
     }
-
-    private void sendReportWorkSourceMessage() {
-        Message.obtain(mWifiHandler, MESSAGE_REPORT_WORKSOURCE).sendToTarget();
-    }
-
-    private void sendEnableRssiPollingMessage(boolean enable) {
-        Message.obtain(mWifiHandler, MESSAGE_ENABLE_RSSI_POLLING, enable ? 1 : 0, 0).sendToTarget();
-    }
-
 
     private void reportStartWorkSource() {
         synchronized (mWifiStateTracker) {
@@ -2094,12 +2078,6 @@ public class WifiService extends IWifiManager.Stub {
                             break;
                     }
                     mWifiStateTracker.scan(forceActive);
-                    break;
-                case MESSAGE_REPORT_WORKSOURCE:
-                    reportStartWorkSource();
-                    break;
-                case MESSAGE_ENABLE_RSSI_POLLING:
-                    mWifiStateTracker.enableRssiPolling(msg.arg1 == 1);
                     break;
             }
         }
@@ -2325,7 +2303,7 @@ public class WifiService extends IWifiManager.Stub {
 
             // Be aggressive about adding new locks into the accounted state...
             // we want to over-report rather than under-report.
-            sendReportWorkSourceMessage();
+            reportStartWorkSource();
 
             updateWifiState();
             return true;

@@ -91,7 +91,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -297,9 +296,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     Drawable mSelectHandleLeft;
     Drawable mSelectHandleRight;
     Drawable mSelectHandleCenter;
-
-    // Set when this TextView gained focus with some text selected. Will start selection mode.
-    private boolean mCreatedWithASelection = false;
 
     /*
      * Kick-start the font cache for the zygote process (to pay the cost of
@@ -978,22 +974,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         }
 
         setTypeface(tf, styleIndex);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        if (enabled == isEnabled()) {
-            return;
-        }
-
-        if (!enabled) {
-            // Hide the soft input if the currently active TextView is disabled
-            InputMethodManager imm = InputMethodManager.peekInstance();
-            if (imm != null && imm.isActive(this)) {
-                imm.hideSoftInputFromWindow(getWindowToken(), 0);
-            }
-        }
-        super.setEnabled(enabled);
     }
 
     /**
@@ -3778,10 +3758,8 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         // - ExtractEditText does not call onFocus when it is displayed. Fixing this issue would
         //   allow to test for hasSelection in onFocusChanged, which would trigger a
         //   startTextSelectionMode here. TODO
-        if (mCreatedWithASelection ||
-           (this instanceof ExtractEditText && selectionController != null && hasSelection())) {
+        if (this instanceof ExtractEditText && selectionController != null && hasSelection()) {
             startTextSelectionMode();
-            mCreatedWithASelection = false;
         }
 
         mPreDrawState = PREDRAW_DONE;
@@ -3830,18 +3808,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
         if (mError != null) {
             hideError();
-        }
-
-        if (mBlink != null) {
-            mBlink.cancel();
-        }
-
-        if (mInsertionPointCursorController != null) {
-            mInsertionPointCursorController.onDetached();
-        }
-
-        if (mSelectionModifierCursorController != null) {
-            mSelectionModifierCursorController.onDetached();
         }
 
         hideControllers();
@@ -4209,7 +4175,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 mInsertionPointCursorController.isShowing()) {
             mInsertionPointCursorController.updatePosition();
         }
-
         if (mSelectionModifierCursorController != null &&
                 mSelectionModifierCursorController.isShowing()) {
             mSelectionModifierCursorController.updatePosition();
@@ -4606,7 +4571,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
     
     @Override public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        if (onCheckIsTextEditor() && isEnabled()) {
+        if (onCheckIsTextEditor()) {
             if (mInputMethodState == null) {
                 mInputMethodState = new InputMethodState();
             }
@@ -4680,9 +4645,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                     partialStartOffset = 0;
                     partialEndOffset = N;
                 } else {
-                    // Now use the delta to determine the actual amount of text
-                    // we need.
-                    partialEndOffset += delta;
                     // Adjust offsets to ensure we contain full spans.
                     if (content instanceof Spanned) {
                         Spanned spanned = (Spanned)content;
@@ -4698,8 +4660,10 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                         }
                     }
                     outText.partialStartOffset = partialStartOffset;
-                    outText.partialEndOffset = partialEndOffset - delta;
-
+                    outText.partialEndOffset = partialEndOffset;
+                    // Now use the delta to determine the actual amount of text
+                    // we need.
+                    partialEndOffset += delta;
                     if (partialStartOffset > N) {
                         partialStartOffset = N;
                     } else if (partialStartOffset < 0) {
@@ -4763,10 +4727,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                                     + ": " + ims.mTmpExtracted.text);
                             imm.updateExtractedText(this, req.token,
                                     mInputMethodState.mTmpExtracted);
-                            ims.mChangedStart = EXTRACT_UNKNOWN;
-                            ims.mChangedEnd = EXTRACT_UNKNOWN;
-                            ims.mChangedDelta = 0;
-                            ims.mContentChanged = false;
                             return true;
                         }
                     }
@@ -6367,8 +6327,8 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 ims.mChangedStart = start;
                 ims.mChangedEnd = start+before;
             } else {
-                ims.mChangedStart = Math.min(ims.mChangedStart, start);
-                ims.mChangedEnd = Math.max(ims.mChangedEnd, start + before - ims.mChangedDelta);
+                if (ims.mChangedStart > start) ims.mChangedStart = start;
+                if (ims.mChangedEnd < (start+before)) ims.mChangedEnd = start+before;
             }
             ims.mChangedDelta += after-before;
         }
@@ -6563,7 +6523,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
 
     private void makeBlink() {
-        if (!mCursorVisible || !isTextEditable()) {
+        if (!mCursorVisible) {
             if (mBlink != null) {
                 mBlink.removeCallbacks(mBlink);
             }
@@ -6620,12 +6580,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             int selStart = getSelectionStart();
             int selEnd = getSelectionEnd();
 
-            // SelectAllOnFocus fields are highlighted and not selected. Do not start text selection
-            // mode for these, unless there was a specific selection already started.
-            final boolean isFocusHighlighted = mSelectAllOnFocus && selStart == 0 &&
-                    selEnd == mText.length();
-            mCreatedWithASelection = mFrozenWithFocus && hasSelection() && !isFocusHighlighted;
-
             if (!mFrozenWithFocus || (selStart < 0 || selEnd < 0)) {
                 // If a tap was used to give focus to that view, move cursor at tap position.
                 // Has to be done before onTakeFocus, which can be overloaded.
@@ -6636,6 +6590,10 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
                 if (mMovement != null) {
                     mMovement.onTakeFocus(this, (Spannable) mText, direction);
+                }
+
+                if (mSelectAllOnFocus) {
+                    Selection.setSelection((Spannable) mText, 0, mText.length());
                 }
 
                 // The DecorView does not have focus when the 'Done' ExtractEditText button is
@@ -6656,11 +6614,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                      */
                     Selection.setSelection((Spannable) mText, selStart, selEnd);
                 }
-
-                if (mSelectAllOnFocus) {
-                    Selection.setSelection((Spannable) mText, 0, mText.length());
-                }
-
                 mTouchFocusSelected = true;
             }
 
@@ -6690,7 +6643,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 // ExtractEditText goes out of focus.
                 mIsInTextSelectionMode = false;
             } else {
-                stopTextSelectionMode();
+                terminateTextSelectionMode();
             }
 
             if (mSelectionModifierCursorController != null) {
@@ -6792,23 +6745,29 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         final int end = getSelectionEnd();
 
         if (start == end) {
-            boolean tapInsideSelectAllOnFocus = mSelectAllOnFocus && prevStart == 0 &&
-                  prevEnd == mText.length();
-            if (start >= prevStart && start < prevEnd && !tapInsideSelectAllOnFocus) {
+            if (start >= prevStart && start < prevEnd) {
                 // Restore previous selection
                 Selection.setSelection((Spannable)mText, prevStart, prevEnd);
 
-                // Tapping inside the selection displays the cut/copy/paste context menu
-                showContextMenu();
+                if (hasSelectionController() && !getSelectionController().isShowing()) {
+                    // If the anchors aren't showing, revive them.
+                    getSelectionController().show();
+                } else {
+                    // Tapping inside the selection displays the cut/copy/paste context menu
+                    // as long as the anchors are already showing.
+                    showContextMenu();
+                }
+                return;
             } else {
                 // Tapping outside stops selection mode, if any
                 stopTextSelectionMode();
 
-                boolean selectAllGotFocus = mSelectAllOnFocus && mTouchFocusSelected;
-                if (hasInsertionController() && !selectAllGotFocus) {
+                if (hasInsertionController() && mText.length() > 0) {
                     getInsertionController().show();
                 }
             }
+        } else if (hasSelection() && hasSelectionController()) {
+            getSelectionController().show();
         }
     }
 
@@ -6831,8 +6790,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 int end = Math.min(len, mPrevEnd);
                 Selection.setSelection((Spannable)mText, start, end);
 
-                boolean selectAllGotFocus = mSelectAllOnFocus && mTouchFocusSelected;
-                if (hasSelection() && !selectAllGotFocus) {
+                if (hasSelection()) {
                     startTextSelectionMode();
                 }
             }
@@ -6842,17 +6800,16 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final int action = event.getActionMasked();
-
-        if (hasInsertionController()) {
-            getInsertionController().onTouchEvent(event);
-        }
-        if (hasSelectionController()) {
-            getSelectionController().onTouchEvent(event);
-        }
-
         if (action == MotionEvent.ACTION_DOWN) {
-        // Reset this state; it will be re-set if super.onTouchEvent
-        // causes focus to move to the view.
+            if (hasInsertionController()) {
+                getInsertionController().onTouchEvent(event);
+            }
+            if (hasSelectionController()) {
+                getSelectionController().onTouchEvent(event);
+            }
+
+            // Reset this state; it will be re-set if super.onTouchEvent
+            // causes focus to move to the view.
             mTouchFocusSelected = false;
             mScrolled = false;
         }
@@ -6869,8 +6826,14 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             return superResult;
         }
 
-        if ((mMovement != null || onCheckIsTextEditor()) && isEnabled() &&
-                mText instanceof Spannable && mLayout != null) {
+        if ((mMovement != null || onCheckIsTextEditor()) && mText instanceof Spannable && mLayout != null) {
+            if (hasInsertionController()) {
+                getInsertionController().onTouchEvent(event);
+            }
+            if (hasSelectionController()) {
+                getSelectionController().onTouchEvent(event);
+            }
+
             boolean handled = false;
 
             // Save previous selection, in case this event is used to show the IME.
@@ -6949,7 +6912,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
      * @return True iff this TextView contains a text that can be edited.
      */
     private boolean isTextEditable() {
-        return mText instanceof Editable && onCheckIsTextEditor() && isEnabled();
+        return mText instanceof Editable && onCheckIsTextEditor();
     }
 
     /**
@@ -7184,7 +7147,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
     }
 
     private boolean canSelectText() {
-        return hasSelectionController() && mText.length() != 0;
+        return textCanBeSelected() && mText.length() != 0;
     }
 
     private boolean textCanBeSelected() {
@@ -7346,15 +7309,15 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             minOffset = getSelectionStart();
             maxOffset = getSelectionEnd();
         } else {
-            // hasSelectionController is true since we canSelectText.
+            // selectionModifierCursorController is not null at that point
             SelectionModifierCursorController selectionModifierCursorController =
-                (SelectionModifierCursorController) getSelectionController();
+                ((SelectionModifierCursorController) mSelectionModifierCursorController);
             minOffset = selectionModifierCursorController.getMinTouchOffset();
             maxOffset = selectionModifierCursorController.getMaxTouchOffset();
         }
 
         int selectionStart, selectionEnd;
-
+        
         long wordLimits = getWordLimitsAt(minOffset);
         if (wordLimits >= 0) {
             selectionStart = extractRangeStartFromLong(wordLimits);
@@ -7513,7 +7476,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         }
 
         if (added) {
-            hideControllers();
             menu.setHeaderTitle(com.android.internal.R.string.editTextMenuTitle);
         }
     }
@@ -7690,16 +7652,27 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 return;
             }
 
-            if (!canSelectText() || !requestFocus()) {
+            if (!requestFocus()) {
                 return;
             }
 
             selectCurrentWord();
-            getSelectionController().show();
-            final InputMethodManager imm = (InputMethodManager)
-                    getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(this, 0, null);
             mIsInTextSelectionMode = true;
+        }
+    }
+    
+    /**
+     * Same as {@link #stopTextSelectionMode()}, except that there is no cursor controller
+     * fade out animation. Needed since the drawable and their alpha values are shared by all
+     * TextViews. Switching from one TextView to another would fade the cursor controllers in the
+     * new one otherwise.
+     */
+    private void terminateTextSelectionMode() {
+        stopTextSelectionMode();
+        if (mSelectionModifierCursorController != null) {
+            SelectionModifierCursorController selectionModifierCursorController =
+                (SelectionModifierCursorController) mSelectionModifierCursorController;
+            selectionModifierCursorController.cancelFadeOutAnimation();
         }
     }
 
@@ -7747,13 +7720,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
          * @param event The touch event
          */
         public boolean onTouchEvent(MotionEvent event);
-
-        /**
-         * Called when the view is detached from window. Perform house keeping task, such as
-         * stopping Runnable thread that would otherwise keep a reference on the context, thus
-         * preventing the activity to be recycled.
-         */
-        public void onDetached();
     }
 
     private class HandleView extends View {
@@ -7799,7 +7765,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 }
                 mDrawable = mSelectHandleLeft;
                 handleWidth = mDrawable.getIntrinsicWidth();
-                mHotspotX = (handleWidth * 3) / 4;
+                mHotspotX = handleWidth / 4 * 3;
                 break;
             }
 
@@ -7966,7 +7932,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 mIsDragging = true;
                 break;
             }
-
             case MotionEvent.ACTION_MOVE: {
                 final float rawX = ev.getRawX();
                 final float rawY = ev.getRawY();
@@ -7977,7 +7942,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
                 break;
             }
-
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 mIsDragging = false;
@@ -8033,12 +7997,12 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
         public void hide() {
             mHandle.hide();
-            removeCallbacks(mHider);
+            TextView.this.removeCallbacks(mHider);
         }
 
         private void hideDelayed(int msec) {
-            removeCallbacks(mHider);
-            postDelayed(mHider, msec);
+            TextView.this.removeCallbacks(mHider);
+            TextView.this.postDelayed(mHider, msec);
         }
 
         public boolean isShowing() {
@@ -8078,11 +8042,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 hide();
             }
         }
-
-        @Override
-        public void onDetached() {
-            removeCallbacks(mHider);
-        }
     }
 
     private class SelectionModifierCursorController implements CursorController {
@@ -8092,10 +8051,14 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
         private int mMinTouchOffset, mMaxTouchOffset;
         // Whether selection anchors are active
         private boolean mIsShowing;
-        // Double tap detection
-        private long mPreviousTapUpTime = 0;
-        private int mPreviousTapPositionX;
-        private int mPreviousTapPositionY;
+
+        private static final int DELAY_BEFORE_FADE_OUT = 4100;
+
+        private final Runnable mHider = new Runnable() {
+            public void run() {
+                hide();
+            }
+        };
 
         SelectionModifierCursorController() {
             mStartHandle = new HandleView(this, HandleView.LEFT);
@@ -8113,16 +8076,27 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
             mStartHandle.show();
             mEndHandle.show();
             hideInsertionPointCursorController();
+            hideDelayed(DELAY_BEFORE_FADE_OUT);
         }
 
         public void hide() {
             mStartHandle.hide();
             mEndHandle.hide();
             mIsShowing = false;
+            removeCallbacks(mHider);
+        }
+
+        private void hideDelayed(int delay) {
+            removeCallbacks(mHider);
+            postDelayed(mHider, delay);
         }
 
         public boolean isShowing() {
             return mIsShowing;
+        }
+
+        public void cancelFadeOutAnimation() {
+            hide();
         }
 
         public void updatePosition(HandleView handle, int x, int y) {
@@ -8176,6 +8150,7 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
 
             mStartHandle.positionAtCursor(selectionStart, true);
             mEndHandle.positionAtCursor(selectionEnd, true);
+            hideDelayed(DELAY_BEFORE_FADE_OUT);
         }
 
         public boolean onTouchEvent(MotionEvent event) {
@@ -8190,24 +8165,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                         // Remember finger down position, to be able to start selection from there
                         mMinTouchOffset = mMaxTouchOffset = getOffset(x, y);
 
-                        // Double tap detection
-                        long duration = SystemClock.uptimeMillis() - mPreviousTapUpTime;
-                        if (duration <= ViewConfiguration.getDoubleTapTimeout()) {
-                            final int deltaX = x - mPreviousTapPositionX;
-                            final int deltaY = y - mPreviousTapPositionY;
-                            final int distanceSquared = deltaX * deltaX + deltaY * deltaY;
-                            final int doubleTapSlop = ViewConfiguration.get(getContext()).getScaledDoubleTapSlop();
-                            final int slopSquared = doubleTapSlop * doubleTapSlop;
-                            if (distanceSquared < slopSquared) {
-                                startTextSelectionMode();
-                                // Hacky: onTapUpEvent will open a context menu with cut/copy
-                                // Prevent this by hiding handles which will be revived instead.
-                                hide();
-                            }
-                        }
-                        mPreviousTapPositionX = x;
-                        mPreviousTapPositionY = y;
-
                         break;
 
                     case MotionEvent.ACTION_POINTER_DOWN:
@@ -8218,10 +8175,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                                 PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT)) {
                             updateMinAndMaxOffsets(event);
                         }
-                        break;
-
-                    case MotionEvent.ACTION_UP:
-                        mPreviousTapUpTime = SystemClock.uptimeMillis();
                         break;
                 }
             }
@@ -8266,9 +8219,6 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
                 hide();
             }
         }
-
-        @Override
-        public void onDetached() {}
     }
 
     private void hideInsertionPointCursorController() {

@@ -207,7 +207,7 @@ public final class StrictMode {
         }
 
         /**
-         * Creates {@link ThreadPolicy} instances.  Methods whose names start
+         * Creates ThreadPolicy instances.  Methods whose names start
          * with {@code detect} specify what problems we should look
          * for.  Methods whose names start with {@code penalty} specify what
          * we should do when we detect a problem.
@@ -218,11 +218,11 @@ public final class StrictMode {
          *
          * <p>For example, detect everything and log anything that's found:
          * <pre>
-         * StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+         * StrictMode.VmPolicy policy = new StrictMode.VmPolicy.Builder()
          *     .detectAll()
          *     .penaltyLog()
          *     .build();
-         * StrictMode.setThreadPolicy(policy);
+         * StrictMode.setVmPolicy(policy);
          * </pre>
          */
         public static final class Builder {

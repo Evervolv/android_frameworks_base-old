@@ -190,7 +190,6 @@ class SipSessionGroup implements SipListener {
 
     public synchronized void close() {
         Log.d(TAG, " close stack for " + mLocalProfile.getUriString());
-        onConnectivityChanged();
         mSessionMap.clear();
         closeToNotReceiveCalls();
         if (mSipStack != null) {
@@ -527,14 +526,11 @@ class SipSessionGroup implements SipListener {
         }
 
         public void answerCall(String sessionDescription, int timeout) {
-            synchronized (SipSessionGroup.this) {
-                if (mPeerProfile == null) return;
-                try {
-                    processCommand(new MakeCallCommand(mPeerProfile,
-                            sessionDescription, timeout));
-                } catch (SipException e) {
-                    onError(e);
-                }
+            try {
+                processCommand(new MakeCallCommand(mPeerProfile,
+                        sessionDescription, timeout));
+            } catch (SipException e) {
+                onError(e);
             }
         }
 
@@ -543,11 +539,14 @@ class SipSessionGroup implements SipListener {
         }
 
         public void changeCall(String sessionDescription, int timeout) {
-            synchronized (SipSessionGroup.this) {
-                if (mPeerProfile == null) return;
-                doCommandAsync(new MakeCallCommand(mPeerProfile,
-                        sessionDescription, timeout));
-            }
+            doCommandAsync(new MakeCallCommand(mPeerProfile, sessionDescription,
+                    timeout));
+        }
+
+        public void changeCallWithTimeout(
+                String sessionDescription, int timeout) {
+            doCommandAsync(new MakeCallCommand(mPeerProfile, sessionDescription,
+                    timeout));
         }
 
         public void register(int duration) {
@@ -872,13 +871,8 @@ class SipSessionGroup implements SipListener {
                 }
                 return true;
             } else {
-                if (crossDomainAuthenticationRequired(response)) {
-                    onError(SipErrorCode.CROSS_DOMAIN_AUTHENTICATION,
-                            getRealmFromResponse(response));
-                } else {
-                    onError(SipErrorCode.INVALID_CREDENTIALS,
-                            "incorrect username or password");
-                }
+                onError(SipErrorCode.INVALID_CREDENTIALS,
+                        "incorrect username or password");
                 return false;
             }
         }
@@ -895,9 +889,7 @@ class SipSessionGroup implements SipListener {
                         challengedTransaction, String realm) {
                     return new UserCredentials() {
                         public String getUserName() {
-                            String username = mLocalProfile.getAuthUserName();
-                            return (!TextUtils.isEmpty(username) ? username :
-                                    mLocalProfile.getUserName());
+                            return mLocalProfile.getUserName();
                         }
 
                         public String getPassword() {
@@ -1032,7 +1024,10 @@ class SipSessionGroup implements SipListener {
                     return true;
                 case Response.UNAUTHORIZED:
                 case Response.PROXY_AUTHENTICATION_REQUIRED:
-                    if (handleAuthentication(event)) {
+                    if (crossDomainAuthenticationRequired(response)) {
+                        onError(SipErrorCode.CROSS_DOMAIN_AUTHENTICATION,
+                                getRealmFromResponse(response));
+                    } else if (handleAuthentication(event)) {
                         addSipSession(this);
                     }
                     return true;
@@ -1167,6 +1162,11 @@ class SipSessionGroup implements SipListener {
             mProxy.onCallEstablished(this, mPeerSessionDescription);
         }
 
+        private void fallbackToPreviousInCall(int errorCode, String message) {
+            mState = SipSession.State.IN_CALL;
+            mProxy.onCallChangeFailed(this, errorCode, message);
+        }
+
         private void endCallNormally() {
             reset();
             mProxy.onCallEnded(this);
@@ -1190,7 +1190,12 @@ class SipSessionGroup implements SipListener {
                     onRegistrationFailed(errorCode, message);
                     break;
                 default:
-                    endCallOnError(errorCode, message);
+                    if ((errorCode != SipErrorCode.DATA_CONNECTION_LOST)
+                            && mInCall) {
+                        fallbackToPreviousInCall(errorCode, message);
+                    } else {
+                        endCallOnError(errorCode, message);
+                    }
             }
         }
 
@@ -1337,12 +1342,10 @@ class SipSessionGroup implements SipListener {
             SipURI uri = (SipURI) address.getURI();
             String username = uri.getUser();
             if (username == null) username = ANONYMOUS;
-            int port = uri.getPort();
-            SipProfile.Builder builder =
-                    new SipProfile.Builder(username, uri.getHost())
-                    .setDisplayName(address.getDisplayName());
-            if (port > 0) builder.setPort(port);
-            return builder.build();
+            return new SipProfile.Builder(username, uri.getHost())
+                    .setPort(uri.getPort())
+                    .setDisplayName(address.getDisplayName())
+                    .build();
         } catch (IllegalArgumentException e) {
             throw new SipException("createPeerProfile()", e);
         } catch (ParseException e) {

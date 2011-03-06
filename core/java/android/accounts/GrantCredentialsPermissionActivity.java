@@ -17,7 +17,6 @@ package android.accounts;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.ImageView;
@@ -27,7 +26,6 @@ import android.view.Window;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.RegisteredServicesCache;
 import android.text.TextUtils;
 import android.graphics.drawable.Drawable;
 import com.android.internal.R;
@@ -48,7 +46,6 @@ public class GrantCredentialsPermissionActivity extends Activity implements View
     private int mUid;
     private Bundle mResultBundle = null;
     protected LayoutInflater mInflater;
-    private final AccountManagerService accountManagerService = AccountManagerService.getSingleton();
 
     protected void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -58,56 +55,27 @@ public class GrantCredentialsPermissionActivity extends Activity implements View
         mInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         final Bundle extras = getIntent().getExtras();
-
-        // Grant 'account'/'type' to mUID
         mAccount = extras.getParcelable(EXTRAS_ACCOUNT);
         mAuthTokenType = extras.getString(EXTRAS_AUTH_TOKEN_TYPE);
-        mUid = extras.getInt(EXTRAS_REQUESTING_UID);
-        final PackageManager pm = getPackageManager();
-        final String[] packages = pm.getPackagesForUid(mUid);
 
-        if (mAccount == null || mAuthTokenType == null || packages == null) {
+        if (mAccount == null || mAuthTokenType == null) {
             // we were somehow started with bad parameters. abort the activity.
             setResult(Activity.RESULT_CANCELED);
             finish();
             return;
         }
 
-        final String accountTypeLabel = accountManagerService.getAccountLabel(mAccount.type);
-
-
-        final TextView authTokenTypeView = (TextView) findViewById(R.id.authtoken_type);
-        authTokenTypeView.setVisibility(View.GONE);
-
-        /** Handles the responses from the AccountManager */
-        IAccountManagerResponse response = new IAccountManagerResponse.Stub() {
-            public void onResult(Bundle bundle) {
-                final String authTokenLabel =
-                    bundle.getString(AccountManager.KEY_AUTH_TOKEN_LABEL);
-                if (!TextUtils.isEmpty(authTokenLabel)) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            if (!isFinishing()) {
-                                authTokenTypeView.setText(authTokenLabel);
-                                authTokenTypeView.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-                }
-            }
-
-            public void onError(int code, String message) {
-            }
-        };
-
-        accountManagerService.getAuthTokenLabel(
-                response, mAccount, mAuthTokenType);
+        mUid = extras.getInt(EXTRAS_REQUESTING_UID);
+        final String accountTypeLabel = extras.getString(EXTRAS_ACCOUNT_TYPE_LABEL);
+        final String[] packages = extras.getStringArray(EXTRAS_PACKAGES);
+        final String authTokenLabel = extras.getString(EXTRAS_AUTH_TOKEN_LABEL);
 
         findViewById(R.id.allow_button).setOnClickListener(this);
         findViewById(R.id.deny_button).setOnClickListener(this);
 
         LinearLayout packagesListView = (LinearLayout) findViewById(R.id.packages_list);
 
+        final PackageManager pm = getPackageManager();
         for (String pkg : packages) {
             String packageLabel;
             try {
@@ -120,6 +88,12 @@ public class GrantCredentialsPermissionActivity extends Activity implements View
 
         ((TextView) findViewById(R.id.account_name)).setText(mAccount.name);
         ((TextView) findViewById(R.id.account_type)).setText(accountTypeLabel);
+        TextView authTokenTypeView = (TextView) findViewById(R.id.authtoken_type);
+        if (TextUtils.isEmpty(authTokenLabel)) {
+            authTokenTypeView.setVisibility(View.GONE);
+        } else {
+            authTokenTypeView.setText(authTokenLabel);
+        }
     }
 
     private View newPackageView(String packageLabel) {
@@ -129,6 +103,7 @@ public class GrantCredentialsPermissionActivity extends Activity implements View
     }
 
     public void onClick(View v) {
+        final AccountManagerService accountManagerService = AccountManagerService.getSingleton();
         switch (v.getId()) {
             case R.id.allow_button:
                 accountManagerService.grantAppPermission(mAccount, mAuthTokenType, mUid);

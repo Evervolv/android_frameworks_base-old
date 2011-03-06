@@ -1402,28 +1402,23 @@ public final class SimulatedCommands extends BaseCommands
     }
 
     /**
-     *  Set the TTY mode
+     *  Set the TTY mode for the CDMA phone
      *
-     * @param ttyMode is one of the following:
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_OFF}
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_FULL}
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_HCO}
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_VCO}
+     * @param enable is true to enable, false to disable
+     * @param serviceClass is a sum of SERVICE_CLASS_*
      * @param response is callback message
      */
     public void setTTYMode(int ttyMode, Message response) {
-        Log.w(LOG_TAG, "Not implemented in SimulatedCommands");
+        Log.w(LOG_TAG, "CDMA not implemented in SimulatedCommands");
         unimplemented(response);
     }
 
     /**
-     *  Query the TTY mode
+     *  Query the TTY mode for the CDMA phone
      * (AsyncResult)response.obj).result is an int[] with element [0] set to
-     * tty mode:
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_OFF}
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_FULL}
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_HCO}
-     * - {@link com.android.internal.telephony.Phone#TTY_MODE_VCO}
+     * 0 for disabled, 1 for enabled.
+     *
+     * @param serviceClass is a sum of SERVICE_CLASS_*
      * @param response is callback message
      */
     public void queryTTYMode(Message response) {

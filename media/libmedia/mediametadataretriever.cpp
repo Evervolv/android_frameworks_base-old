@@ -123,15 +123,37 @@ status_t MediaMetadataRetriever::setDataSource(int fd, int64_t offset, int64_t l
     return mRetriever->setDataSource(fd, offset, length);
 }
 
-sp<IMemory> MediaMetadataRetriever::getFrameAtTime(int64_t timeUs, int option)
+status_t MediaMetadataRetriever::setMode(int mode)
 {
-    LOGV("getFrameAtTime: time(%lld us) option(%d)", timeUs, option);
+    LOGV("setMode(%d)", mode);
+    Mutex::Autolock _l(mLock);
+    if (mRetriever == 0) {
+        LOGE("retriever is not initialized");
+        return INVALID_OPERATION;
+    }
+    return mRetriever->setMode(mode);
+}
+
+status_t MediaMetadataRetriever::getMode(int* mode)
+{
+    LOGV("getMode");
+    Mutex::Autolock _l(mLock);
+    if (mRetriever == 0) {
+        LOGE("retriever is not initialized");
+        return INVALID_OPERATION;
+    }
+    return mRetriever->getMode(mode);
+}
+
+sp<IMemory> MediaMetadataRetriever::captureFrame()
+{
+    LOGV("captureFrame");
     Mutex::Autolock _l(mLock);
     if (mRetriever == 0) {
         LOGE("retriever is not initialized");
         return NULL;
     }
-    return mRetriever->getFrameAtTime(timeUs, option);
+    return mRetriever->captureFrame();
 }
 
 const char* MediaMetadataRetriever::extractMetadata(int keyCode)

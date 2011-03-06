@@ -489,4 +489,9 @@ public class MockPackageManager extends PackageManager {
     public boolean isSafeMode() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public void setPackageObbPath(String packageName, String path) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -66,9 +66,9 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
     private int mTotalFailedPatternAttempts = 0;
     private CountDownTimer mCountdownTimer = null;
 
-    private LockPatternUtils mLockPatternUtils;
-    private KeyguardUpdateMonitor mUpdateMonitor;
-    private KeyguardScreenCallback mCallback;
+    private final LockPatternUtils mLockPatternUtils;
+    private final KeyguardUpdateMonitor mUpdateMonitor;
+    private final KeyguardScreenCallback mCallback;
 
     /**
      * whether there is a fallback option available when the pattern is forgotten.
@@ -296,7 +296,7 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
         } else if (mShowingBatteryInfo && mNextAlarm == null) {
             // battery only
             if (mPluggedIn) {
-              if (mUpdateMonitor.isDeviceCharged()) {
+              if (mBatteryLevel >= 100) {
                 mStatus1.setText(getContext().getString(R.string.lockscreen_charged));
               } else {
                   mStatus1.setText(getContext().getString(R.string.lockscreen_plugged_in, mBatteryLevel));
@@ -478,9 +478,6 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
     /** {@inheritDoc} */
     public void cleanUp() {
         mUpdateMonitor.removeCallback(this);
-        mLockPatternUtils = null;
-        mUpdateMonitor = null;
-        mCallback = null;
     }
 
     @Override

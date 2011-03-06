@@ -146,8 +146,9 @@ public class ThumbnailUtils {
         Bitmap bitmap = null;
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
+            retriever.setMode(MediaMetadataRetriever.MODE_CAPTURE_FRAME_ONLY);
             retriever.setDataSource(filePath);
-            bitmap = retriever.getFrameAtTime(-1);
+            bitmap = retriever.captureFrame();
         } catch (IllegalArgumentException ex) {
             // Assume this is a corrupt video file
         } catch (RuntimeException ex) {

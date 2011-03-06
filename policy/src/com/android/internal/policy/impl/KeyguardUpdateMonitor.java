@@ -26,7 +26,6 @@ import static android.os.BatteryManager.BATTERY_STATUS_CHARGING;
 import static android.os.BatteryManager.BATTERY_STATUS_FULL;
 import static android.os.BatteryManager.BATTERY_STATUS_UNKNOWN;
 import android.media.AudioManager;
-import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -71,11 +70,11 @@ public class KeyguardUpdateMonitor {
 
     private boolean mKeyguardBypassEnabled;
 
+    private boolean mDevicePluggedIn;
+
     private boolean mDeviceProvisioned;
 
     private int mBatteryLevel;
-
-    private int mBatteryStatus;
 
     private CharSequence mTelephonyPlmn;
     private CharSequence mTelephonySpn;
@@ -204,7 +203,7 @@ public class KeyguardUpdateMonitor {
 
         // take a guess to start
         mSimState = IccCard.State.READY;
-        mBatteryStatus = BATTERY_STATUS_FULL;
+        mDevicePluggedIn = true;
         mBatteryLevel = 100;
 
         mTelephonyPlmn = getDefaultPlmn();
@@ -284,12 +283,13 @@ public class KeyguardUpdateMonitor {
     /**
      * Handle {@link #MSG_BATTERY_UPDATE}
      */
-    private void handleBatteryUpdate(int batteryStatus, int batteryLevel) {
+    private void handleBatteryUpdate(int pluggedInStatus, int batteryLevel) {
         if (DEBUG) Log.d(TAG, "handleBatteryUpdate");
-        if (isBatteryUpdateInteresting(batteryStatus, batteryLevel)) {
-            mBatteryStatus = batteryStatus;
+        final boolean pluggedIn = isPluggedIn(pluggedInStatus);
+
+        if (isBatteryUpdateInteresting(pluggedIn, batteryLevel)) {
             mBatteryLevel = batteryLevel;
-            final boolean pluggedIn = isPluggedIn(batteryStatus);;
+            mDevicePluggedIn = pluggedIn;
             for (int i = 0; i < mInfoCallbacks.size(); i++) {
                 mInfoCallbacks.get(i).onRefreshBatteryInfo(
                         shouldShowBatteryInfo(), pluggedIn, batteryLevel);
@@ -336,32 +336,24 @@ public class KeyguardUpdateMonitor {
         return status == BATTERY_STATUS_CHARGING || status == BATTERY_STATUS_FULL;
     }
 
-    private boolean isBatteryUpdateInteresting(int batteryStatus, int batteryLevel) {
+    private boolean isBatteryUpdateInteresting(boolean pluggedIn, int batteryLevel) {
         // change in plug is always interesting
-        final boolean isPluggedIn = isPluggedIn(batteryStatus);
-        final boolean wasPluggedIn = isPluggedIn(mBatteryStatus);
-        final boolean stateChangedWhilePluggedIn =
-            wasPluggedIn == true && isPluggedIn == true && (mBatteryStatus != batteryStatus);
-        if (wasPluggedIn != isPluggedIn || stateChangedWhilePluggedIn) {
+        if (mDevicePluggedIn != pluggedIn) {
             return true;
         }
 
         // change in battery level while plugged in
-        if (isPluggedIn && mBatteryLevel != batteryLevel) {
+        if (pluggedIn && mBatteryLevel != batteryLevel) {
             return true;
         }
 
-        if (!isPluggedIn) {
+        if (!pluggedIn) {
             // not plugged in and below threshold
-            if (isBatteryLow(batteryLevel) && batteryLevel != mBatteryLevel) {
+            if (batteryLevel < LOW_BATTERY_THRESHOLD && batteryLevel != mBatteryLevel) {
                 return true;
             }
         }
         return false;
-    }
-
-    private boolean isBatteryLow(int batteryLevel) {
-        return batteryLevel < LOW_BATTERY_THRESHOLD;
     }
 
     /**
@@ -493,12 +485,7 @@ public class KeyguardUpdateMonitor {
     }
 
     public boolean isDevicePluggedIn() {
-        return isPluggedIn(mBatteryStatus);
-    }
-
-    public boolean isDeviceCharged() {
-        return mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL
-                || mBatteryLevel >= 100; // in case a particular device doesn't flag it
+        return mDevicePluggedIn;
     }
 
     public int getBatteryLevel() {
@@ -506,7 +493,7 @@ public class KeyguardUpdateMonitor {
     }
 
     public boolean shouldShowBatteryInfo() {
-        return isPluggedIn(mBatteryStatus) || isBatteryLow(mBatteryLevel);
+        return mDevicePluggedIn || mBatteryLevel < LOW_BATTERY_THRESHOLD;
     }
 
     public CharSequence getTelephonyPlmn() {

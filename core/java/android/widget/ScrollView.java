@@ -426,10 +426,6 @@ public class ScrollView extends FrameLayout {
                 }
 
                 final int pointerIndex = ev.findPointerIndex(activePointerId);
-                if (pointerIndex == -1) {
-                    break;
-                }
-
                 final float y = ev.getY(pointerIndex);
                 final int yDiff = (int) Math.abs(y - mLastMotionY);
                 if (yDiff > mTouchSlop) {
@@ -501,11 +497,9 @@ public class ScrollView extends FrameLayout {
 
         switch (action & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN: {
-                mIsBeingDragged = getChildCount() != 0;
-                if (!mIsBeingDragged) {
-                    return false;
-                }
-
+                final float y = ev.getY();
+                mIsBeingDragged = true;
+                
                 /*
                  * If being flinged and user touches, stop the fling. isFinished
                  * will be false if being flinged.
@@ -515,7 +509,7 @@ public class ScrollView extends FrameLayout {
                 }
 
                 // Remember where the motion event started
-                mLastMotionY = ev.getY();
+                mLastMotionY = y;
                 mActivePointerId = ev.getPointerId(0);
                 break;
             }
@@ -523,10 +517,6 @@ public class ScrollView extends FrameLayout {
                 if (mIsBeingDragged) {
                     // Scroll to follow the motion event
                     final int activePointerIndex = ev.findPointerIndex(mActivePointerId);
-                    if (activePointerIndex == -1) {
-                        break;
-                    }
-
                     final float y = ev.getY(activePointerIndex);
                     final int deltaY = (int) (mLastMotionY - y);
                     mLastMotionY = y;

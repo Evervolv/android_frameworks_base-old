@@ -430,10 +430,6 @@ public class HorizontalScrollView extends FrameLayout {
                 }
 
                 final int pointerIndex = ev.findPointerIndex(activePointerId);
-                if (pointerIndex == -1) {
-                    break;
-                }
-
                 final float x = ev.getX(pointerIndex);
                 final int xDiff = (int) Math.abs(x - mLastMotionX);
                 if (xDiff > mTouchSlop) {
@@ -506,10 +502,8 @@ public class HorizontalScrollView extends FrameLayout {
 
         switch (action & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN: {
-                mIsBeingDragged = getChildCount() != 0;
-                if (!mIsBeingDragged) {
-                    return false;
-                }
+                final float x = ev.getX();
+                mIsBeingDragged = true;
 
                 /*
                  * If being flinged and user touches, stop the fling. isFinished
@@ -520,7 +514,7 @@ public class HorizontalScrollView extends FrameLayout {
                 }
 
                 // Remember where the motion event started
-                mLastMotionX = ev.getX();
+                mLastMotionX = x;
                 mActivePointerId = ev.getPointerId(0);
                 break;
             }
@@ -528,10 +522,6 @@ public class HorizontalScrollView extends FrameLayout {
                 if (mIsBeingDragged) {
                     // Scroll to follow the motion event
                     final int activePointerIndex = ev.findPointerIndex(mActivePointerId);
-                    if (activePointerIndex == -1) {
-                        break;
-                    }
-
                     final float x = ev.getX(activePointerIndex);
                     final int deltaX = (int) (mLastMotionX - x);
                     mLastMotionX = x;

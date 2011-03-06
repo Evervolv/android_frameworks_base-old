@@ -67,23 +67,4 @@ float BiquadFilter::operator()(float x)
 }
 
 // ---------------------------------------------------------------------------
-
-CascadedBiquadFilter::CascadedBiquadFilter(const SecondOrderLowPassFilter& s)
-    : mA(s), mB(s)
-{
-}
-
-float CascadedBiquadFilter::init(float x)
-{
-    mA.init(x);
-    mB.init(x);
-    return x;
-}
-
-float CascadedBiquadFilter::operator()(float x)
-{
-    return mB(mA(x));
-}
-
-// ---------------------------------------------------------------------------
 }; // namespace android

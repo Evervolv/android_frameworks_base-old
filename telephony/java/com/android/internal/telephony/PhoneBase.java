@@ -697,11 +697,13 @@ public abstract class PhoneBase extends Handler implements Phone {
     }
 
     public void setTTYMode(int ttyMode, Message onComplete) {
-        mCM.setTTYMode(ttyMode, onComplete);
+        // This function should be overridden by the class CDMAPhone. Not implemented in GSMPhone.
+        logUnexpectedCdmaMethodCall("setTTYMode");
     }
 
     public void queryTTYMode(Message onComplete) {
-        mCM.queryTTYMode(onComplete);
+        // This function should be overridden by the class CDMAPhone. Not implemented in GSMPhone.
+        logUnexpectedCdmaMethodCall("queryTTYMode");
     }
 
     public void enableEnhancedVoicePrivacy(boolean enable, Message onComplete) {
@@ -1020,13 +1022,6 @@ public abstract class PhoneBase extends Handler implements Phone {
         }
     }
 
-    public boolean isCspPlmnEnabled() {
-        // This function should be overridden by the class GSMPhone.
-        // Not implemented in CDMAPhone.
-        logUnexpectedGsmMethodCall("isCspPlmnEnabled");
-        return false;
-    }
-
     /**
      * Common error logger method for unexpected calls to CDMA-only methods.
      */
@@ -1034,13 +1029,5 @@ public abstract class PhoneBase extends Handler implements Phone {
     {
         Log.e(LOG_TAG, "Error! " + name + "() in PhoneBase should not be " +
                 "called, CDMAPhone inactive.");
-    }
-
-    /**
-     * Common error logger method for unexpected calls to GSM/WCDMA-only methods.
-     */
-    private void logUnexpectedGsmMethodCall(String name) {
-        Log.e(LOG_TAG, "Error! " + name + "() in PhoneBase should not be " +
-                "called, GSMPhone inactive.");
     }
 }

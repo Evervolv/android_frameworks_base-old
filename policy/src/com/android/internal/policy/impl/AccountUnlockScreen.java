@@ -62,8 +62,8 @@ public class AccountUnlockScreen extends RelativeLayout implements KeyguardScree
      */
     private static final int AWAKE_POKE_MILLIS = 30000;
 
-    private KeyguardScreenCallback mCallback;
-    private LockPatternUtils mLockPatternUtils;
+    private final KeyguardScreenCallback mCallback;
+    private final LockPatternUtils mLockPatternUtils;
     private KeyguardUpdateMonitor mUpdateMonitor;
 
     private TextView mTopHeader;
@@ -159,10 +159,7 @@ public class AccountUnlockScreen extends RelativeLayout implements KeyguardScree
         if (mCheckingDialog != null) {
             mCheckingDialog.hide();
         }
-        mUpdateMonitor.removeCallback(this); // this must be first
-        mCallback = null;
-        mLockPatternUtils = null;
-        mUpdateMonitor = null;
+        mUpdateMonitor.removeCallback(this);
     }
 
     /** {@inheritDoc} */

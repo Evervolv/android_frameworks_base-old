@@ -4,8 +4,6 @@ LOCAL_PATH:= $(call my-dir)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-ifeq ($(HAVE_2_3_DSP), 1)
-
 LOCAL_ARM_MODE := arm
 
 LOCAL_SRC_FILES:= \
@@ -36,8 +34,6 @@ LOCAL_C_INCLUDES += \
 
 
 include $(BUILD_SHARED_LIBRARY)
-
-endif
 
 # reverb wrapper
 include $(CLEAR_VARS)

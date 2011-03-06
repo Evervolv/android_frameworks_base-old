@@ -60,6 +60,8 @@ struct OMXCodec : public MediaSource,
 
     virtual status_t pause();
 
+    void on_message(const omx_message &msg);
+
     // from MediaBufferObserver
     virtual void signalBufferReturned(MediaBuffer *buffer);
 
@@ -67,13 +69,6 @@ protected:
     virtual ~OMXCodec();
 
 private:
-
-    // Make sure mLock is accessible to OMXCodecObserver
-    friend class OMXCodecObserver;
-
-    // Call this with mLock hold
-    void on_message(const omx_message &msg);
-
     enum State {
         DEAD,
         LOADED,

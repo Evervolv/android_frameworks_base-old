@@ -685,11 +685,13 @@ bool AaptGroupEntry::getMncName(const char* name,
     if (*c != 0) return false;
     if (c-val == 0 || c-val > 3) return false;
 
-    if (out) {
-        out->mnc = atoi(val);
+    int d = atoi(val);
+    if (d != 0) {
+        if (out) out->mnc = d;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 /*

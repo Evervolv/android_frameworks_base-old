@@ -1,9 +1,7 @@
 page.title=Layout Tricks: Merging Layouts
 @jd:body
 
-<p>The articles showed you how to use the <code>&lt;include /&gt;</code> tag in XML layouts, to
-reuse and share your layout code. This article explains the <code>&lt;merge /&gt;</code> tag and how
-it complements the  <code>&lt;include /&gt;</code> tag.</p>
+<p>The <a href=""></a> articles showed you how to use the <code>&lt;include /&gt;</code> tag in XML layouts, to reuse and share your layout code. This article explains the <code>&lt;merge /&gt;</code> tag and how it complements the  <code>&lt;include /&gt;</code> tag.</p>
 
 <p>The <code>&lt;merge /&gt;</code> tag was created for the purpose of
 optimizing Android layouts by reducing the number of levels in view trees. It's

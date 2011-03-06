@@ -248,7 +248,7 @@ private:
             uint32_t *pWidth, uint32_t *pHeight,
             uint32_t *pFormat, uint32_t *pUsage) const;
 
-    static void cleanCachedSurfacesLocked();
+    static void cleanCachedSurfaces();
 
     class BufferInfo {
         uint32_t mWidth;

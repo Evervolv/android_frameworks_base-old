@@ -293,21 +293,18 @@ sp<ISensorEventConnection> SensorService::createSensorEventConnection()
     return result;
 }
 
-void SensorService::cleanupConnection(SensorEventConnection* c)
+void SensorService::cleanupConnection(const wp<SensorEventConnection>& connection)
 {
     Mutex::Autolock _l(mLock);
-    const wp<SensorEventConnection> connection(c);
     size_t size = mActiveSensors.size();
     for (size_t i=0 ; i<size ; ) {
-        int handle = mActiveSensors.keyAt(i);
-        if (c->hasSensor(handle)) {
-            SensorInterface* sensor = mSensorMap.valueFor( handle );
-            if (sensor) {
-                sensor->activate(c, false);
-            }
-        }
         SensorRecord* rec = mActiveSensors.valueAt(i);
         if (rec && rec->removeConnection(connection)) {
+            int handle = mActiveSensors.keyAt(i);
+            SensorInterface* sensor = mSensorMap.valueFor( handle );
+            if (sensor) {
+                sensor->activate(connection.unsafe_get(), false);
+            }
             mActiveSensors.removeItemsAt(i, 1);
             mActiveVirtualSensors.removeItem(handle);
             delete rec;

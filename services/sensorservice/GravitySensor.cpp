@@ -29,8 +29,8 @@ namespace android {
 
 GravitySensor::GravitySensor(sensor_t const* list, size_t count)
     : mSensorDevice(SensorDevice::getInstance()),
-      mAccTime(0),
-      mLowPass(M_SQRT1_2, 1.5f),
+      mEnabled(false), mAccTime(0),
+      mLowPass(M_SQRT1_2, 1),
       mX(mLowPass), mY(mLowPass), mZ(mLowPass)
 
 {
@@ -71,9 +71,15 @@ bool GravitySensor::process(sensors_event_t* outEvent,
     }
     return false;
 }
+
+bool GravitySensor::isEnabled() const {
+    return mEnabled;
+}
+
 status_t GravitySensor::activate(void* ident, bool enabled) {
     status_t err = mSensorDevice.activate(this, mAccelerometer.getHandle(), enabled);
     if (err == NO_ERROR) {
+        mEnabled = enabled;
         if (enabled) {
             mAccTime = 0;
         }

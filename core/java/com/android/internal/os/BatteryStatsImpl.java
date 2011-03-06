@@ -190,7 +190,6 @@ public final class BatteryStatsImpl extends BatteryStats {
     StopwatchTimer mVideoOnTimer;
     
     int mPhoneSignalStrengthBin = -1;
-    int mPhoneSignalStrengthBinRaw = -1;
     final StopwatchTimer[] mPhoneSignalStrengthsTimer = 
             new StopwatchTimer[NUM_SIGNAL_STRENGTH_BINS];
 
@@ -251,8 +250,6 @@ public final class BatteryStatsImpl extends BatteryStats {
     private int mBluetoothPingStart = -1;
 
     private int mPhoneServiceState = -1;
-    private int mPhoneServiceStateRaw = -1;
-    private int mPhoneSimStateRaw = -1;
 
     /*
      * Holds a SamplingTimer associated with each kernel wakelock name being tracked.
@@ -978,7 +975,7 @@ public final class BatteryStatsImpl extends BatteryStats {
     
     private final Map<String, KernelWakelockStats> readKernelWakelockStats() {
         
-        byte[] buffer = new byte[8192];
+        byte[] buffer = new byte[4096];
         int len;
         
         try {
@@ -1025,11 +1022,9 @@ public final class BatteryStatsImpl extends BatteryStats {
                 for (endIndex=startIndex; 
                         endIndex < len && wlBuffer[endIndex] != '\n' && wlBuffer[endIndex] != '\0'; 
                         endIndex++);
-                endIndex++; // endIndex is an exclusive upper bound.
-                // Don't go over the end of the buffer, Process.parseProcLine might
-                // write to wlBuffer[endIndex]
-                if (endIndex >= (len - 1) ) {
-                    return m;
+                // Don't go over the end of the buffer
+                if (endIndex < len) {
+                    endIndex++; // endIndex is an exclusive upper bound.
                 }
 
                 String[] nameStringArray = mProcWakelocksName;
@@ -1648,54 +1643,40 @@ public final class BatteryStatsImpl extends BatteryStats {
         }
     }
 
-    private int fixPhoneServiceState(int state, int signalBin) {
-        if (mPhoneSimStateRaw == TelephonyManager.SIM_STATE_ABSENT) {
-            // In this case we will always be STATE_OUT_OF_SERVICE, so need
-            // to infer that we are scanning from other data.
-            if (state == ServiceState.STATE_OUT_OF_SERVICE
-                    && signalBin > SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
-                state = ServiceState.STATE_IN_SERVICE;
-            }
-        }
-
-        return state;
-    }
-
-    private void updateAllPhoneStateLocked(int state, int simState, int bin) {
+    /**
+     * Telephony stack updates the phone state.
+     * @param state phone state from ServiceState.getState()
+     */
+    public void notePhoneStateLocked(int state) {
         boolean scanning = false;
-        boolean newHistory = false;
 
-        mPhoneServiceStateRaw = state;
-        mPhoneSimStateRaw = simState;
-        mPhoneSignalStrengthBinRaw = bin;
-
-        if (simState == TelephonyManager.SIM_STATE_ABSENT) {
-            // In this case we will always be STATE_OUT_OF_SERVICE, so need
-            // to infer that we are scanning from other data.
-            if (state == ServiceState.STATE_OUT_OF_SERVICE
-                    && bin > SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
-                state = ServiceState.STATE_IN_SERVICE;
-            }
-        }
+        int bin = mPhoneSignalStrengthBin;
 
         // If the phone is powered off, stop all timers.
         if (state == ServiceState.STATE_POWER_OFF) {
-            bin = -1;
+            stopAllSignalStrengthTimersLocked(-1);
 
-        // If we are in service, make sure the correct signal string timer is running.
-        } else if (state == ServiceState.STATE_IN_SERVICE) {
-            // Bin will be changed below.
+        // If we're back in service or continuing in service, restart the old timer.
+        } if (state == ServiceState.STATE_IN_SERVICE) {
+            if (bin == -1) bin = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+            if (!mPhoneSignalStrengthsTimer[bin].isRunningLocked()) {
+                mPhoneSignalStrengthsTimer[bin].startRunningLocked(this);
+            }
 
         // If we're out of service, we are in the lowest signal strength
         // bin and have the scanning bit set.
         } else if (state == ServiceState.STATE_OUT_OF_SERVICE) {
             scanning = true;
-            bin = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+            mPhoneSignalStrengthBin = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+            stopAllSignalStrengthTimersLocked(mPhoneSignalStrengthBin);
+            if (!mPhoneSignalStrengthsTimer[mPhoneSignalStrengthBin].isRunningLocked()) {
+                mPhoneSignalStrengthsTimer[mPhoneSignalStrengthBin].startRunningLocked(this);
+            }
             if (!mPhoneSignalScanningTimer.isRunningLocked()) {
                 mHistoryCur.states |= HistoryItem.STATE_PHONE_SCANNING_FLAG;
-                newHistory = true;
                 if (DEBUG_HISTORY) Slog.v(TAG, "Phone started scanning to: "
                         + Integer.toHexString(mHistoryCur.states));
+                addHistoryRecordLocked(SystemClock.elapsedRealtime());
                 mPhoneSignalScanningTimer.startRunningLocked(this);
             }
         }
@@ -1706,7 +1687,7 @@ public final class BatteryStatsImpl extends BatteryStats {
                 mHistoryCur.states &= ~HistoryItem.STATE_PHONE_SCANNING_FLAG;
                 if (DEBUG_HISTORY) Slog.v(TAG, "Phone stopped scanning to: "
                         + Integer.toHexString(mHistoryCur.states));
-                newHistory = true;
+                addHistoryRecordLocked(SystemClock.elapsedRealtime());
                 mPhoneSignalScanningTimer.stopRunningLocked(this);
             }
         }
@@ -1714,48 +1695,21 @@ public final class BatteryStatsImpl extends BatteryStats {
         if (mPhoneServiceState != state) {
             mHistoryCur.states = (mHistoryCur.states&~HistoryItem.STATE_PHONE_STATE_MASK)
                     | (state << HistoryItem.STATE_PHONE_STATE_SHIFT);
-            if (DEBUG_HISTORY) Slog.v(TAG, "Phone state " + state + " to: "
+            if (DEBUG_HISTORY) Slog.v(TAG, "Phone state " + bin + " to: "
                     + Integer.toHexString(mHistoryCur.states));
-            newHistory = true;
+            addHistoryRecordLocked(SystemClock.elapsedRealtime());
             mPhoneServiceState = state;
         }
-
-        if (mPhoneSignalStrengthBin != bin) {
-            if (mPhoneSignalStrengthBin >= 0) {
-                mPhoneSignalStrengthsTimer[mPhoneSignalStrengthBin].stopRunningLocked(this);
-            }
-            if (bin >= 0) {
-                if (!mPhoneSignalStrengthsTimer[bin].isRunningLocked()) {
-                    mPhoneSignalStrengthsTimer[bin].startRunningLocked(this);
-                }
-                mHistoryCur.states = (mHistoryCur.states&~HistoryItem.STATE_SIGNAL_STRENGTH_MASK)
-                        | (bin << HistoryItem.STATE_SIGNAL_STRENGTH_SHIFT);
-                if (DEBUG_HISTORY) Slog.v(TAG, "Signal strength " + bin + " to: "
-                        + Integer.toHexString(mHistoryCur.states));
-                newHistory = true;
-            } else {
-                stopAllSignalStrengthTimersLocked(-1);
-            }
-            mPhoneSignalStrengthBin = bin;
-        }
-
-        if (newHistory) {
-            addHistoryRecordLocked(SystemClock.elapsedRealtime());
-        }
-    }
-
-    /**
-     * Telephony stack updates the phone state.
-     * @param state phone state from ServiceState.getState()
-     */
-    public void notePhoneStateLocked(int state, int simState) {
-        updateAllPhoneStateLocked(state, simState, mPhoneSignalStrengthBinRaw);
     }
 
     public void notePhoneSignalStrengthLocked(SignalStrength signalStrength) {
         // Bin the strength.
         int bin;
-
+        if (mPhoneServiceState == ServiceState.STATE_POWER_OFF
+                || mPhoneServiceState == ServiceState.STATE_OUT_OF_SERVICE) {
+            // Ignore any signal strength changes when radio was turned off or out of service.
+            return;
+        }
         if (!signalStrength.isGsm()) {
             int dBm = signalStrength.getCdmaDbm();
             if (dBm >= -75) bin = SIGNAL_STRENGTH_GREAT;
@@ -1771,8 +1725,20 @@ public final class BatteryStatsImpl extends BatteryStats {
             else if (asu >= 4)  bin = SIGNAL_STRENGTH_MODERATE;
             else bin = SIGNAL_STRENGTH_POOR;
         }
-
-        updateAllPhoneStateLocked(mPhoneServiceStateRaw, mPhoneSimStateRaw, bin);
+        if (mPhoneSignalStrengthBin != bin) {
+            mHistoryCur.states = (mHistoryCur.states&~HistoryItem.STATE_SIGNAL_STRENGTH_MASK)
+                    | (bin << HistoryItem.STATE_SIGNAL_STRENGTH_SHIFT);
+            if (DEBUG_HISTORY) Slog.v(TAG, "Signal strength " + bin + " to: "
+                    + Integer.toHexString(mHistoryCur.states));
+            addHistoryRecordLocked(SystemClock.elapsedRealtime());
+            if (mPhoneSignalStrengthBin >= 0) {
+                mPhoneSignalStrengthsTimer[mPhoneSignalStrengthBin].stopRunningLocked(this);
+            } else {
+                mPhoneSignalStrengthsTimer[SIGNAL_STRENGTH_NONE_OR_UNKNOWN].stopRunningLocked(this);
+            }
+            mPhoneSignalStrengthBin = bin;
+            mPhoneSignalStrengthsTimer[bin].startRunningLocked(this);
+        }
     }
     
     public void notePhoneDataConnectionStateLocked(int dataType, boolean hasData) {
@@ -4007,9 +3973,6 @@ public final class BatteryStatsImpl extends BatteryStats {
             mKernelWakelockStats.clear();
         }
         
-        mLowDischargeAmountSinceCharge = 0;
-        mHighDischargeAmountSinceCharge = 0;
-
         clearHistoryLocked();
     }
     
@@ -4030,11 +3993,13 @@ public final class BatteryStatsImpl extends BatteryStats {
                 // we have gone through a significant charge (from a very low
                 // level to a now very high level).
                 if (oldStatus == BatteryManager.BATTERY_STATUS_FULL
-                        || level >= 90
-                        || (mDischargeCurrentLevel < 20 && level >= 80)) {
+                        || level >= 95
+                        || (mDischargeCurrentLevel < 30 && level >= 90)) {
                     doWrite = true;
                     resetAllStatsLocked();
                     mDischargeStartLevel = level;
+                    mLowDischargeAmountSinceCharge = 0;
+                    mHighDischargeAmountSinceCharge = 0;
                 }
                 updateKernelWakelocksLocked();
                 mHistoryCur.batteryLevel = (byte)level;
@@ -4124,13 +4089,11 @@ public final class BatteryStatsImpl extends BatteryStats {
                 mHistoryCur.batteryPlugType = (byte)plugType;
                 changed = true;
             }
-            if (temp >= (mHistoryCur.batteryTemperature+10)
-                    || temp <= (mHistoryCur.batteryTemperature-10)) {
+            if (mHistoryCur.batteryTemperature != temp) {
                 mHistoryCur.batteryTemperature = (char)temp;
                 changed = true;
             }
-            if (volt > (mHistoryCur.batteryVoltage+20)
-                    || volt < (mHistoryCur.batteryVoltage-20)) {
+            if (mHistoryCur.batteryVoltage != volt) {
                 mHistoryCur.batteryVoltage = (char)volt;
                 changed = true;
             }
@@ -4326,28 +4289,20 @@ public final class BatteryStatsImpl extends BatteryStats {
     }
     
     public int getDischargeCurrentLevelLocked() {
-        return mDischargeCurrentLevel;
+            return mDischargeCurrentLevel;
     }
 
     @Override
     public int getLowDischargeAmountSinceCharge() {
         synchronized(this) {
-            int val = mLowDischargeAmountSinceCharge;
-            if (mOnBattery && mDischargeCurrentLevel < mDischargeUnplugLevel) {
-                val += mDischargeUnplugLevel-mDischargeCurrentLevel-1;
-            }
-            return val;
+            return mLowDischargeAmountSinceCharge;
         }
     }
 
     @Override
     public int getHighDischargeAmountSinceCharge() {
         synchronized(this) {
-            int val = mHighDischargeAmountSinceCharge;
-            if (mOnBattery && mDischargeCurrentLevel < mDischargeUnplugLevel) {
-                val += mDischargeUnplugLevel-mDischargeCurrentLevel;
-            }
-            return val;
+            return mHighDischargeAmountSinceCharge;
         }
     }
 
@@ -4849,8 +4804,8 @@ public final class BatteryStatsImpl extends BatteryStats {
         out.writeLong(computeRealtime(NOWREAL_SYS, STATS_SINCE_CHARGED));
         out.writeInt(mDischargeUnplugLevel);
         out.writeInt(mDischargeCurrentLevel);
-        out.writeInt(getLowDischargeAmountSinceCharge());
-        out.writeInt(getHighDischargeAmountSinceCharge());
+        out.writeInt(mLowDischargeAmountSinceCharge);
+        out.writeInt(mHighDischargeAmountSinceCharge);
         
         mScreenOnTimer.writeSummaryFromParcelLocked(out, NOWREAL);
         for (int i=0; i<NUM_SCREEN_BRIGHTNESS_BINS; i++) {

@@ -48,15 +48,14 @@ static const char* routingModeStrings[] =
     "CURRENT",
     "NORMAL",
     "RINGTONE",
-    "IN_CALL",
-    "IN_COMMUNICATION"
+    "IN_CALL"
 };
 
 static const char* routeNone = "NONE";
 
 static const char* displayMode(int mode)
 {
-    if ((mode < AudioSystem::MODE_INVALID) || (mode >= AudioSystem::NUM_MODES))
+    if ((mode < -2) || (mode > 2))
         return routingModeStrings[0];
     return routingModeStrings[mode+3];
 }

@@ -1,5 +1,6 @@
 page.title=Upgrading the SDK
 sdk.version=1.6
+sdk.preview=0
 @jd:body
 
 

@@ -802,44 +802,6 @@ public class AccountManagerService
         }
     }
 
-    void getAuthTokenLabel(final IAccountManagerResponse response,
-            final Account account, final String authTokenType) {
-        if (account == null) throw new IllegalArgumentException("account is null");
-        if (authTokenType == null) throw new IllegalArgumentException("authTokenType is null");
-
-        checkBinderPermission(Manifest.permission.USE_CREDENTIALS);
-
-        long identityToken = clearCallingIdentity();
-        try {
-            new Session(response, account.type, false,
-                    false /* stripAuthTokenFromResult */) {
-                protected String toDebugString(long now) {
-                    return super.toDebugString(now) + ", getAuthTokenLabel"
-                            + ", " + account
-                            + ", authTokenType " + authTokenType;
-                }
-
-                public void run() throws RemoteException {
-                    mAuthenticator.getAuthTokenLabel(this, authTokenType);
-                }
-
-                public void onResult(Bundle result) {
-                    if (result != null) {
-                        String label = result.getString(AccountManager.KEY_AUTH_TOKEN_LABEL);
-                        Bundle bundle = new Bundle();
-                        bundle.putString(AccountManager.KEY_AUTH_TOKEN_LABEL, label);
-                        super.onResult(bundle);
-                        return;
-                    } else {
-                        super.onResult(result);
-                    }
-                }
-            }.bind();
-        } finally {
-            restoreCallingIdentity(identityToken);
-        }
-    }
-
     public void getAuthToken(IAccountManagerResponse response, final Account account,
             final String authTokenType, final boolean notifyOnAuthFailure,
             final boolean expectActivityLaunch, final Bundle loginOptions) {
@@ -950,36 +912,36 @@ public class AccountManagerService
                 .notify(getCredentialPermissionNotificationId(account, authTokenType, uid), n);
     }
 
-    String getAccountLabel(String accountType) {
+    private Intent newGrantCredentialsPermissionIntent(Account account, int uid,
+            AccountAuthenticatorResponse response, String authTokenType, String authTokenLabel) {
         RegisteredServicesCache.ServiceInfo<AuthenticatorDescription> serviceInfo =
-            mAuthenticatorCache.getServiceInfo(
-                    AuthenticatorDescription.newKey(accountType));
+                mAuthenticatorCache.getServiceInfo(
+                        AuthenticatorDescription.newKey(account.type));
         if (serviceInfo == null) {
-            throw new IllegalArgumentException("unknown account type: " + accountType);
+            throw new IllegalArgumentException("unknown account type: " + account.type);
         }
 
         final Context authContext;
         try {
             authContext = mContext.createPackageContext(
-                    serviceInfo.type.packageName, 0);
+                serviceInfo.type.packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
-            throw new IllegalArgumentException("unknown account type: " + accountType);
+            throw new IllegalArgumentException("unknown account type: " + account.type);
         }
-        return authContext.getString(serviceInfo.type.labelId);
-    }
-
-    private Intent newGrantCredentialsPermissionIntent(Account account, int uid,
-            AccountAuthenticatorResponse response, String authTokenType, String authTokenLabel) {
 
         Intent intent = new Intent(mContext, GrantCredentialsPermissionActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addCategory(
                 String.valueOf(getCredentialPermissionNotificationId(account, authTokenType, uid)));
-
         intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_ACCOUNT, account);
+        intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_AUTH_TOKEN_LABEL, authTokenLabel);
         intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_AUTH_TOKEN_TYPE, authTokenType);
         intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_RESPONSE, response);
+        intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_ACCOUNT_TYPE_LABEL,
+                        authContext.getString(serviceInfo.type.labelId));
+        intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_PACKAGES,
+                        mContext.getPackageManager().getPackagesForUid(uid));
         intent.putExtra(GrantCredentialsPermissionActivity.EXTRAS_REQUESTING_UID, uid);
-
         return intent;
     }
 

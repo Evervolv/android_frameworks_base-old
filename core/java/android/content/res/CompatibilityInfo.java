@@ -140,16 +140,10 @@ public class CompatibilityInfo {
         appFlags = appInfo.flags;
         
         if ((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_LARGE_SCREENS) != 0) {
-            // Saying you support large screens also implies you support xlarge
-            // screens; there is no compatibility mode for a large app on an
-            // xlarge screen.
-            mCompatibilityFlags |= LARGE_SCREENS | CONFIGURED_LARGE_SCREENS
-                    | XLARGE_SCREENS | CONFIGURED_XLARGE_SCREENS
-                    | EXPANDABLE | CONFIGURED_EXPANDABLE;
+            mCompatibilityFlags |= LARGE_SCREENS | CONFIGURED_LARGE_SCREENS;
         }
         if ((appInfo.flags & ApplicationInfo.FLAG_SUPPORTS_XLARGE_SCREENS) != 0) {
-            mCompatibilityFlags |= XLARGE_SCREENS | CONFIGURED_XLARGE_SCREENS
-                    | EXPANDABLE | CONFIGURED_EXPANDABLE;
+            mCompatibilityFlags |= XLARGE_SCREENS | CONFIGURED_XLARGE_SCREENS;
         }
         if ((appInfo.flags & ApplicationInfo.FLAG_RESIZEABLE_FOR_SCREENS) != 0) {
             mCompatibilityFlags |= EXPANDABLE | CONFIGURED_EXPANDABLE;

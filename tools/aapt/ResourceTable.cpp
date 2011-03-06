@@ -1,6 +1,5 @@
 //
 // Copyright 2006 The Android Open Source Project
-// This code has been modified.  Portions copyright (C) 2010, T-Mobile USA, Inc.
 //
 // Build resource files from raw assets.
 //
@@ -1323,22 +1322,6 @@ status_t compileResourceFile(Bundle* bundle,
                     }
                 }
             } else if (strcmp16(block.getElementName(&len), string_array16.string()) == 0) {
-                // Check whether these strings need valid formats.
-                // (simplified form of what string16 does above)
-                size_t n = block.getAttributeCount();
-                for (size_t i = 0; i < n; i++) {
-                    size_t length;
-                    const uint16_t* attr = block.getAttributeName(i, &length);
-                    if (strcmp16(attr, translatable16.string()) == 0
-                            || strcmp16(attr, formatted16.string()) == 0) {
-                        const uint16_t* value = block.getAttributeStringValue(i, &length);
-                        if (strcmp16(value, false16.string()) == 0) {
-                            curIsFormatted = false;
-                            break;
-                        }
-                    }
-                }
-
                 curTag = &string_array16;
                 curType = array16;
                 curFormat = ResTable_map::TYPE_REFERENCE|ResTable_map::TYPE_STRING;
@@ -1741,6 +1724,13 @@ status_t ResourceTable::startBag(const SourcePos& sourcePos,
     
     // If a parent is explicitly specified, set it.
     if (bagParent.size() > 0) {
+        String16 curPar = e->getParent();
+        if (curPar.size() > 0 && curPar != bagParent) {
+            sourcePos.error("Conflicting parents specified, was '%s', now '%s'\n",
+                            String8(e->getParent()).string(),
+                            String8(bagParent).string());
+            return UNKNOWN_ERROR;
+        }
         e->setParent(bagParent);
     }
 
@@ -1788,6 +1778,13 @@ status_t ResourceTable::addBag(const SourcePos& sourcePos,
 
     // If a parent is explicitly specified, set it.
     if (bagParent.size() > 0) {
+        String16 curPar = e->getParent();
+        if (curPar.size() > 0 && curPar != bagParent) {
+            sourcePos.error("Conflicting parents specified, was '%s', now '%s'\n",
+                    String8(e->getParent()).string(),
+                    String8(bagParent).string());
+            return UNKNOWN_ERROR;
+        }
         e->setParent(bagParent);
     }
 
@@ -3684,16 +3681,7 @@ sp<ResourceTable::Package> ResourceTable::getPackage(const String16& package)
             mHaveAppPackage = true;
             p = new Package(package, 127);
         } else {
-            int extendedPackageId = mBundle->getExtendedPackageId();
-            if (extendedPackageId != 0) {
-                if ((uint32_t)extendedPackageId < mNextPackageId) {
-                    fprintf(stderr, "Package ID %d already in use!\n", mNextPackageId);
-                    return NULL;
-                }
-                p = new Package(package, extendedPackageId);
-            } else {
-                p = new Package(package, mNextPackageId);
-            }
+            p = new Package(package, mNextPackageId);
         }
         //printf("*** NEW PACKAGE: \"%s\" id=%d\n",
         //       String8(package).string(), p->getAssignedId());

@@ -32,7 +32,7 @@ SensorInterface::~SensorInterface()
 
 HardwareSensor::HardwareSensor(const sensor_t& sensor)
     : mSensorDevice(SensorDevice::getInstance()),
-      mSensor(&sensor)
+      mSensor(&sensor), mEnabled(false)
 {
     LOGI("%s", sensor.name);
 }
@@ -46,8 +46,15 @@ bool HardwareSensor::process(sensors_event_t* outEvent,
     return true;
 }
 
-status_t HardwareSensor::activate(void* ident, bool enabled) {
-    return mSensorDevice.activate(ident, mSensor.getHandle(), enabled);
+bool HardwareSensor::isEnabled() const {
+    return mEnabled;
+}
+
+status_t HardwareSensor::activate(void* ident,bool enabled) {
+    status_t err = mSensorDevice.activate(ident, mSensor.getHandle(), enabled);
+    if (err == NO_ERROR)
+        mEnabled = enabled;
+    return err;
 }
 
 status_t HardwareSensor::setDelay(void* ident, int handle, int64_t ns) {

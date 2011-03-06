@@ -205,13 +205,10 @@ public class HttpsConnection extends Connection {
                 BasicHttpRequest proxyReq = new BasicHttpRequest
                     ("CONNECT", mHost.toHostString());
 
-                // add all 'proxy' headers from the original request, we also need
-                // to add 'host' header unless we want proxy to answer us with a
-                // 400 Bad Request
+                // add all 'proxy' headers from the original request
                 for (Header h : req.mHttpRequest.getAllHeaders()) {
                     String headerName = h.getName().toLowerCase();
-                    if (headerName.startsWith("proxy") || headerName.equals("keep-alive")
-                            || headerName.equals("host")) {
+                    if (headerName.startsWith("proxy") || headerName.equals("keep-alive")) {
                         proxyReq.addHeader(h);
                     }
                 }

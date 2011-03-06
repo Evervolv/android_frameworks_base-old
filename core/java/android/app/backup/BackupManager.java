@@ -138,8 +138,8 @@ public class BackupManager {
         if (sService != null) {
             RestoreSession session = null;
             try {
-                IRestoreSession binder = sService.beginRestoreSession(mContext.getPackageName(),
-                        null);
+                String transport = sService.getCurrentTransport();
+                IRestoreSession binder = sService.beginRestoreSession(transport);
                 session = new RestoreSession(mContext, binder);
                 result = session.restorePackage(mContext.getPackageName(), observer);
             } catch (RemoteException e) {
@@ -163,8 +163,8 @@ public class BackupManager {
         checkServiceBinder();
         if (sService != null) {
             try {
-                // All packages, current transport
-                IRestoreSession binder = sService.beginRestoreSession(null, null);
+                String transport = sService.getCurrentTransport();
+                IRestoreSession binder = sService.beginRestoreSession(transport);
                 session = new RestoreSession(mContext, binder);
             } catch (RemoteException e) {
                 Log.w(TAG, "beginRestoreSession() couldn't connect");

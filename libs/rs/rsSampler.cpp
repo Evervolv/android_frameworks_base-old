@@ -70,11 +70,7 @@ void Sampler::setupGL(const Context *rsc, bool npot)
     }
 
     if ((mMinFilter == RS_SAMPLER_LINEAR_MIP_LINEAR) && forceNonMip) {
-        if (rsc->ext_GL_IMG_texture_npot()) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     } else {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, trans[mMinFilter]);
     }

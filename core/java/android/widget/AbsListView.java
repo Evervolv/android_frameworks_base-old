@@ -975,7 +975,7 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
         SavedState ss = new SavedState(superState);
 
-        boolean haveChildren = getChildCount() > 0 && mItemCount > 0;
+        boolean haveChildren = getChildCount() > 0;
         long selectedId = getSelectedItemId();
         ss.selectedId = selectedId;
         ss.height = getHeight();
@@ -986,24 +986,12 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             ss.position = getSelectedItemPosition();
             ss.firstId = INVALID_POSITION;
         } else {
-            if (haveChildren && mFirstPosition > 0) {
-                // Remember the position of the first child.
-                // We only do this if we are not currently at the top of
-                // the list, for two reasons:
-                // (1) The list may be in the process of becoming empty, in
-                // which case mItemCount may not be 0, but if we try to
-                // ask for any information about position 0 we will crash.
-                // (2) Being "at the top" seems like a special case, anyway,
-                // and the user wouldn't expect to end up somewhere else when
-                // they revisit the list even if its content has changed.
+            if (haveChildren) {
+                // Remember the position of the first child
                 View v = getChildAt(0);
                 ss.viewTop = v.getTop();
-                int firstPos = mFirstPosition;
-                if (firstPos >= mItemCount) {
-                    firstPos = mItemCount - 1;
-                }
-                ss.position = firstPos;
-                ss.firstId = mAdapter.getItemId(firstPos);
+                ss.position = mFirstPosition;
+                ss.firstId = mAdapter.getItemId(mFirstPosition);
             } else {
                 ss.viewTop = 0;
                 ss.firstId = INVALID_POSITION;
@@ -2218,10 +2206,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
 
         case MotionEvent.ACTION_MOVE: {
             final int pointerIndex = ev.findPointerIndex(mActivePointerId);
-            if (pointerIndex == -1) {
-                break;
-            }
-
             final int y = (int) ev.getY(pointerIndex);
             deltaY = y - mMotionY;
             switch (mTouchMode) {
@@ -2730,10 +2714,6 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
             switch (mTouchMode) {
             case TOUCH_MODE_DOWN:
                 final int pointerIndex = ev.findPointerIndex(mActivePointerId);
-                if (pointerIndex == -1) {
-                    break;
-                }
-
                 final int y = (int) ev.getY(pointerIndex);
                 if (startScrollIfNeeded(y - mMotionY)) {
                     return true;

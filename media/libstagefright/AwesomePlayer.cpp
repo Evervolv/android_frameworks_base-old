@@ -53,8 +53,6 @@ namespace android {
 
 static int64_t kLowWaterMarkUs = 2000000ll;  // 2secs
 static int64_t kHighWaterMarkUs = 10000000ll;  // 10secs
-static const size_t kLowWaterMarkBytes = 40000;
-static const size_t kHighWaterMarkBytes = 200000;
 
 struct AwesomeEvent : public TimedEventQueue::Event {
     AwesomeEvent(
@@ -84,10 +82,6 @@ struct AwesomeRemoteRenderer : public AwesomeRenderer {
         : mTarget(target) {
     }
 
-    virtual status_t initCheck() const {
-        return OK;
-    }
-
     virtual void render(MediaBuffer *buffer) {
         void *id;
         if (buffer->meta_data()->findPointer(kKeyBufferID, &id)) {
@@ -111,17 +105,12 @@ struct AwesomeLocalRenderer : public AwesomeRenderer {
             size_t displayWidth, size_t displayHeight,
             size_t decodedWidth, size_t decodedHeight,
             int32_t rotationDegrees)
-        : mInitCheck(NO_INIT),
-          mTarget(NULL),
+        : mTarget(NULL),
           mLibHandle(NULL) {
-            mInitCheck = init(previewOnly, componentName,
+            init(previewOnly, componentName,
                  colorFormat, surface, displayWidth,
                  displayHeight, decodedWidth, decodedHeight,
                  rotationDegrees);
-    }
-
-    virtual status_t initCheck() const {
-        return mInitCheck;
     }
 
     virtual void render(MediaBuffer *buffer) {
@@ -145,11 +134,10 @@ protected:
     }
 
 private:
-    status_t mInitCheck;
     VideoRenderer *mTarget;
     void *mLibHandle;
 
-    status_t init(
+    void init(
             bool previewOnly,
             const char *componentName,
             OMX_COLOR_FORMATTYPE colorFormat,
@@ -162,7 +150,7 @@ private:
     AwesomeLocalRenderer &operator=(const AwesomeLocalRenderer &);;
 };
 
-status_t AwesomeLocalRenderer::init(
+void AwesomeLocalRenderer::init(
         bool previewOnly,
         const char *componentName,
         OMX_COLOR_FORMATTYPE colorFormat,
@@ -227,15 +215,11 @@ status_t AwesomeLocalRenderer::init(
         }
     }
 
-    if (mTarget != NULL) {
-        return OK;
+    if (mTarget == NULL) {
+        mTarget = new SoftwareRenderer(
+                colorFormat, surface, displayWidth, displayHeight,
+                decodedWidth, decodedHeight, rotationDegrees);
     }
-
-    mTarget = new SoftwareRenderer(
-            colorFormat, surface, displayWidth, displayHeight,
-            decodedWidth, decodedHeight, rotationDegrees);
-
-    return ((SoftwareRenderer *)mTarget)->initCheck();
 }
 
 AwesomePlayer::AwesomePlayer()
@@ -591,6 +575,9 @@ void AwesomePlayer::onBufferingUpdate() {
                 // We don't know the bitrate of the stream, use absolute size
                 // limits to maintain the cache.
 
+                const size_t kLowWaterMarkBytes = 40000;
+                const size_t kHighWaterMarkBytes = 200000;
+
                 if ((mFlags & PLAYING) && !eos
                         && (cachedDataRemaining < kLowWaterMarkBytes)) {
                     LOGI("cache is running low (< %d) , pausing.",
@@ -817,64 +804,53 @@ status_t AwesomePlayer::play_l() {
     return OK;
 }
 
-status_t AwesomePlayer::initRenderer_l() {
-    if (mISurface == NULL) {
-        return OK;
-    }
+void AwesomePlayer::initRenderer_l() {
+    if (mISurface != NULL) {
+        sp<MetaData> meta = mVideoSource->getFormat();
 
-    sp<MetaData> meta = mVideoSource->getFormat();
+        int32_t format;
+        const char *component;
+        int32_t decodedWidth, decodedHeight;
+        CHECK(meta->findInt32(kKeyColorFormat, &format));
+        CHECK(meta->findCString(kKeyDecoderComponent, &component));
+        CHECK(meta->findInt32(kKeyWidth, &decodedWidth));
+        CHECK(meta->findInt32(kKeyHeight, &decodedHeight));
 
-    int32_t format;
-    const char *component;
-    int32_t decodedWidth, decodedHeight;
-    CHECK(meta->findInt32(kKeyColorFormat, &format));
-    CHECK(meta->findCString(kKeyDecoderComponent, &component));
-    CHECK(meta->findInt32(kKeyWidth, &decodedWidth));
-    CHECK(meta->findInt32(kKeyHeight, &decodedHeight));
-
-    int32_t rotationDegrees;
-    if (!mVideoTrack->getFormat()->findInt32(
-                kKeyRotation, &rotationDegrees)) {
-        rotationDegrees = 0;
-    }
-
-    mVideoRenderer.clear();
-
-    // Must ensure that mVideoRenderer's destructor is actually executed
-    // before creating a new one.
-    IPCThreadState::self()->flushCommands();
-
-    if (!strncmp("OMX.", component, 4)) {
-        // Our OMX codecs allocate buffers on the media_server side
-        // therefore they require a remote IOMXRenderer that knows how
-        // to display them.
-
-        sp<IOMXRenderer> native =
-            mClient.interface()->createRenderer(
-                    mISurface, component,
-                    (OMX_COLOR_FORMATTYPE)format,
-                    decodedWidth, decodedHeight,
-                    mVideoWidth, mVideoHeight,
-                    rotationDegrees);
-
-        if (native == NULL) {
-            return NO_INIT;
+        int32_t rotationDegrees;
+        if (!mVideoTrack->getFormat()->findInt32(
+                    kKeyRotation, &rotationDegrees)) {
+            rotationDegrees = 0;
         }
 
-        mVideoRenderer = new AwesomeRemoteRenderer(native);
-    } else {
-        // Other decoders are instantiated locally and as a consequence
-        // allocate their buffers in local address space.
-        mVideoRenderer = new AwesomeLocalRenderer(
-            false,  // previewOnly
-            component,
-            (OMX_COLOR_FORMATTYPE)format,
-            mISurface,
-            mVideoWidth, mVideoHeight,
-            decodedWidth, decodedHeight, rotationDegrees);
-    }
+        mVideoRenderer.clear();
 
-    return mVideoRenderer->initCheck();
+        // Must ensure that mVideoRenderer's destructor is actually executed
+        // before creating a new one.
+        IPCThreadState::self()->flushCommands();
+
+        if (!strncmp("OMX.", component, 4)) {
+            // Our OMX codecs allocate buffers on the media_server side
+            // therefore they require a remote IOMXRenderer that knows how
+            // to display them.
+            mVideoRenderer = new AwesomeRemoteRenderer(
+                mClient.interface()->createRenderer(
+                        mISurface, component,
+                        (OMX_COLOR_FORMATTYPE)format,
+                        decodedWidth, decodedHeight,
+                        mVideoWidth, mVideoHeight,
+                        rotationDegrees));
+        } else {
+            // Other decoders are instantiated locally and as a consequence
+            // allocate their buffers in local address space.
+            mVideoRenderer = new AwesomeLocalRenderer(
+                false,  // previewOnly
+                component,
+                (OMX_COLOR_FORMATTYPE)format,
+                mISurface,
+                mVideoWidth, mVideoHeight,
+                decodedWidth, decodedHeight, rotationDegrees);
+        }
+    }
 }
 
 status_t AwesomePlayer::pause() {
@@ -1203,16 +1179,9 @@ void AwesomePlayer::onVideoEvent() {
 
                     if (mVideoRenderer != NULL) {
                         mVideoRendererIsPreview = false;
-                        err = initRenderer_l();
-
-                        if (err == OK) {
-                            continue;
-                        }
-
-                        // fall through
-                    } else {
-                        continue;
+                        initRenderer_l();
                     }
+                    continue;
                 }
 
                 // So video playback is complete, but we may still have
@@ -1249,7 +1218,6 @@ void AwesomePlayer::onVideoEvent() {
         mVideoTimeUs = timeUs;
     }
 
-    bool wasSeeking = mSeeking;
     finishSeekIfNecessary(timeUs);
 
     TimeSource *ts = (mFlags & AUDIO_AT_EOS) ? &mSystemTimeSource : mTimeSource;
@@ -1269,11 +1237,6 @@ void AwesomePlayer::onVideoEvent() {
     int64_t nowUs = ts->getRealTimeUs() - mTimeSourceDeltaUs;
 
     int64_t latenessUs = nowUs - timeUs;
-
-    if (wasSeeking) {
-        // Let's display the first frame after seeking right away.
-        latenessUs = 0;
-    }
 
     if (mRTPSession != NULL) {
         // We'll completely ignore timestamps for gtalk videochat
@@ -1302,15 +1265,7 @@ void AwesomePlayer::onVideoEvent() {
     if (mVideoRendererIsPreview || mVideoRenderer == NULL) {
         mVideoRendererIsPreview = false;
 
-        status_t err = initRenderer_l();
-
-        if (err != OK) {
-            finishSeekIfNecessary(-1);
-
-            mFlags |= VIDEO_AT_EOS;
-            postStreamDoneEvent_l(err);
-            return;
-        }
+        initRenderer_l();
     }
 
     if (mVideoRenderer != NULL) {
@@ -1477,34 +1432,6 @@ status_t AwesomePlayer::finishSetDataSource_l() {
         mConnectingDataSource.clear();
 
         dataSource = mCachedSource;
-
-        // We're going to prefill the cache before trying to instantiate
-        // the extractor below, as the latter is an operation that otherwise
-        // could block on the datasource for a significant amount of time.
-        // During that time we'd be unable to abort the preparation phase
-        // without this prefill.
-
-        mLock.unlock();
-
-        for (;;) {
-            bool eos;
-            size_t cachedDataRemaining =
-                mCachedSource->approxDataRemaining(&eos);
-
-            if (eos || cachedDataRemaining >= kHighWaterMarkBytes
-                    || (mFlags & PREPARE_CANCELLED)) {
-                break;
-            }
-
-            usleep(200000);
-        }
-
-        mLock.lock();
-
-        if (mFlags & PREPARE_CANCELLED) {
-            LOGI("Prepare cancelled while waiting for initial cache fill.");
-            return UNKNOWN_ERROR;
-        }
     } else if (!strncasecmp(mUri.string(), "httplive://", 11)) {
         String8 uri("http://");
         uri.append(mUri.string() + 11);

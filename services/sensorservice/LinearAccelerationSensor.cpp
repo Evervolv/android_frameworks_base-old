@@ -53,6 +53,10 @@ bool LinearAccelerationSensor::process(sensors_event_t* outEvent,
     return result;
 }
 
+bool LinearAccelerationSensor::isEnabled() const {
+    return mGravitySensor.isEnabled();
+}
+
 status_t LinearAccelerationSensor::activate(void* ident, bool enabled) {
     return mGravitySensor.activate(ident, enabled);
 }

@@ -22,6 +22,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -32,7 +33,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.ref.WeakReference;
 import java.text.DateFormatSymbols;
 import java.util.Calendar;
 
@@ -49,45 +49,26 @@ public class DigitalClock extends LinearLayout {
     private TextView mTimeDisplay;
     private AmPm mAmPm;
     private ContentObserver mFormatChangeObserver;
-    private int mAttached = 0; // for debugging - tells us whether attach/detach is unbalanced
+    private boolean mLive = true;
+    private boolean mAttached;
 
     /* called by system on minute ticks */
     private final Handler mHandler = new Handler();
-    private BroadcastReceiver mIntentReceiver;
-
-    private static class TimeChangedReceiver extends BroadcastReceiver {
-        private WeakReference<DigitalClock> mClock;
-        private Context mContext;
-
-        public TimeChangedReceiver(DigitalClock clock) {
-            mClock = new WeakReference<DigitalClock>(clock);
-            mContext = clock.getContext();
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Post a runnable to avoid blocking the broadcast.
-            final boolean timezoneChanged =
-                    intent.getAction().equals(Intent.ACTION_TIMEZONE_CHANGED);
-            final DigitalClock clock = mClock.get();
-            if (clock != null) {
-                clock.mHandler.post(new Runnable() {
-                    public void run() {
-                        if (timezoneChanged) {
-                            clock.mCalendar = Calendar.getInstance();
-                        }
-                        clock.updateTime();
-                    }
-                });
-            } else {
-                try {
-                    mContext.unregisterReceiver(this);
-                } catch (RuntimeException e) {
-                    // Shouldn't happen
+    private final BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (mLive && intent.getAction().equals(
+                            Intent.ACTION_TIMEZONE_CHANGED)) {
+                    mCalendar = Calendar.getInstance();
                 }
+                // Post a runnable to avoid blocking the broadcast.
+                mHandler.post(new Runnable() {
+                        public void run() {
+                            updateTime();
+                        }
+                });
             }
-        }
-    };
+        };
 
     static class AmPm {
         private TextView mAmPm;
@@ -113,27 +94,14 @@ public class DigitalClock extends LinearLayout {
         }
     }
 
-    private static class FormatChangeObserver extends ContentObserver {
-        private WeakReference<DigitalClock> mClock;
-        private Context mContext;
-        public FormatChangeObserver(DigitalClock clock) {
+    private class FormatChangeObserver extends ContentObserver {
+        public FormatChangeObserver() {
             super(new Handler());
-            mClock = new WeakReference<DigitalClock>(clock);
-            mContext = clock.getContext();
         }
         @Override
         public void onChange(boolean selfChange) {
-            DigitalClock digitalClock = mClock.get();
-            if (digitalClock != null) {
-                digitalClock.setDateFormat();
-                digitalClock.updateTime();
-            } else {
-                try {
-                    mContext.getContentResolver().unregisterContentObserver(this);
-                } catch (RuntimeException e) {
-                    // Shouldn't happen
-                }
-            }
+            setDateFormat();
+            updateTime();
         }
     }
 
@@ -161,11 +129,11 @@ public class DigitalClock extends LinearLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
-        mAttached++;
+        if (mAttached) return;
+        mAttached = true;
 
-        /* monitor time ticks, time changed, timezone */
-        if (mIntentReceiver == null) {
-            mIntentReceiver = new TimeChangedReceiver(this);
+        if (mLive) {
+            /* monitor time ticks, time changed, timezone */
             IntentFilter filter = new IntentFilter();
             filter.addAction(Intent.ACTION_TIME_TICK);
             filter.addAction(Intent.ACTION_TIME_CHANGED);
@@ -174,11 +142,9 @@ public class DigitalClock extends LinearLayout {
         }
 
         /* monitor 12/24-hour display preference */
-        if (mFormatChangeObserver == null) {
-            mFormatChangeObserver = new FormatChangeObserver(this);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.CONTENT_URI, true, mFormatChangeObserver);
-        }
+        mFormatChangeObserver = new FormatChangeObserver();
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.CONTENT_URI, true, mFormatChangeObserver);
 
         updateTime();
     }
@@ -187,19 +153,16 @@ public class DigitalClock extends LinearLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
-        mAttached--;
+        if (!mAttached) return;
+        mAttached = false;
 
-        if (mIntentReceiver != null) {
+        if (mLive) {
             mContext.unregisterReceiver(mIntentReceiver);
         }
-        if (mFormatChangeObserver != null) {
-            mContext.getContentResolver().unregisterContentObserver(
-                    mFormatChangeObserver);
-        }
-
-        mFormatChangeObserver = null;
-        mIntentReceiver = null;
+        mContext.getContentResolver().unregisterContentObserver(
+                mFormatChangeObserver);
     }
+
 
     void updateTime(Calendar c) {
         mCalendar = c;
@@ -207,7 +170,9 @@ public class DigitalClock extends LinearLayout {
     }
 
     private void updateTime() {
-        mCalendar.setTimeInMillis(System.currentTimeMillis());
+        if (mLive) {
+            mCalendar.setTimeInMillis(System.currentTimeMillis());
+        }
 
         CharSequence newTime = DateFormat.format(mFormat, mCalendar);
         mTimeDisplay.setText(newTime);
@@ -215,8 +180,12 @@ public class DigitalClock extends LinearLayout {
     }
 
     private void setDateFormat() {
-        mFormat = android.text.format.DateFormat.is24HourFormat(getContext())
+        mFormat = android.text.format.DateFormat.is24HourFormat(getContext()) 
             ? M24 : M12;
         mAmPm.setShowAmPm(mFormat.equals(M12));
+    }
+
+    void setLive(boolean live) {
+        mLive = live;
     }
 }

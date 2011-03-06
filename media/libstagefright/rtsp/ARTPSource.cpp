@@ -57,7 +57,7 @@ ARTPSource::ARTPSource(
         mAssembler = new AAVCAssembler(notify);
         mIssueFIRRequests = true;
     } else if (!strncmp(desc.c_str(), "MP4A-LATM/", 10)) {
-        mAssembler = new AMPEG4AudioAssembler(notify, params);
+        mAssembler = new AMPEG4AudioAssembler(notify);
     } else if (!strncmp(desc.c_str(), "H263-1998/", 10)
             || !strncmp(desc.c_str(), "H263-2000/", 10)) {
         mAssembler = new AH263Assembler(notify);
@@ -109,7 +109,10 @@ void ARTPSource::timeUpdate(uint32_t rtpTime, uint64_t ntpTime) {
             uint32_t rtpTime;
             CHECK(meta->findInt32("rtp-time", (int32_t *)&rtpTime));
 
-            meta->setInt64("ntp-time", RTP2NTP(rtpTime));
+            if (RTP2NTP(rtpTime) <= ntpTime)
+                meta->setInt64("ntp-time", RTP2NTP(rtpTime));
+            else
+                meta->setInt64("ntp-time", ntpTime);
         }
     }
 }

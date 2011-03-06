@@ -223,8 +223,8 @@ public class KeyguardViewManager implements KeyguardWindowController {
                 mKeyguardHost.postDelayed(new Runnable() {
                     public void run() {
                         synchronized (KeyguardViewManager.this) {
-                            lastView.cleanUp();
                             mKeyguardHost.removeView(lastView);
+                            lastView.cleanUp();
                         }
                     }
                 }, 500);

@@ -313,9 +313,9 @@ private:
             bool        lockPageFlip(const LayerVector& currentLayers);
             void        unlockPageFlip(const LayerVector& currentLayers);
             void        handleRepaint();
-            bool        handleBypassLayer();
             void        postFramebuffer();
             void        composeSurfaces(const Region& dirty);
+            void        unlockClients();
 
 
             ssize_t     addClientLayer(const sp<Client>& client,
@@ -328,7 +328,6 @@ private:
             uint32_t    setTransactionFlags(uint32_t flags);
             void        commitTransaction();
 
-            void        setBypassLayer(const sp<LayerBase>& layer);
 
             status_t captureScreenImplLocked(DisplayID dpy,
                     sp<IMemoryHeap>* heap,
@@ -376,7 +375,6 @@ private:
     volatile    int32_t                 mTransactionFlags;
     volatile    int32_t                 mTransactionCount;
                 Condition               mTransactionCV;
-                SortedVector< sp<LayerBase> > mLayerPurgatory;
                 bool                    mResizeTransationPending;
 
                 // protected by mStateLock (but we could use another lock)
@@ -407,7 +405,6 @@ private:
                 int32_t                     mFreezeCount;
                 nsecs_t                     mFreezeDisplayTime;
                 Vector< sp<LayerBase> >     mVisibleLayersSortedByZ;
-                wp<Layer>                   mBypassLayer;
 
 
                 // don't use a lock for these, we don't care

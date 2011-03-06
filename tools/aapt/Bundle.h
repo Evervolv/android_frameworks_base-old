@@ -1,6 +1,5 @@
 //
 // Copyright 2006 The Android Open Source Project
-// This code has been modified.  Portions copyright (C) 2010, T-Mobile USA, Inc.
 //
 // State bundle.  Used to pass around stuff like command-line args.
 //
@@ -36,7 +35,7 @@ public:
     Bundle(void)
         : mCmd(kCommandUnknown), mVerbose(false), mAndroidList(false),
           mForce(false), mGrayscaleTolerance(0), mMakePackageDirs(false),
-          mUpdate(false), mExtending(false), mExtendedPackageId(0),
+          mUpdate(false), mExtending(false),
           mRequireLocalization(false), mPseudolocalize(false),
           mWantUTF16(false), mValues(false),
           mCompressionMethod(0), mOutputAPKFile(NULL),
@@ -46,7 +45,7 @@ public:
           mRClassDir(NULL), mResourceIntermediatesDir(NULL), mManifestMinSdkVersion(NULL),
           mMinSdkVersion(NULL), mTargetSdkVersion(NULL), mMaxSdkVersion(NULL),
           mVersionCode(NULL), mVersionName(NULL), mCustomPackage(NULL),
-          mMaxResVersion(NULL), mDebugMode(false), mNonConstantId(false), mProduct(NULL),
+          mMaxResVersion(NULL), mDebugMode(false), mProduct(NULL),
           mArgc(0), mArgv(NULL)
         {}
     ~Bundle(void) {}
@@ -75,8 +74,6 @@ public:
     void setUpdate(bool val) { mUpdate = val; }
     bool getExtending(void) const { return mExtending; }
     void setExtending(bool val) { mExtending = val; }
-    int getExtendedPackageId(void) const { return mExtendedPackageId; }
-    void setExtendedPackageId(int val) { mExtendedPackageId = val; }
     bool getRequireLocalization(void) const { return mRequireLocalization; }
     void setRequireLocalization(bool val) { mRequireLocalization = val; }
     bool getPseudolocalize(void) const { return mPseudolocalize; }
@@ -142,8 +139,6 @@ public:
     void setMaxResVersion(const char * val) { mMaxResVersion = val; }
     bool getDebugMode() { return mDebugMode; }
     void setDebugMode(bool val) { mDebugMode = val; }
-    bool getNonConstantId() { return mNonConstantId; }
-    void setNonConstantId(bool val) { mNonConstantId = val; }
     const char* getProduct() const { return mProduct; }
     void setProduct(const char * val) { mProduct = val; }
 
@@ -213,7 +208,6 @@ private:
     bool        mMakePackageDirs;
     bool        mUpdate;
     bool        mExtending;
-    int         mExtendedPackageId;
     bool        mRequireLocalization;
     bool        mPseudolocalize;
     bool        mWantUTF16;
@@ -245,7 +239,6 @@ private:
     const char* mCustomPackage;
     const char* mMaxResVersion;
     bool        mDebugMode;
-    bool        mNonConstantId;
     const char* mProduct;
 
     /* file specification */

@@ -202,6 +202,7 @@ public class MediaMetadataTest extends AndroidTestCase {
         }
         String value = null;
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        retriever.setMode(MediaMetadataRetriever.MODE_GET_METADATA_ONLY);
         try {
             retriever.setDataSource(meta_data_file[fileIndex][0]);
         } catch(Exception e) {
