@@ -138,6 +138,8 @@ SensorDevice::SensorDevice()
             for (size_t i=0 ; i<size_t(count) ; i++) {
                 mActivationCount.add(list[i].handle, model);
                 if (mOldSensorsCompatMode) {
+                    mOldSensorsList = list;
+                    mOldSensorsCount = count;
                     mSensorDataDevice->data_open(mSensorDataDevice,
                             mSensorControlDevice->open_data_source(mSensorControlDevice));
                     mSensorControlDevice->activate(mSensorControlDevice, list[i].handle, 0);
@@ -160,9 +162,8 @@ void SensorDevice::dump(String8& result, char* buffer, size_t SIZE)
 
     Mutex::Autolock _l(mLock);
     for (size_t i=0 ; i<size_t(count) ; i++) {
-        snprintf(buffer, SIZE, "handle=0x%08x, active-count=%d / %d\n",
+        snprintf(buffer, SIZE, "handle=0x%08x, active-count=%d\n",
                 list[i].handle,
-                mActivationCount.valueFor(list[i].handle).count,
                 mActivationCount.valueFor(list[i].handle).rates.size());
         result.append(buffer);
     }
@@ -190,23 +191,46 @@ ssize_t SensorDevice::poll(sensors_event_t* buffer, size_t count) {
         while (pollsDone < (size_t)mOldSensorsEnabled && pollsDone < count) {
             sensors_data_t oldBuffer;
             long result =  mSensorDataDevice->poll(mSensorDataDevice, &oldBuffer);
+            int sensorType = -1;
+ 
             if (result == 0x7FFFFFFF) {
-                return pollsDone;
+                continue;
+            } else {
+                /* the old data_poll is supposed to return a handle,
+                 * which has to be mapped to the type. */
+                for (size_t i=0 ; i<size_t(mOldSensorsCount) && sensorType < 0 ; i++) {
+                    if (mOldSensorsList[i].handle == result) {
+                        sensorType = mOldSensorsList[i].type;
+                        LOGV("mapped sensor type to %d",sensorType);
+                    }
+                }
             }
-            if (!oldBuffer.time) {
-                LOGV("Useless output at round %u from %d",pollsDone,oldBuffer.sensor);
+            if ( sensorType <= 0 ||
+                 sensorType > SENSOR_TYPE_ROTATION_VECTOR) {
+                LOGV("Useless output at round %u from %d",pollsDone, oldBuffer.sensor);
                 count--;
                 continue;
             }
             buffer[pollsDone].version = sizeof(struct sensors_event_t);
             buffer[pollsDone].timestamp = oldBuffer.time;
+            buffer[pollsDone].type = sensorType;
             buffer[pollsDone].sensor = result;
-            buffer[pollsDone].type = oldBuffer.sensor;
             /* This part is a union. Regardless of the sensor type,
              * we only need to copy a sensors_vec_t and a float */
             buffer[pollsDone].acceleration = oldBuffer.vector;
             buffer[pollsDone].temperature = oldBuffer.temperature;
             LOGV("Adding results for sensor %d", buffer[pollsDone].sensor);
+#ifdef FOXCONN_SENSORS
+            /* Fix ridiculous API breakages from FIH. */
+            /* These idiots are returning -1 for FAR, and 1 for NEAR */
+            if (sensorType == SENSOR_TYPE_PROXIMITY) {
+                if (buffer[pollsDone].distance > 0) {
+                    buffer[pollsDone].distance = 0;
+                } else {
+                    buffer[pollsDone].distance = 1;
+                }
+            }
+#endif
             pollsDone++;
         }
         return pollsDone;
@@ -222,22 +246,25 @@ status_t SensorDevice::activate(void* ident, int handle, int enabled)
     bool actuateHardware = false;
 
     Info& info( mActivationCount.editValueFor(handle) );
-    int32_t& count(info.count);
     if (enabled) {
-        if (android_atomic_inc(&count) == 0) {
-            actuateHardware = true;
-        }
         Mutex::Autolock _l(mLock);
         if (info.rates.indexOfKey(ident) < 0) {
             info.rates.add(ident, DEFAULT_EVENTS_PERIOD);
+            actuateHardware = true;
+        } else {
+            // sensor was already activated for this ident
         }
     } else {
-        if (android_atomic_dec(&count) == 1) {
-            actuateHardware = true;
-        }
         Mutex::Autolock _l(mLock);
-        info.rates.removeItem(ident);
+        if (info.rates.removeItem(ident) >= 0) {
+            if (info.rates.size() == 0) {
+                actuateHardware = true;
+            }
+        } else {
+            // sensor wasn't enabled for this ident
+        }
     }
+
     if (actuateHardware) {
         if (mOldSensorsCompatMode) {
             if (enabled)

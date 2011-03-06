@@ -60,6 +60,9 @@ LayerBase::LayerBase(SurfaceFlinger* flinger, DisplayID display)
       mTransactionFlags(0),
       mPremultipliedAlpha(true), mName("unnamed"), mDebug(false),
       mInvalidate(0)
+#ifdef AVOID_DRAW_TEXTURE
+      ,mTransformed(false)
+#endif
 {
     const DisplayHardware& hw(flinger->graphicPlane(0).displayHardware());
     mFlags = hw.getFlags();
@@ -225,14 +228,10 @@ uint32_t LayerBase::doTransaction(uint32_t flags)
         flags |= eVisibleRegion;
         this->contentDirty = true;
 
-        mNeedsFiltering = false;
-        if (!(mFlags & DisplayHardware::SLOW_CONFIG)) {
-            // we may use linear filtering, if the matrix scales us
-            const uint8_t type = temp.transform.getType();
-            if (!temp.transform.preserveRects() || (type >= Transform::SCALE)) {
-                mNeedsFiltering = true;
-            }
-        }
+        // we may use linear filtering, if the matrix scales us
+        const uint8_t type = temp.transform.getType();
+        mNeedsFiltering = (!temp.transform.preserveRects() ||
+                (type >= Transform::SCALE));
     }
 
     // Commit the transaction
@@ -270,6 +269,9 @@ void LayerBase::validateVisibility(const Transform& planeTransform)
     // cache a few things...
     mOrientation = tr.getOrientation();
     mTransformedBounds = tr.makeBounds(w, h);
+#ifdef AVOID_DRAW_TEXTURE
+    mTransformed = transformed;
+#endif
     mLeft = tr.tx();
     mTop  = tr.ty();
 }
@@ -284,10 +286,6 @@ void LayerBase::unlockPageFlip(
     if ((android_atomic_and(~1, &mInvalidate)&1) == 1) {
         outDirtyRegion.orSelf(visibleRegionScreen);
     }
-}
-
-void LayerBase::finishPageFlip()
-{
 }
 
 void LayerBase::invalidate()
@@ -578,6 +576,12 @@ void LayerBase::dump(String8& result, char* buffer, size_t SIZE) const
     result.append(buffer);
 }
 
+void LayerBase::shortDump(String8& result, char* scratch, size_t size) const
+{
+    LayerBase::dump(result, scratch, size);
+}
+
+
 // ---------------------------------------------------------------------------
 
 int32_t LayerBaseClient::sIdentity = 1;
@@ -627,6 +631,12 @@ void LayerBaseClient::dump(String8& result, char* buffer, size_t SIZE) const
             client.get(), getIdentity());
 
     result.append(buffer);
+}
+
+
+void LayerBaseClient::shortDump(String8& result, char* scratch, size_t size) const
+{
+    LayerBaseClient::dump(result, scratch, size);
 }
 
 // ---------------------------------------------------------------------------

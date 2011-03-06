@@ -143,7 +143,7 @@ public abstract class Context {
      * tied to the lifetime of the process rather than the current component.
      *
      * <p>Consider for example how this interacts with
-     * {@ #registerReceiver(BroadcastReceiver, IntentFilter)}:
+     * {@link #registerReceiver(BroadcastReceiver, IntentFilter)}:
      * <ul>
      * <li> <p>If used from an Activity context, the receiver is being registered
      * within that activity.  This means that you are expected to unregister
@@ -1205,6 +1205,9 @@ public abstract class Context {
      *  <dt> {@link #WIFI_SERVICE} ("wifi")
      *  <dd> A {@link android.net.wifi.WifiManager WifiManager} for management of
      * Wi-Fi connectivity.
+     * <dt> {@link #WIMAX_SERVICE} ("wimax")
+     *  <dd> A {@link android.net.wimax.WimaxManager WimaxManager} for management of
+     * Wimax connectivity.
      * <dt> {@link #INPUT_METHOD_SERVICE} ("input_method")
      * <dd> An {@link android.view.inputmethod.InputMethodManager InputMethodManager}
      * for management of input methods.
@@ -1251,6 +1254,8 @@ public abstract class Context {
      * @see android.net.ConnectivityManager
      * @see #WIFI_SERVICE
      * @see android.net.wifi.WifiManager
+     * @see #WIMAX_SERVICE
+     * @see android.net.wimax.WimaxManager
      * @see #AUDIO_SERVICE
      * @see android.media.AudioManager
      * @see #TELEPHONY_SERVICE
@@ -1459,6 +1464,16 @@ public abstract class Context {
     public static final String WIFI_SERVICE = "wifi";
 
     /**
+     * Use with {@link #getSystemService} to retrieve a {@link
+     * android.net.wimax.WimaxManager} for handling management of
+     * Wimax access.
+     *
+     * @see #getSystemService
+     * @see android.net.wimax.WimaxManager
+     */
+    public static final String WIMAX_SERVICE = "wimax";
+    
+    /**
      * Use with {@link #getSystemService} to retrieve a
      * {@link android.media.AudioManager} for handling management of volume,
      * ringer modes and audio routing.
@@ -1548,6 +1563,14 @@ public abstract class Context {
      * @see #getSystemService
      */
     public static final String DOWNLOAD_SERVICE = "download";
+
+    /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link android.nfc.NfcManager} for using NFC.
+     *
+     * @see #getSystemService
+     */
+    public static final String NFC_SERVICE = "nfc";
 
     /**
      * Use with {@link #getSystemService} to retrieve a

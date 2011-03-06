@@ -1,5 +1,6 @@
 //
 // Copyright 2006 The Android Open Source Project
+// This code has been modified.  Portions copyright (C) 2010, T-Mobile USA, Inc.
 //
 // Android Asset Packaging Tool main entry point.
 //
@@ -14,6 +15,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <assert.h>
+#include <ctype.h>
 
 using namespace android;
 
@@ -55,7 +57,7 @@ void usage(void)
         "   xmltree          Print the compiled xmls in the given assets.\n"
         "   xmlstrings       Print the strings of the given compiled xml assets.\n\n", gProgName);
     fprintf(stderr,
-        " %s p[ackage] [-d][-f][-m][-u][-v][-x][-z][-M AndroidManifest.xml] \\\n"
+        " %s p[ackage] [-d][-f][-m][-u][-v][-x[ extending-resource-id]][-z][-M AndroidManifest.xml] \\\n"
         "        [-0 extension [-0 extension ...]] [-g tolerance] [-j jarfile] \\\n"
         "        [--debug-mode] [--min-sdk-version VAL] [--target-sdk-version VAL] \\\n"
         "        [--app-version VAL] [--app-version-name TEXT] [--custom-package VAL] \\\n"
@@ -110,7 +112,7 @@ void usage(void)
 #endif
         "   -u  update existing packages (add new, replace older, remove deleted files)\n"
         "   -v  verbose output\n"
-        "   -x  create extending (non-application) resource IDs\n"
+        "   -x  either create or assign (if specified) extending (non-application) resource IDs\n"
         "   -z  require localization of resource attributes marked with\n"
         "       localization=\"suggested\"\n"
         "   -A  additional directory in which to find raw asset files\n"
@@ -160,7 +162,11 @@ void usage(void)
         "       product variants\n"
         "   --utf16\n"
         "       changes default encoding for resources to UTF-16.  Only useful when API\n"
-        "       level is set to 7 or higher where the default encoding is UTF-8.\n");
+        "       level is set to 7 or higher where the default encoding is UTF-8.\n"
+        "   --non-constant-id\n"
+        "       Make the resources ID non constant. This is required to make an R java class\n"
+        "       that does not contain the final value but is used to make reusable compiled\n"
+        "       libraries that need to access resources.\n");
 }
 
 /*
@@ -281,6 +287,14 @@ int main(int argc, char* const argv[])
                 break;
             case 'x':
                 bundle.setExtending(true);
+                argc--;
+                argv++;
+                if (!argc || !isdigit(argv[0][0])) {
+                    argc++;
+                    argv--;
+                } else {
+                    bundle.setExtendedPackageId(atoi(argv[0]));
+                }
                 break;
             case 'z':
                 bundle.setRequireLocalization(true);
@@ -497,6 +511,8 @@ int main(int argc, char* const argv[])
                         goto bail;
                     }
                     bundle.setProduct(argv[0]);
+                } else if (strcmp(cp, "-non-constant-id") == 0) {
+                    bundle.setNonConstantId(true);
                 } else {
                     fprintf(stderr, "ERROR: Unknown option '-%s'\n", cp);
                     wantUsage = true;

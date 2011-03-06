@@ -55,6 +55,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IIntentReceiver;
@@ -1116,7 +1117,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 d.setCancelable(false);
                 d.setTitle("System UIDs Inconsistent");
                 d.setMessage("UIDs on the system are inconsistent, you need to wipe your data partition or your device will be unstable.");
-                d.setButton("I'm Feeling Lucky",
+                d.setButton(DialogInterface.BUTTON_POSITIVE, "I'm Feeling Lucky",
                         mHandler.obtainMessage(IM_FEELING_LUCKY_MSG));
                 mUidAlert = d;
                 d.show();
@@ -1674,7 +1675,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (cr.binding != null && cr.binding.service != null
                         && cr.binding.service.app != null
                         && cr.binding.service.app.lruSeq != mLruSeq) {
-                    updateLruProcessInternalLocked(cr.binding.service.app, false,
+                    updateLruProcessInternalLocked(cr.binding.service.app, oomAdj,
                             updateActivityTime, i+1);
                 }
             }
@@ -1682,7 +1683,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         if (app.conProviders.size() > 0) {
             for (ContentProviderRecord cpr : app.conProviders.keySet()) {
                 if (cpr.app != null && cpr.app.lruSeq != mLruSeq) {
-                    updateLruProcessInternalLocked(cpr.app, false,
+                    updateLruProcessInternalLocked(cpr.app, oomAdj,
                             updateActivityTime, i+1);
                 }
             }
@@ -3679,11 +3680,11 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (pkgs != null) {
                     for (String pkg : pkgs) {
                         synchronized (ActivityManagerService.this) {
-                         if (forceStopPackageLocked(pkg, -1, false, false, false)) {
-                             setResultCode(Activity.RESULT_OK);
-                             return;
-                         }
-                        }
+                          if (forceStopPackageLocked(pkg, -1, false, false, false)) {
+                              setResultCode(Activity.RESULT_OK);
+                              return;
+                          }
+                       }
                     }
                 }
             }
@@ -4384,12 +4385,15 @@ public final class ActivityManagerService extends ActivityManagerNative
         perm.modeFlags |= modeFlags;
         if (owner == null) {
             perm.globalModeFlags |= modeFlags;
-        } else if ((modeFlags&Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
-            perm.readOwners.add(owner);
-            owner.addReadPermission(perm);
-        } else if ((modeFlags&Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
-            perm.writeOwners.add(owner);
-            owner.addWritePermission(perm);
+        } else {
+            if ((modeFlags&Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+                 perm.readOwners.add(owner);
+                 owner.addReadPermission(perm);
+            }
+            if ((modeFlags&Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
+                 perm.writeOwners.add(owner);
+                 owner.addWritePermission(perm);
+            }
         }
     }
 
@@ -4695,7 +4699,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             if (localLOGV) Slog.v(
                 TAG, "getTasks: max=" + maxNum + ", flags=" + flags
                 + ", receiver=" + receiver);
-	    /** This could be bad? Possibly, Might look into better way to do it: Pedlar
+
             if (checkCallingPermission(android.Manifest.permission.GET_TASKS)
                     != PackageManager.PERMISSION_GRANTED) {
                 if (receiver != null) {
@@ -4712,7 +4716,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                         + " requires " + android.Manifest.permission.GET_TASKS;
                 Slog.w(TAG, msg);
                 throw new SecurityException(msg);
-            } **/
+            }
 
             int pos = mMainStack.mHistory.size()-1;
             ActivityRecord next =
@@ -4824,8 +4828,8 @@ public final class ActivityManagerService extends ActivityManagerNative
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum,
             int flags) {
         synchronized (this) {
-            //enforceCallingPermission(android.Manifest.permission.GET_TASKS,
-            //        "getRecentTasks()");
+            enforceCallingPermission(android.Manifest.permission.GET_TASKS,
+                    "getRecentTasks()");
 
             IPackageManager pm = AppGlobals.getPackageManager();
             
@@ -6437,7 +6441,28 @@ public final class ActivityManagerService extends ActivityManagerNative
                 sr.crashCount++;
             }
         }
-        
+
+        // If the crashing process is what we consider to be the "home process" and it has been
+        // replaced by a third-party app, clear the package preferred activities from packages
+        // with a home activity running in the process to prevent a repeatedly crashing app
+        // from blocking the user to manually clear the list.
+        if (app == mHomeProcess && mHomeProcess.activities.size() > 0
+                    && (mHomeProcess.info.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+            Iterator it = mHomeProcess.activities.iterator();
+            while (it.hasNext()) {
+                ActivityRecord r = (ActivityRecord)it.next();
+                if (r.isHomeActivity) {
+                    Log.i(TAG, "Clearing package preferred activities from " + r.packageName);
+                    try {
+                        ActivityThread.getPackageManager()
+                                .clearPackagePreferredActivities(r.packageName);
+                    } catch (RemoteException c) {
+                        // pm is in same process, this will never happen.
+                    }
+                }
+            }
+        }
+
         mProcessCrashTimes.put(app.info.processName, app.info.uid, now);
         return true;
     }
@@ -6791,6 +6816,9 @@ public final class ActivityManagerService extends ActivityManagerNative
             sb.append("Subject: ").append(subject).append("\n");
         }
         sb.append("Build: ").append(Build.FINGERPRINT).append("\n");
+        if (Debug.isDebuggerConnected()) {
+            sb.append("Debugger: Connected\n");
+        }
         sb.append("\n");
 
         // Do the rest in a worker thread to avoid blocking the caller on I/O
@@ -9241,7 +9269,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 // r.record is null if findServiceLocked() failed the caller permission check
                 if (r.record == null) {
                     throw new SecurityException(
-                            "Permission Denial: Accessing service " + r.record.name
+                            "Permission Denial: Accessing service "
                             + " from pid=" + Binder.getCallingPid()
                             + ", uid=" + Binder.getCallingUid()
                             + " requires " + r.permission);
@@ -9923,7 +9951,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             }
 
             ProcessRecord proc = mBackupTarget.app;
-            mBackupTarget.app = null;
             mBackupTarget = null;
             mBackupAppName = null;
 
@@ -11516,15 +11543,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         int adj;
         int schedGroup;
         int N;
-        if ("com.android.mms".equals(app.processName) &&
-            Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.LOCK_MMS_IN_MEMORY, 0) == 1 ) {
-            // MMS can die in situations of heavy memory pressure.
-            // Always push it to the top.
-            adj = FOREGROUND_APP_ADJ;
-            schedGroup = Process.THREAD_GROUP_DEFAULT;
-            app.adjType = "mms";
-        } else if (app == TOP_APP) {
+        if (app == TOP_APP) {
             // The last app on the list is the foreground app.
             adj = FOREGROUND_APP_ADJ;
             schedGroup = Process.THREAD_GROUP_DEFAULT;
@@ -11566,8 +11585,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         } else if (app == mHomeProcess) {
             // This process is hosting what we currently consider to be the
             // home app, so we don't want to let it go into the background.
-            adj =  Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.LOCK_HOME_IN_MEMORY, 0) == 1 ? VISIBLE_APP_ADJ : HOME_APP_ADJ;
+            adj = HOME_APP_ADJ;
             schedGroup = Process.THREAD_GROUP_BG_NONINTERACTIVE;
             app.adjType = "home";
         } else if ((N=app.activities.size()) != 0) {

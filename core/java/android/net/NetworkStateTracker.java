@@ -79,7 +79,11 @@ public abstract class NetworkStateTracker extends Handler {
         mTarget = target;
         mTeardownRequested = false;
 
-        this.mNetworkInfo = new NetworkInfo(networkType, subType, typeName, subtypeName);
+        mNetworkInfo = new NetworkInfo(networkType, subType, typeName, subtypeName);
+
+        Log.d(TAG, "NetworkStateTracker::constructor() - networkType = " +
+                networkType + ", subType = " + subType + ", typeName = " + typeName + ", subtypeName = " + subtypeName);
+        Log.d(TAG, "NetworkStateTracker::constructor() - mNetworkInfo.isAvailable(): " + this.mNetworkInfo.isAvailable());
     }
 
     public NetworkInfo getNetworkInfo() {
@@ -131,7 +135,7 @@ public abstract class NetworkStateTracker extends Handler {
             Log.d(TAG, "addPrivateDnsRoutes for " + this +
                     "(" + mInterfaceName + ") - mPrivateDnsRouteSet = "+mPrivateDnsRouteSet);
         }
-        if (mInterfaceName != null && !mPrivateDnsRouteSet) {
+        if (mInterfaceName != null && !mPrivateDnsRouteSet && !mInterfaceName.equalsIgnoreCase("wimax0")) {
             for (String addrString : getNameServers()) {
                 int addr = NetworkUtils.lookupHost(addrString);
                 if (addr != -1 && addr != 0) {
@@ -183,7 +187,12 @@ public abstract class NetworkStateTracker extends Handler {
      */
    public void updateNetworkSettings() {
         String key = getTcpBufferSizesPropName();
-        String bufferSizes = SystemProperties.get(key);
+        String bufferSizes = null;
+        if (key.equalsIgnoreCase("net.tcp.buffersize.wimax")) {
+            bufferSizes = "4096,221184,524288,4096,16384,110208";
+        } else {
+            bufferSizes = SystemProperties.get(key);
+        }
 
         if (bufferSizes.length() == 0) {
             Log.w(TAG, key + " not found in system properties. Using defaults");
@@ -302,7 +311,7 @@ public abstract class NetworkStateTracker extends Handler {
     public boolean isTeardownRequested() {
         return mTeardownRequested;
     }
-    
+
     /**
      * Send a  notification that the results of a scan for network access
      * points has completed, and results are available.
@@ -327,10 +336,10 @@ public abstract class NetworkStateTracker extends Handler {
     }
 
     protected void setSubtype(int subtype, String subtypeName) {
-        if (mNetworkInfo.isConnected()) {
-            int oldSubtype = mNetworkInfo.getSubtype();
-            if (subtype != oldSubtype) {
-                mNetworkInfo.setSubtype(subtype, subtypeName);
+        int oldSubtype = mNetworkInfo.getSubtype();
+        if (subtype != oldSubtype) {
+            mNetworkInfo.setSubtype(subtype, subtypeName);
+            if (mNetworkInfo.isConnected()) {
                 Message msg = mTarget.obtainMessage(
                         EVENT_NETWORK_SUBTYPE_CHANGED, oldSubtype, 0, mNetworkInfo);
                 msg.sendToTarget();

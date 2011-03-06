@@ -63,14 +63,16 @@ status_t EGLUtils::selectConfigForPixelFormat(
     if (!attrs)
         return BAD_VALUE;
 
-    if (outConfig == NULL)
-        return BAD_VALUE;
-    
+#ifdef NO_RGBX_8888
     int err;
     PixelFormatInfo fbFormatInfo;
     if ((err = getPixelFormatInfo(PixelFormat(format), &fbFormatInfo)) < 0) {
         return err;
     }
+#endif
+
+    if (outConfig == NULL)
+        return BAD_VALUE;
 
     // Get all the "potential match" configs...
     if (eglGetConfigs(dpy, NULL, 0, &numConfigs) == EGL_FALSE)
@@ -82,14 +84,17 @@ status_t EGLUtils::selectConfigForPixelFormat(
         return BAD_VALUE;
     }
 
+#ifdef NO_RGBX_8888
     const int fbSzA = fbFormatInfo.getSize(PixelFormatInfo::INDEX_ALPHA);
     const int fbSzR = fbFormatInfo.getSize(PixelFormatInfo::INDEX_RED);
     const int fbSzG = fbFormatInfo.getSize(PixelFormatInfo::INDEX_GREEN);
-    const int fbSzB = fbFormatInfo.getSize(PixelFormatInfo::INDEX_BLUE); 
-    
+    const int fbSzB = fbFormatInfo.getSize(PixelFormatInfo::INDEX_BLUE);
+#endif
+
     int i;
     EGLConfig config = NULL;
     for (i=0 ; i<n ; i++) {
+#ifdef NO_RGBX_8888
         EGLint r,g,b,a;
         EGLConfig curr = configs[i];
         eglGetConfigAttrib(dpy, curr, EGL_RED_SIZE,   &r);
@@ -98,6 +103,12 @@ status_t EGLUtils::selectConfigForPixelFormat(
         eglGetConfigAttrib(dpy, curr, EGL_ALPHA_SIZE, &a);
         if (fbSzA == a && fbSzR == r && fbSzG == g && fbSzB  == b) {
             config = curr;
+#else
+        EGLint nativeVisualId = 0;
+        eglGetConfigAttrib(dpy, configs[i], EGL_NATIVE_VISUAL_ID, &nativeVisualId);
+        if (nativeVisualId>0 && format == nativeVisualId) {
+            config = configs[i];
+#endif
             break;
         }
     }

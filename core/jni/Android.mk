@@ -103,6 +103,7 @@ LOCAL_SRC_FILES:= \
 	android_graphics_PixelFormat.cpp \
 	android/graphics/Picture.cpp \
 	android/graphics/PorterDuff.cpp \
+	android/graphics/BitmapRegionDecoder.cpp \
 	android/graphics/Rasterizer.cpp \
 	android/graphics/Region.cpp \
 	android/graphics/Shader.cpp \
@@ -143,6 +144,11 @@ LOCAL_SRC_FILES:= \
 
 ifeq ($(BOARD_HAVE_FM_RADIO),true)
 	LOCAL_SRC_FILES += android_hardware_fm.cpp
+endif
+
+ifeq ($(BOARD_HAVE_SQN_WIMAX),true)
+	LOCAL_SRC_FILES += android_net_wimax_WimaxCommonAPI.cpp
+	LOCAL_CFLAGS += -DBOARD_HAVE_SQN_WIMAX
 endif
 
 LOCAL_C_INCLUDES += \

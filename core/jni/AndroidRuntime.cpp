@@ -53,6 +53,7 @@ extern int register_android_os_Binder(JNIEnv* env);
 extern int register_android_os_Process(JNIEnv* env);
 extern int register_android_graphics_Bitmap(JNIEnv*);
 extern int register_android_graphics_BitmapFactory(JNIEnv*);
+extern int register_android_graphics_BitmapRegionDecoder(JNIEnv*);
 extern int register_android_graphics_Camera(JNIEnv* env);
 extern int register_android_graphics_Graphics(JNIEnv* env);
 extern int register_android_graphics_Interpolator(JNIEnv* env);
@@ -148,6 +149,9 @@ extern int register_android_net_LocalSocketImpl(JNIEnv* env);
 extern int register_android_net_NetworkUtils(JNIEnv* env);
 extern int register_android_net_TrafficStats(JNIEnv* env);
 extern int register_android_net_wifi_WifiManager(JNIEnv* env);
+#ifdef BOARD_HAVE_SQN_WIMAX
+extern int register_com_htc_net_wimax_WimaxController(JNIEnv* env);
+#endif
 extern int register_android_security_Md5MessageDigest(JNIEnv *env);
 extern int register_android_text_AndroidCharacter(JNIEnv *env);
 extern int register_android_text_AndroidBidi(JNIEnv *env);
@@ -1220,6 +1224,7 @@ static const RegJNIRec gRegJNI[] = {
 
     REG_JNI(register_android_graphics_Bitmap),
     REG_JNI(register_android_graphics_BitmapFactory),
+    REG_JNI(register_android_graphics_BitmapRegionDecoder),
     REG_JNI(register_android_graphics_Camera),
     REG_JNI(register_android_graphics_Canvas),
     REG_JNI(register_android_graphics_ColorFilter),
@@ -1264,6 +1269,9 @@ static const RegJNIRec gRegJNI[] = {
     REG_JNI(register_android_net_NetworkUtils),
     REG_JNI(register_android_net_TrafficStats),
     REG_JNI(register_android_net_wifi_WifiManager),
+#ifdef BOARD_HAVE_SQN_WIMAX
+    REG_JNI(register_com_htc_net_wimax_WimaxController),
+#endif
     REG_JNI(register_android_nfc_NdefMessage),
     REG_JNI(register_android_nfc_NdefRecord),
     REG_JNI(register_android_os_MemoryFile),
