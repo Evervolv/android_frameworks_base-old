@@ -928,9 +928,11 @@ public class StatusBarPolicy {
             // signal, its better to show 0 bars to the user in such cases.
             // asu = 99 is a special case, where the signal strength is unknown.
             if (asu <= 2 || asu == 99) iconLevel = 0;
-            else if (asu >= 12) iconLevel = 4;
-            else if (asu >= 8)  iconLevel = 3;
-            else if (asu >= 5)  iconLevel = 2;
+            else if (asu >= 12) iconLevel = 6;
+            else if (asu >= 10) iconLevel = 5;
+            else if (asu >= 8)  iconLevel = 4;
+            else if (asu >= 6) iconLevel = 3;
+            else if (asu >= 4)  iconLevel = 2;
             else iconLevel = 1;
 
             // Though mPhone is a Manager, this call is not an IPC
