@@ -285,6 +285,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Behavior of ENDCALL Button.  (See Settings.System.END_BUTTON_BEHAVIOR.)
     int mEndcallBehavior;
 
+    // Behavior of trackball wake
+    boolean mTrackballWakeScreen;
+
     // Behavior of POWER button while in-call and screen on.
     // (See Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR.)
     int mIncallPowerBehavior;
@@ -321,6 +324,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.DEFAULT_INPUT_METHOD), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     "fancy_rotation_anim"), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.TRACKBALL_WAKE_SCREEN), false, this);
             updateSettings();
         }
 
@@ -612,6 +617,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT);
             mFancyRotationAnimation = Settings.System.getInt(resolver,
                     "fancy_rotation_anim", 0) != 0 ? 0x80 : 0;
+            mTrackballWakeScreen = (Settings.System.getInt(resolver,
+                    Settings.System.TRACKBALL_WAKE_SCREEN, 0) == 1);
             int accelerometerDefault = Settings.System.getInt(resolver,
                     Settings.System.ACCELEROMETER_ROTATION, DEFAULT_ACCELEROMETER_ROTATION);
             if (mAccelerometerDefault != accelerometerDefault) {
@@ -1776,7 +1783,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             result = 0;
 
             final boolean isWakeKey = (policyFlags
-                    & (WindowManagerPolicy.FLAG_WAKE | WindowManagerPolicy.FLAG_WAKE_DROPPED)) != 0;
+                    & (WindowManagerPolicy.FLAG_WAKE | WindowManagerPolicy.FLAG_WAKE_DROPPED)) != 0
+                    || ((keyCode == BTN_MOUSE) && mTrackballWakeScreen);
+
             if (down && isWakeKey) {
                 if (keyguardActive) {
                     // If the keyguard is showing, let it decide what to do with the wake key.
