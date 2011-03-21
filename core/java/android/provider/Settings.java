@@ -2131,12 +2131,6 @@ public final class Settings {
     	public static final String SHOW_CLOCK = "show_status_clock";
     	
         /**
-         * App to launch with the custom messaging tab
-         * @hide
-         */
-        public static final String LOCKSCREEN_MESSAGING_TAB_APP = "lockscreen_messaging_tab_app";
-
-        /**
          * Sets the lockscreen style
          * @hide
          */
