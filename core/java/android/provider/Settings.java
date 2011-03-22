@@ -2645,7 +2645,7 @@ public final class Settings {
 		
 		public static final String FARRIGHT_AB = "farrightaction_button";
 		
-		public static final String FARLEFT_AB = "farrightaction_button";
+		public static final String FARLEFT_AB = "farleftaction_button";
 		
 		public static final String USE_STOCK_LAUNCHER = "use_stock_launcher";
 		
