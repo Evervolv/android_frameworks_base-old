@@ -2643,6 +2643,10 @@ public final class Settings {
         
 		public static final String CARRIER_CAP = "carrier_caption";
 		
+		public static final String RIGHT_AB = "rightaction_button";
+		
+		public static final String LEFT_AB = "leftaction_button";
+		
 		public static final String FARRIGHT_AB = "farrightaction_button";
 		
 		public static final String FARLEFT_AB = "farleftaction_button";
