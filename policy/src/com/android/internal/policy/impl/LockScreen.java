@@ -276,6 +276,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
         mPlayIcon.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+            	mCallback.pokeWakelock();
                 if(!am.isMusicActive() && wasActive) {
                     mPauseIcon.setVisibility(View.VISIBLE);
                     mPlayIcon.setVisibility(View.GONE);
@@ -290,6 +291,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
         mPauseIcon.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+            	mCallback.pokeWakelock();
                 if(am.isMusicActive()) {
                     mPlayIcon.setVisibility(View.VISIBLE);
                     mPauseIcon.setVisibility(View.GONE);
@@ -304,6 +306,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
         mRewindIcon.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+            	mCallback.pokeWakelock();
                 Intent intent;
                 intent = new Intent("com.android.music.musicservicecommand.previous");
                 getContext().sendBroadcast(intent);
@@ -312,6 +315,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
         mForwardIcon.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+            	mCallback.pokeWakelock();
                 Intent intent;
                 intent = new Intent("com.android.music.musicservicecommand.next");
                 getContext().sendBroadcast(intent);
