@@ -106,7 +106,12 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     private java.text.DateFormat mTimeFormat;
     private boolean mEnableMenuKeyInLockScreen;
 
-    private boolean mUseRotaryLockScreen = false;
+    private boolean mUseRotaryLockScreen = (Settings.System.getInt(mContext.getContentResolver(),
+    		Settings.System.USE_ROTARY_LOCKSCREEN, 0) == 1);
+    
+    private boolean mTrackballUnlockScreen = (Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.TRACKBALL_UNLOCK_SCREEN, 0) == 1);
+    
     /**
      * The status of this lock screen.
      */
@@ -200,11 +205,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
             Log.v(TAG, "Cur orient=" + mCreationOrientation
                     + " res orient=" + context.getResources().getConfiguration().orientation);
         }
-
-        mUseRotaryLockScreen = (Settings.System.getInt(
-        		context.getContentResolver(),
-        		Settings.System.USE_ROTARY_LOCKSCREEN, 0) == 1
-            	);
 
         final LayoutInflater inflater = LayoutInflater.from(context);
         if (DBG) Log.v(TAG, "Creation orientation = " + mCreationOrientation);
@@ -413,7 +413,9 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_MENU && mEnableMenuKeyInLockScreen) {
+        if ((keyCode == KeyEvent.KEYCODE_DPAD_CENTER && mTrackballUnlockScreen) 
+        		|| (keyCode == KeyEvent.KEYCODE_MENU && mEnableMenuKeyInLockScreen)) {
+
             mCallback.goToUnlockScreen();
         }
         return false;
