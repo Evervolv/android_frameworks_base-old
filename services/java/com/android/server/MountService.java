@@ -1216,6 +1216,15 @@ class MountService extends IMountService.Stub
                 }
             }
         }
+        additionalVolumesProperty = SystemProperties.get("ro.removablemounts");
+        if (null != additionalVolumesProperty) {
+            String[] additionalVolumes = additionalVolumesProperty.split(";");
+            for (String additionalVolume: additionalVolumes) {
+                if (!"".equals(additionalVolume)) {
+                    volumesToMount.add(additionalVolume);
+                }
+            }
+        }
         return volumesToMount;
     }
 
@@ -1235,11 +1244,8 @@ class MountService extends IMountService.Stub
                 // Override for isUsbMassStorageEnabled()
                 setUmsEnabling(enable);
                 UmsEnableCallBack umscb = new UmsEnableCallBack(path, method, true);
-                if (isExternalStorage(path)) {
-                    mHandler.sendMessage(mHandler.obtainMessage(H_UNMOUNT_PM_UPDATE, umscb));
-                } else {
-                    umscb.handleFinished();
-                }
+                int msg = isExternalStorage(path) ? H_UNMOUNT_PM_UPDATE : H_UNMOUNT_MS;
+                mHandler.sendMessage(mHandler.obtainMessage(msg, umscb));
                 // Clear override
                 setUmsEnabling(false);
             }
@@ -1305,11 +1311,8 @@ class MountService extends IMountService.Stub
             return;
         }
         UnmountCallBack ucb = new UnmountCallBack(path, force);
-        if (isExternalStorage(path)) {
-            mHandler.sendMessage(mHandler.obtainMessage(H_UNMOUNT_PM_UPDATE, ucb));
-        } else {
-            ucb.handleFinished();
-        }
+        int msg = isExternalStorage(path) ? H_UNMOUNT_PM_UPDATE : H_UNMOUNT_MS;
+        mHandler.sendMessage(mHandler.obtainMessage(msg, ucb));
     }
 
     public int formatVolume(String path) {
