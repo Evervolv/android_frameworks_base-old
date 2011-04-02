@@ -2651,7 +2651,7 @@ public final class Settings {
 		
 		public static final String FARLEFT_AB = "farleftaction_button";
 		
-		public static final String USE_STOCK_LAUNCHER = "use_stock_launcher";
+		public static final String LAUNCHER_STYLE = "launcher_style";
 		
 		public static final String USE_ROTARY_LOCKSCREEN = "use_rotary_lockscreen";
 		
