@@ -122,7 +122,6 @@ public class ExternalStorageFormatter extends Service
     @Override
     public void onCancel(DialogInterface dialog) {
         IMountService mountService = getMountService();
-        String extStoragePath = Environment.getExternalStorageDirectory().toString();
         try {
             mountService.mountVolume(extStoragePath);
         } catch (RemoteException e) {
@@ -150,7 +149,6 @@ public class ExternalStorageFormatter extends Service
                 || Environment.MEDIA_MOUNTED_READ_ONLY.equals(status)) {
             updateProgressDialog(R.string.progress_unmounting);
             IMountService mountService = getMountService();
-            String extStoragePath = Environment.getExternalStorageDirectory().toString();
             try {
                 mountService.unmountVolume(extStoragePath, true);
             } catch (RemoteException e) {
@@ -161,7 +159,6 @@ public class ExternalStorageFormatter extends Service
                 || Environment.MEDIA_UNMOUNTABLE.equals(status)) {
             updateProgressDialog(R.string.progress_erasing);
             final IMountService mountService = getMountService();
-            final String extStoragePath = Environment.getExternalStorageDirectory().toString();
             if (mountService != null) {
                 new Thread() {
                     public void run() {
