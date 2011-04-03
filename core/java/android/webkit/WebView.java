@@ -5554,6 +5554,7 @@ public class WebView extends AbsoluteLayout
                         mHeldMotionless = MOTIONLESS_TRUE;
                         invalidate();
                         // fall through
+                    case TOUCH_PINCH_DRAG:
                     case TOUCH_DRAG_START_MODE:
                         // TOUCH_DRAG_START_MODE should not happen for the real
                         // device as we almost certain will get a MOVE. But this
@@ -6906,7 +6907,7 @@ public class WebView extends AbsoluteLayout
 
                             if (mInitialScaleInPercent > 0) {
                                 setNewZoomScale(mInitialScaleInPercent / 100.0f,
-                                    mInitialScaleInPercent != mTextWrapScale * 100,
+                                    mInitialScaleInPercent != ((int)mTextWrapScale * 100),
                                     false);
                             } else if (restoreState.mViewScale > 0) {
                                 mTextWrapScale = restoreState.mTextWrapScale;
