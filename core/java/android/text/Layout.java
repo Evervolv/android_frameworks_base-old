@@ -38,6 +38,8 @@ import android.view.KeyEvent;
  * For text that will not change, use a {@link StaticLayout}.
  */
 public abstract class Layout {
+    /** Delta used for floating point equality checks. */
+    private static final float FP_EQUALITY_DELTA = 1e-8f;
     private static final boolean DEBUG = false;
     private static final ParagraphStyle[] NO_PARA_SPANS =
         ArrayUtils.emptyArray(ParagraphStyle.class);
@@ -305,13 +307,13 @@ public abstract class Layout {
                     if (spans[n] instanceof LeadingMarginSpan) {
                         LeadingMarginSpan margin = (LeadingMarginSpan) spans[n];
 
-                        if (dir == DIR_RIGHT_TO_LEFT) {
-                            margin.drawLeadingMargin(c, paint, right, dir, ltop,
-                                                     lbaseline, lbottom, buf,
-                                                     start, end, isFirstParaLine, this);
-                                
-                            right -= margin.getLeadingMargin(isFirstParaLine);
-                        } else {
+                       // if (dir == DIR_RIGHT_TO_LEFT) {
+                       //     margin.drawLeadingMargin(c, paint, right, dir, ltop,
+                         //                            lbaseline, lbottom, buf,
+                          //                           start, end, isFirstParaLine, this);
+                          //      
+                         //   right -= margin.getLeadingMargin(isFirstParaLine);
+                        //} else {
                             margin.drawLeadingMargin(c, paint, left, dir, ltop,
                                                      lbaseline, lbottom, buf,
                                                      start, end, isFirstParaLine, this);
@@ -320,7 +322,7 @@ public abstract class Layout {
                             if (margin instanceof LeadingMarginSpan.LeadingMarginSpan2) {
                                 int count = ((LeadingMarginSpan.LeadingMarginSpan2)margin).getLeadingMarginLineCount();
                                 useMargin = count > i;
-                            }
+                          //  }
                             left += margin.getLeadingMargin(useMargin);
                         }
                     }
@@ -364,8 +366,7 @@ public abstract class Layout {
                     Assert.assertTrue(dir == DIR_LEFT_TO_RIGHT);
                     Assert.assertNotNull(c);
                 }
-                // XXX: assumes there's nothing additional to be done
-                c.drawText(buf, start, end, x, lbaseline, paint);
+                c.drawText(buf, start, end, x, lbaseline, paint,false);
             } else {
                 drawText(c, buf, start, end, dir, directions,
                     x, ltop, lbaseline, lbottom, paint, mWorkPaint,
@@ -749,6 +750,9 @@ public abstract class Layout {
         if (line == getLineCount() - 1)
             max++;
 
+        if (line != getLineCount() - 1)
+            max = TextUtils.getOffsetBefore(mText, getLineEnd(line));
+
         int best = min;
         float bestdist = Math.abs(getPrimaryHorizontal(best) - horiz);
 
@@ -893,7 +897,7 @@ public abstract class Layout {
         Directions dirs = getLineDirections(line);
 
         if (line != getLineCount() - 1)
-            end--;
+            end = TextUtils.getOffsetBefore(mText, end);
 
         float horiz = getPrimaryHorizontal(offset);
 
@@ -993,7 +997,7 @@ public abstract class Layout {
         Directions dirs = getLineDirections(line);
 
         if (line != getLineCount() - 1)
-            end--;
+            end = TextUtils.getOffsetBefore(mText, end);
 
         float horiz = getPrimaryHorizontal(offset);
 
@@ -1151,7 +1155,7 @@ public abstract class Layout {
         if (h2 < 0.5f)
             h2 = 0.5f;
 
-        if (h1 == h2) {
+        if (Math.abs(h1 - h2) < FP_EQUALITY_DELTA) {
             dest.moveTo(h1, top);
             dest.lineTo(h1, bottom);
         } else {
@@ -1564,7 +1568,8 @@ public abstract class Layout {
                         h = dir * nextTab(text, start, end, h * dir, tabs);
                     }
 
-                    if (bm != null) {
+                    if (j != there && bm != null) {
+                        if (offset == start + j) return h;
                         workPaint.set(paint);
                         Styled.measureText(paint, workPaint, text,
                                            j, j + 2, null);
@@ -1815,13 +1820,12 @@ public abstract class Layout {
         // are left-to-right, the others are right-to-left.  So, for example,
         // a line that starts with a right-to-left run has 0 at mDirections[0],
         // since the 'first' (ltr) run is zero length.
-        //
-        // The code currently assumes that each run is adjacent to the previous
-        // one, progressing in the base line direction.  This isn't sufficient
-        // to handle nested runs, for example numeric text in an rtl context
-        // in an ltr paragraph.
         /* package */ Directions(short[] dirs) {
             mDirections = dirs;
+        }
+
+        boolean hasRTL() {
+            return mDirections.length>1 && mDirections[1]>0;
         }
     }
 
@@ -1958,4 +1962,3 @@ public abstract class Layout {
                                        new Directions(new short[] { 0, 32767 });
 
 }
-
