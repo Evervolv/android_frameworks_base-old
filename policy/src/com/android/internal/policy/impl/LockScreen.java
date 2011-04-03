@@ -107,7 +107,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen, KeyguardUpdateM
     private boolean mEnableMenuKeyInLockScreen;
 
     private boolean mUseRotaryLockScreen = (Settings.System.getInt(mContext.getContentResolver(),
-    		Settings.System.USE_ROTARY_LOCKSCREEN, 0) == 1);
+    		Settings.System.USE_ROTARY_LOCKSCREEN, 1) == 1);
     
     private boolean mTrackballUnlockScreen = (Settings.System.getInt(mContext.getContentResolver(),
             Settings.System.TRACKBALL_UNLOCK_SCREEN, 0) == 1);
