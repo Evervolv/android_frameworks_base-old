@@ -87,11 +87,6 @@ public class IsolatedContext extends ContextWrapper {
     }
 
     @Override
-    public void unregisterReceiver(BroadcastReceiver receiver) {
-        // Ignore
-    }
-
-    @Override
     public void sendBroadcast(Intent intent) {
         mBroadcastIntents.add(intent);
     }

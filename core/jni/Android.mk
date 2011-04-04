@@ -130,6 +130,7 @@ LOCAL_SRC_FILES:= \
 	android_server_BluetoothService.cpp \
 	android_server_BluetoothEventLoop.cpp \
 	android_server_BluetoothA2dpService.cpp \
+	android_server_BluetoothHidService.cpp \
 	android_server_Watchdog.cpp \
 	android_message_digest_sha1.cpp \
 	android_ddm_DdmHandleNativeHeap.cpp \
@@ -143,7 +144,15 @@ LOCAL_SRC_FILES:= \
     android_content_res_Configuration.cpp
 
 ifeq ($(BOARD_HAVE_FM_RADIO),true)
-	LOCAL_SRC_FILES += android_hardware_fm.cpp
+ifeq ($(BOARD_WLAN_DEVICE),bcm4329)
+	LOCAL_SRC_FILES += android_hardware_fm_bcm4325.cpp
+endif
+ifeq ($(BOARD_WLAN_DEVICE),wl1251)
+	LOCAL_SRC_FILES += android_hardware_fm_wl1271.cpp
+endif
+ifeq ($(BOARD_WLAN_DEVICE),wl1271)
+	LOCAL_SRC_FILES += android_hardware_fm_wl1271.cpp
+endif
 endif
 
 ifeq ($(BOARD_HAVE_SQN_WIMAX),true)
