@@ -2974,6 +2974,14 @@ public final class Settings {
         }
 
         /**
+         * Get the key that retrieves a bluetooth hid device's priority.
+         * @hide
+         */
+        public static final String getBluetoothHidDevicePriorityKey(String address) {
+            return ("bluetooth_hid_device_priority_" + address.toUpperCase());
+        }
+
+        /**
          * Whether or not data roaming is enabled. (0 = false, 1 = true)
          */
         public static final String DATA_ROAMING = "data_roaming";
@@ -4175,7 +4183,7 @@ public final class Settings {
          * @hide
          */
         public static final String KILL_APP_LONGPRESS_BACK = "kill_app_on_longpress_back";
-        
+
         /**
          * Whether to disable the lockscreen unlock tab
          * @hide
@@ -4342,7 +4350,7 @@ public final class Settings {
                 while (intent == null && c.moveToNext()) {
                     try {
                         String intentURI = c.getString(c.getColumnIndexOrThrow(INTENT));
-                        intent = Intent.getIntent(intentURI);
+                        intent = Intent.parseUri(intentURI, 0);
                     } catch (java.net.URISyntaxException e) {
                         // The stored URL is bad...  ignore it.
                     } catch (IllegalArgumentException e) {
@@ -4452,7 +4460,7 @@ public final class Settings {
 
             Intent intent;
             try {
-                intent = Intent.getIntent(intentUri);
+                intent = Intent.parseUri(intentUri, 0);
             } catch (URISyntaxException e) {
                 return "";
             }
