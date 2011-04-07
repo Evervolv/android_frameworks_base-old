@@ -2653,7 +2653,7 @@ public final class Settings {
 		
 		public static final String LAUNCHER_STYLE = "launcher_style";
 		
-		public static final String USE_ROTARY_LOCKSCREEN = "use_rotary_lockscreen";
+		public static final String LOCKSCREEN_STYLE = "lockscreen_style";
 		
 		public static final String USE_SCREENON_ANIM = "use_screenon_anim";
 		
