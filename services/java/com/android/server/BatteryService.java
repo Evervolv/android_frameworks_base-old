@@ -44,8 +44,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static android.provider.Settings.System.BATTERY_OPTION;
-
 /**
  * <p>BatteryService monitors the charging status, and charge level of the device
  * battery.  When these values change this service broadcasts the new values
@@ -136,7 +134,7 @@ class BatteryService extends Binder {
 
         mUEventObserver.startObserving("SUBSYSTEM=power_supply");
 
-        mBatteryOption = Settings.System.getInt(mContext.getContentResolver(), BATTERY_OPTION, 1);
+        mBatteryOption = Settings.System.getInt(mContext.getContentResolver(), Settings.System.BATTERY_STYLE, 2);
         
         // set initial status
         update();
@@ -451,10 +449,10 @@ class BatteryService extends Binder {
             mBatteryStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING ||
             mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL) {
     	
-        	if (mBatteryOption == 0 ) {
-        		return com.android.internal.R.drawable.stat_sys_battery;
-        	} else if (mBatteryOption == 1 ) {
+        	if (mBatteryOption == 1 ) {
         		return com.android.internal.R.drawable.stat_sys_battery_stock;
+        	} else if (mBatteryOption == 2 ) {
+        		return com.android.internal.R.drawable.stat_sys_battery;
         	} else {
         		return com.android.internal.R.drawable.stat_sys_battery;
         	}

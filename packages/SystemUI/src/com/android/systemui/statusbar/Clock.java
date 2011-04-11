@@ -20,22 +20,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
 import android.text.style.CharacterStyle;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
 import android.util.AttributeSet;
-import android.view.View;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -73,7 +64,7 @@ public class Clock extends TextView {
     public Clock(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
-
+    
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -127,18 +118,19 @@ public class Clock extends TextView {
     final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
         
-        mHideClock = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK, 1) == 1);
-        if (!mHideClock) {
+        mHideClock = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.HIDE_CLOCK, 0) == 1);
+        
+        if (mHideClock) {
+        	this.setVisibility(GONE);
+        } else {
         	setText(getSmallTime());
         	this.setVisibility(VISIBLE);
-        } else {
-        	this.setVisibility(GONE);
         }
     }
 
     private final CharSequence getSmallTime() {
     	
-    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_CLOCK_AMPM, 1) == 1);
+    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.HIDE_CLOCK_AMPM, 0) == 1);
     	
     	// I know this is wrong... but I'm not sure what im doing wrong.
     	if (mHideAmPm) {

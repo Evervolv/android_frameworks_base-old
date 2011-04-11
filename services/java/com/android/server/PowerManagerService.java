@@ -502,7 +502,7 @@ class PowerManagerService extends IPowerManager.Stub
                 setScreenOffTimeoutsLocked();
                 
                 mUseScreenOnAnim = Settings.System.getInt(mContext.getContentResolver(), USE_SCREENON_ANIM, 0) == 1;
-                mUseScreenOffAnim = Settings.System.getInt(mContext.getContentResolver(), USE_SCREENOFF_ANIM, 1) == 1;
+                mUseScreenOffAnim = Settings.System.getInt(mContext.getContentResolver(), USE_SCREENOFF_ANIM, 0) == 1;
 
                 final float windowScale = getFloat(WINDOW_ANIMATION_SCALE, 1.0f);
                 final float transitionScale = getFloat(TRANSITION_ANIMATION_SCALE, 1.0f);

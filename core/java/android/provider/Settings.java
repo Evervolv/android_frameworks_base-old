@@ -2082,16 +2082,87 @@ public final class Settings {
         public static final String TORCH_STATE = "torch_state";
 
         /**
-         * Whether to keep the home app at a higher OOM adjustement
+         * Whether to use the custom quick unlock screen control
          * @hide
          */
-        public static final String LOCK_HOME_IN_MEMORY = "lock_home_in_memory";
-
+        public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL = "lockscreen_quick_unlock_control";
+        
+        /* Constants for EVPARTS */
+        
         /**
-         * Whether to keep the messaging app at a higher OOM adjustement
+         * Custom caption for the lockscreen and expanded statusbar. The value is a string.
          * @hide
          */
-        public static final String LOCK_MMS_IN_MEMORY = "lock_mms_in_memory";
+		public static final String CARRIER_CAP = "carrier_caption";
+		
+        /**
+         * Used to store the intent used in the Right Action Button (Launcher). The value is an intent string.
+         * @hide
+         */
+		public static final String RIGHT_AB = "rightaction_button";
+		
+        /**
+         * Used to store the intent used in the Left Action Button (Launcher). The value is an intent string.
+         * @hide
+         */
+		public static final String LEFT_AB = "leftaction_button";
+		
+        /**
+         * Used to store the intent used in the Far Right Action Button (Launcher). The value is an intent string.
+         * @hide
+         */
+		public static final String FARRIGHT_AB = "farrightaction_button";
+		
+        /**
+         * Used to store the intent used in the Far Left Action Button (Launcher). The value is an intent string.
+         * @hide
+         */
+		public static final String FARLEFT_AB = "farleftaction_button";
+		
+        /**
+         * Which launcher style to use. The value is an integer.
+         * ( 1 - Stock layout    )
+         * ( 2 - Evervolv layout )
+         * ( 3 - Tablet layout   )
+         * 
+         * @hide
+         */
+		public static final String LAUNCHER_STYLE = "launcher_style";
+		
+        /**
+         * Which lockscreen style to use. The value is an integer.
+         * ( 1 - Tabs style     )
+         * ( 2 - Rotary style   )
+         * ( 3 - Unknown style  )
+         * @hide
+         */
+		public static final String LOCKSCREEN_STYLE = "lockscreen_style";
+		
+        /**
+         * Whether or not to use the screen on animation. The value is boolean (1 or 0).
+         * @hide
+         */
+		public static final String USE_SCREENON_ANIM = "use_screenon_anim";
+		
+        /**
+         * Whether or not to use the screen off animation. The value is boolean (1 or 0).
+         * @hide
+         */
+		public static final String USE_SCREENOFF_ANIM = "use_screenoff_anim";
+		
+        /**
+         * Which battery style to use. The value is an integer.
+         * ( 1 - Stock gingerbread       )
+         * ( 2 - Stock gingerbread w/ %  )
+         * @hide
+         */
+		public static final String BATTERY_STYLE = "battery_style";
+		
+        /**
+         * Whether to make the statusbar (expanded) transparent. The value is boolean (1 or 0).
+         * @hide
+         */
+		public static final String USE_TRANSPARENT_STATUSBAR = "use_transparent_statusbar";
 
         /**
          * Whether to wake the screen with the trackball. The value is boolean (1 or 0).
@@ -2104,38 +2175,21 @@ public final class Settings {
          * @hide
          */
         public static final String TRACKBALL_UNLOCK_SCREEN = "trackball_unlock_screen";
-
-        /**
-         * Whether to use the custom quick unlock screen control
-         * @hide
-         */
-        public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL =
-            "lockscreen_quick_unlock_control";
-
-        /**
-         * Whether to use the custom Phone and Messaging SlidingTab
-         * @hide
-         */
-        public static final String LOCKSCREEN_PHONE_MESSAGING_TAB = "lockscreen_phone_messaging_tab";
-
+		
      	/**
-         * Specifies whether to show AM/PM indicators for 12-hour.
+         * Specifies whether to show AM/PM indicators for 12-hour. The value is boolean (1 or 0).
          * @hide
          */
-    	public static final String SHOW_CLOCK_AMPM = "status_clock_format";
+    	public static final String HIDE_CLOCK_AMPM = "hide_ampm";
         
      	/**
-         * Specifies whether to show status clock: 0 or 1
+         * Specifies whether to show status clock. The value is boolean (1 or 0).
          * @hide
          */
-    	public static final String SHOW_CLOCK = "show_status_clock";
-    	
-        /**
-         * Sets the lockscreen style
-         * @hide
-         */
-        public static final String LOCKSCREEN_STYLE_PREF = "lockscreen_style_pref";
+    	public static final String HIDE_CLOCK = "hide_clock";
 
+        /* END constants for EVParts */
+        
         /**
          * Pulse the Trackball with Screen On.  The value is boolean (1 or 0).
          * @hide
@@ -2160,7 +2214,7 @@ public final class Settings {
           */
          public static final String TRACKBALL_NOTIFICATION_PULSE_ORDER = "trackball_pulse_in_order";
 
-	/**
+         /**
           * Beldn Notification Colors.  The value is boolean (1 or 0).
           * @hide
           */
@@ -2190,107 +2244,6 @@ public final class Settings {
          */
         public static final String MENU_UNLOCK_SCREEN = "menu_unlock_screen";
 
-        /**
-         * Whether to enable quiet hours.
-         * @hide
-         */
-        public static final String QUIET_HOURS_ENABLED = "quiet_hours_enabled";
-
-        /**
-         * Sets when quiet hours starts. This is stored in minutes from the start of the day.
-         * @hide
-         */
-        public static final String QUIET_HOURS_START = "quiet_hours_start";
-
-        /**
-         * Sets when quiet hours end. This is stored in minutes from the start of the day.
-         * @hide
-         */
-        public static final String QUIET_HOURS_END = "quiet_hours_end";
-
-        /**
-         * Whether to remove the sound from outgoing notifications during quiet hours.
-         * @hide
-         */
-        public static final String QUIET_HOURS_MUTE = "quiet_hours_mute";
-
-        /**
-         * Whether to remove the vibration from outgoing notifications during quiet hours.
-         * @hide
-         */
-        public static final String QUIET_HOURS_STILL = "quiet_hours_still";
-
-        /**
-         * Whether to attempt to dim the LED color during quiet hours.
-         * @hide
-         */
-        public static final String QUIET_HOURS_DIM = "quiet_hours_dim";
-
-        /**
-         * Whether to use custom notification bar
-         * @hide
-         */
-        public static final String LOCKSCREEN_MUSIC_CONTROLS = "lockscreen_music_controls";
-
-        /**
-         * Whether to use custom notification bar
-         * @hide
-         */
-        public static final String LOCKSCREEN_ALWAYS_MUSIC_CONTROLS = "lockscreen_always_music_controls";
-        
-        /**
-         * Whether to listen for gestures on the lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_GESTURES_ENABLED = "lockscreen_gestures_enabled";
-
-        /**
-         * Whether to show the gesture trail on the lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_GESTURES_TRAIL = "lockscreen_gestures_trail";
-
-        /**
-         * Sensitivity for parsing gestures on the lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_GESTURES_SENSITIVITY = "lockscreen_gestures_sensitivity";
-
-        /**
-         * Color value for gestures on lockscreen
-         * @hide
-         */
-        public static final String LOCKSCREEN_GESTURES_COLOR = "lockscreen_gestures_color";
-
-        /**
-         * Use the Notification Power Widget? (Who wouldn't!)
-         *
-         * @hide
-         */
-        public static final String EXPANDED_VIEW_WIDGET = "expanded_view_widget";
-
-        /**
-         * Whether to hide the notification screen after clicking on a widget
-         * button
-         *
-         * @hide
-         */
-        public static final String EXPANDED_HIDE_ONCHANGE = "expanded_hide_onchange";
-
-        /**
-         * Notification Indicator Color
-         *
-         * @hide
-         */
-        public static final String EXPANDED_VIEW_WIDGET_COLOR = "expanded_widget_color";
-
-        /**
-         * Widget Buttons to Use
-         *
-         * @hide
-         */
-        public static final String WIDGET_BUTTONS = "expanded_widget_buttons";
-
         /** @hide */
         public static final String EXPANDED_BRIGHTNESS_MODE = "expanded_brightness_mode";
 
@@ -2307,12 +2260,6 @@ public final class Settings {
         public static final String EXPANDED_FLASH_MODE = "expanded_flash_mode";
 
         /** @hide */
-        public static final String ELECTRON_BEAM_ANIMATION_ON = "electron_beam_animation_on";
-
-        /** @hide */
-        public static final String ELECTRON_BEAM_ANIMATION_OFF = "electron_beam_animation_off";
-
-        /** @hide */
         public static final String OVERSCROLL_EFFECT = "overscroll_effect";
 
         /**
@@ -2320,7 +2267,6 @@ public final class Settings {
          * @hide
          */
         public static final String OVERSCROLL_WEIGHT = "overscroll_weight";
-
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -2389,12 +2335,6 @@ public final class Settings {
             NOTIFICATION_LIGHT_BLINK,
             NOTIFICATION_LIGHT_ALWAYS_ON,
             NOTIFICATION_LIGHT_CHARGING,
-            QUIET_HOURS_ENABLED,
-            QUIET_HOURS_START,
-            QUIET_HOURS_END,
-            QUIET_HOURS_MUTE,
-            QUIET_HOURS_STILL,
-            QUIET_HOURS_DIM,
             HAPTIC_FEEDBACK_UP_ENABLED,
             HAPTIC_FEEDBACK_ALL_ENABLED,
             HAPTIC_DOWN_ARRAY,
@@ -2405,8 +2345,6 @@ public final class Settings {
             HAPTIC_LONG_ARRAY_DEFAULT,
             HAPTIC_TAP_ARRAY,
             HAPTIC_TAP_ARRAY_DEFAULT,
-            LOCKSCREEN_GESTURES_SENSITIVITY,
-            LOCKSCREEN_GESTURES_COLOR
         };
 
         // Settings moved to Settings.Secure
@@ -2638,31 +2576,6 @@ public final class Settings {
         @Deprecated
         public static final String WIFI_WATCHDOG_PING_TIMEOUT_MS =
             Secure.WIFI_WATCHDOG_PING_TIMEOUT_MS;
-
-        /** Constants for EVPARTS */
-        
-		public static final String CARRIER_CAP = "carrier_caption";
-		
-		public static final String RIGHT_AB = "rightaction_button";
-		
-		public static final String LEFT_AB = "leftaction_button";
-		
-		public static final String FARRIGHT_AB = "farrightaction_button";
-		
-		public static final String FARLEFT_AB = "farleftaction_button";
-		
-		public static final String LAUNCHER_STYLE = "launcher_style";
-		
-		public static final String LOCKSCREEN_STYLE = "lockscreen_style";
-		
-		public static final String USE_SCREENON_ANIM = "use_screenon_anim";
-		
-		public static final String USE_SCREENOFF_ANIM = "use_screenoff_anim";
-		
-		public static final String BATTERY_OPTION = "battery_option";
-		
-		public static final String USE_TRANSPARENT_STATUSBAR = "use_transparent_statusbar";
-		
     }
 
     /**
