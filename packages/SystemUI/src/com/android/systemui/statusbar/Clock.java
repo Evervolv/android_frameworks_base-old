@@ -17,9 +17,12 @@
 package com.android.systemui.statusbar;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.os.Handler;
 import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -50,8 +53,29 @@ public class Clock extends TextView {
     private static final int AM_PM_STYLE_GONE    = 2;
 
     private int AM_PM_STYLE = AM_PM_STYLE_NORMAL;
+    
     private boolean mHideAmPm;
     private boolean mHideClock;
+    
+    Handler mHandler;
+
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HIDE_CLOCK), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HIDE_CLOCK_AMPM), false, this);
+        }
+
+        @Override public void onChange(boolean selfChange) {
+            updateSettings();
+        }
+    }
     
     public Clock(Context context) {
         this(context, null);
@@ -63,6 +87,12 @@ public class Clock extends TextView {
 
     public Clock(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        
+        mHandler = new Handler();
+        SettingsObserver settingsObserver = new SettingsObserver(mHandler);
+        settingsObserver.observe();
+
+        updateSettings();
     }
     
     @Override
@@ -117,27 +147,12 @@ public class Clock extends TextView {
 
     final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
-        
-        mHideClock = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.HIDE_CLOCK, 0) == 1);
-        
-        if (mHideClock) {
-        	this.setVisibility(GONE);
-        } else {
-        	setText(getSmallTime());
-        	this.setVisibility(VISIBLE);
-        }
+    	setText(getSmallTime());
     }
 
     private final CharSequence getSmallTime() {
     	
-    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), Settings.System.HIDE_CLOCK_AMPM, 0) == 1);
-    	
-    	// I know this is wrong... but I'm not sure what im doing wrong.
-    	if (mHideAmPm) {
-    		AM_PM_STYLE = AM_PM_STYLE_GONE;
-    	} else {	
-    		AM_PM_STYLE = AM_PM_STYLE_NORMAL;
-    	}
+
     	
         Context context = getContext();
         boolean b24 = DateFormat.is24HourFormat(context);
@@ -215,6 +230,28 @@ public class Clock extends TextView {
  
         return result;
 
+    }
+    
+    private void updateSettings(){
+ 
+    	mHideClock = (Settings.System.getInt(mContext.getContentResolver(), 
+    			Settings.System.HIDE_CLOCK, 0) == 1);
+    	
+        if (mHideClock) {
+        	this.setVisibility(GONE);
+        } else {
+
+        	this.setVisibility(VISIBLE);
+        }
+    	
+    	mHideAmPm = (Settings.System.getInt(mContext.getContentResolver(), 
+    			Settings.System.HIDE_CLOCK_AMPM, 0) == 1);
+    	
+    	if (mHideAmPm) {
+    		AM_PM_STYLE = AM_PM_STYLE_GONE;
+    	} else {	
+    		AM_PM_STYLE = AM_PM_STYLE_NORMAL;
+    	}
     }
 }
 
