@@ -2193,7 +2193,7 @@ public final class Settings {
 		 * @hide
 		 */
 		 public static final String THEME_COMPATIBILITY_BATTERY = "theme_compatibility_battery";
-		 
+
 		/**
 		* Theme compatibility mode: Four bar signal
 		* @hide
