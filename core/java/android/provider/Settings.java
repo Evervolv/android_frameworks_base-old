@@ -2188,6 +2188,18 @@ public final class Settings {
          */
     	public static final String HIDE_CLOCK = "hide_clock";
 
+		/**
+		 * Theme compatibility mode: Battery
+		 * @hide
+		 */
+		 public static final String THEME_COMPATIBILITY_BATTERY = "theme_compatibility_battery";
+		 
+		/**
+		* Theme compatibility mode: Four bar signal
+		* @hide
+		*/
+		public static final String THEME_COMPATIBILITY_SIGNAL = "theme_compatibility_signal";
+
         /* END constants for EVParts */
         
         /**
