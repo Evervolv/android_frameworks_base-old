@@ -116,6 +116,8 @@ public class StatusBarPolicy {
     private static final boolean SHOW_LOW_BATTERY_WARNING = true;
     private static final boolean SHOW_BATTERY_WARNINGS_IN_CALL = true;
 
+    private int mThemeCompatibility;
+    
     // phone
     private TelephonyManager mPhone;
     private int mPhoneSignalIconId;
@@ -127,17 +129,31 @@ public class StatusBarPolicy {
           R.drawable.stat_sys_signal_1,
           R.drawable.stat_sys_signal_2,
           R.drawable.stat_sys_signal_3,
-          R.drawable.stat_sys_signal_4,
-          R.drawable.stat_sys_signal_5,
-          R.drawable.stat_sys_signal_6 },
+          R.drawable.stat_sys_signal_4 },
         { R.drawable.stat_sys_signal_0_fully,
           R.drawable.stat_sys_signal_1_fully,
           R.drawable.stat_sys_signal_2_fully,
           R.drawable.stat_sys_signal_3_fully,
-          R.drawable.stat_sys_signal_4_fully,
-          R.drawable.stat_sys_signal_5_fully,
-          R.drawable.stat_sys_signal_6_fully }
+          R.drawable.stat_sys_signal_4_fully }
     };
+    
+    private static final int[][] sSignalImages_6bar = {
+        { R.drawable.stat_sys_signal_6bar_0,
+          R.drawable.stat_sys_signal_6bar_1,
+          R.drawable.stat_sys_signal_6bar_2,
+          R.drawable.stat_sys_signal_6bar_3,
+          R.drawable.stat_sys_signal_6bar_4,
+          R.drawable.stat_sys_signal_6bar_5,
+          R.drawable.stat_sys_signal_6bar_6 },
+        { R.drawable.stat_sys_signal_6bar_0_fully,
+          R.drawable.stat_sys_signal_6bar_1_fully,
+          R.drawable.stat_sys_signal_6bar_2_fully,
+          R.drawable.stat_sys_signal_6bar_3_fully,
+          R.drawable.stat_sys_signal_6bar_4_fully,
+          R.drawable.stat_sys_signal_6bar_5_fully,
+          R.drawable.stat_sys_signal_6bar_6_fully }
+    };
+
     private static final int[][] sSignalImages_r = {
         { R.drawable.stat_sys_r_signal_0,
           R.drawable.stat_sys_r_signal_1,
@@ -453,7 +469,13 @@ public class StatusBarPolicy {
 
         // phone_signal
         mPhone = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-        mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+        
+        if (mThemeCompatibility == 0) {
+        	mPhoneSignalIconId = R.drawable.stat_sys_signal_6bar_null;
+        } else {
+        	mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+        }
+        
         mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
 
         // load config to determine if phone should be hidden
@@ -935,7 +957,11 @@ public class StatusBarPolicy {
                     Settings.System.AIRPLANE_MODE_ON, 0) == 1) {
                 mPhoneSignalIconId = R.drawable.stat_sys_signal_flightmode;
             } else {
-                mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+                if (mThemeCompatibility == 0) {
+                	mPhoneSignalIconId = R.drawable.stat_sys_signal_6bar_null;
+                } else {
+                	mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+                }
             }
             mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
             // set phone_signal visibility false if hidden
@@ -972,10 +998,19 @@ public class StatusBarPolicy {
             if (mPhone.isNetworkRoaming()) {
                 iconList = sSignalImages_r[mInetCondition];
             } else {
-                iconList = sSignalImages[mInetCondition];
+            	if (mThemeCompatibility == 0) {
+            		iconList = sSignalImages_6bar[mInetCondition];
+            	} else {
+            		iconList = sSignalImages[mInetCondition];
+            	}
             }
         } else {
-            iconList = sSignalImages[mInetCondition];
+        	
+        	if (mThemeCompatibility == 0) {
+        		iconList = sSignalImages_6bar[mInetCondition];
+        	} else {
+        		iconList = sSignalImages[mInetCondition];
+        	}
 
             // If 3G(EV) and 1x network are available than 3G should be
             // displayed, displayed RSSI should be from the EV side.
@@ -1064,9 +1099,11 @@ public class StatusBarPolicy {
         int evdoSnr = mSignalStrength.getEvdoSnr();
         int levelEvdoDbm = 0;
         int levelEvdoSnr = 0;
-
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.THEME_COMPATIBILITY_SIGNAL, 0) == 0) { // Six bar
+        
+        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 0);
+        
+        if (mThemeCompatibility == 0) { // Six bar
             if (evdoDbm >= -75) levelEvdoDbm = 6;
             else if (evdoDbm >= -85) levelEvdoDbm = 5;
             else if (evdoDbm >= -90) levelEvdoDbm = 4;
