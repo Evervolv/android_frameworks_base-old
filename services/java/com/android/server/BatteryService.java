@@ -134,7 +134,7 @@ class BatteryService extends Binder {
 
         mUEventObserver.startObserving("SUBSYSTEM=power_supply");
 
-        mBatteryOption = Settings.System.getInt(mContext.getContentResolver(), Settings.System.BATTERY_STYLE, 2);
+        mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(), Settings.System.BATTERY_STYLE, 2);
         
         // set initial status
         update();
