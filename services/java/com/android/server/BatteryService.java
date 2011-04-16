@@ -448,20 +448,20 @@ class BatteryService extends Binder {
     			Settings.System.THEME_COMPATIBILITY_BATTERY, 0);
     	
         if (mBatteryStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
-    		if (mUseThemeCompatibility == 0 && mBatteryStyle == 2) { // 100 battery type
-    			return com.android.internal.R.drawable.stat_sys_battery_charge_100;
+    		if (mUseThemeCompatibility == 0 && mBatteryStyle == 2) {
+    			return com.android.internal.R.drawable.stat_sys_battery_charge_mod;
     		} else {
-    			return com.android.internal.R.drawable.stat_sys_battery_charge; // Stock battery type
+    			return com.android.internal.R.drawable.stat_sys_battery_charge;
         	}
         } else if (mBatteryStatus == BatteryManager.BATTERY_STATUS_DISCHARGING ||
             mBatteryStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING ||
             mBatteryStatus == BatteryManager.BATTERY_STATUS_FULL) {
-    	
+
         	if (mUseThemeCompatibility == 0) {
 		    	if (mBatteryStyle == 1 ) {
 		    		return com.android.internal.R.drawable.stat_sys_battery;
 		    	} else if (mBatteryStyle == 2 ) {
-		    		return com.android.internal.R.drawable.stat_sys_battery_100;
+		    		return com.android.internal.R.drawable.stat_sys_battery_mod;
 		    	} else {
 		    		return com.android.internal.R.drawable.stat_sys_battery;
 		    	}
