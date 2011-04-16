@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2006 The Android Open Source Project
+ * This code has been modified.  Portions copyright (C) 2010, T-Mobile USA, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +23,17 @@ import com.google.android.collect.Maps;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.accounts.AccountManager;
+import android.accounts.IAccountManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.IContentProvider;
+import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IIntentReceiver;
 import android.content.IntentSender;
 import android.content.ReceiverCallNotAllowedException;
 import android.content.ServiceConnection;
@@ -55,6 +58,8 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.pm.PackageParser.Package;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.CustomTheme;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.database.sqlite.SQLiteDatabase;
@@ -241,6 +246,20 @@ class ContextImpl extends Context {
     @Override
     public Resources getResources() {
         return mResources;
+    }
+
+    /**
+     * Refresh resources object which may have been changed by a theme
+     * configuration change.
+     */
+    /* package */ void refreshResourcesIfNecessary() {
+        if (mResources == Resources.getSystem()) {
+            return;
+        }
+
+        if (mPackageInfo.mCompatibilityInfo.isThemeable) {
+            mTheme = null;
+        }
     }
 
     @Override
@@ -1757,8 +1776,9 @@ class ContextImpl extends Context {
             if (resolveInfo == null) {
                 return null;
             }
-            Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.setClassName(packageName, resolveInfo.activityInfo.name);
+            Intent intent = new Intent(intentToResolve);
+            intent.setClassName(resolveInfo.activityInfo.applicationInfo.packageName,
+                                resolveInfo.activityInfo.name);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             return intent;
         }
@@ -2024,6 +2044,15 @@ class ContextImpl extends Context {
         public List<PackageInfo> getInstalledPackages(int flags) {
             try {
                 return mPM.getInstalledPackages(flags);
+            } catch (RemoteException e) {
+                throw new RuntimeException("Package manager has died", e);
+            }
+        }
+
+        @Override
+        public List<PackageInfo> getInstalledThemePackages() {
+            try {
+                return mPM.getInstalledThemePackages();
             } catch (RemoteException e) {
                 throw new RuntimeException("Package manager has died", e);
             }

@@ -156,6 +156,10 @@ public class StatusBarIconView extends AnimatedImageView {
         return mIcon;
     }
 
+    public String getStatusBarSlot() {
+        return mSlot;
+    }
+
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         if (mNumberBackground != null) {
