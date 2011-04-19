@@ -1122,7 +1122,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 d.setCancelable(false);
                 d.setTitle("System UIDs Inconsistent");
                 d.setMessage("UIDs on the system are inconsistent, you need to wipe your data partition or your device will be unstable.");
-                d.setButton(DialogInterface.BUTTON_POSITIVE, "I'm Feeling Lucky",
+                d.setButton("I'm Feeling Lucky",
                         mHandler.obtainMessage(IM_FEELING_LUCKY_MSG));
                 mUidAlert = d;
                 d.show();
@@ -1680,7 +1680,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (cr.binding != null && cr.binding.service != null
                         && cr.binding.service.app != null
                         && cr.binding.service.app.lruSeq != mLruSeq) {
-                    updateLruProcessInternalLocked(cr.binding.service.app, oomAdj,
+                    updateLruProcessInternalLocked(cr.binding.service.app, false,
                             updateActivityTime, i+1);
                 }
             }
@@ -1688,7 +1688,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         if (app.conProviders.size() > 0) {
             for (ContentProviderRecord cpr : app.conProviders.keySet()) {
                 if (cpr.app != null && cpr.app.lruSeq != mLruSeq) {
-                    updateLruProcessInternalLocked(cpr.app, oomAdj,
+                    updateLruProcessInternalLocked(cpr.app, false,
                             updateActivityTime, i+1);
                 }
             }
@@ -2075,6 +2075,9 @@ public final class ActivityManagerService extends ActivityManagerNative
             mMainStack.startActivityUncheckedLocked(pal.r, pal.sourceRecord,
                     pal.grantedUriPermissions, pal.grantedMode, pal.onlyIfNeeded,
                     doResume && i == (N-1));
+            pal.r = null;
+            pal.sourceRecord = null;
+
         }
         mPendingActivityLaunches.clear();
     }
@@ -2574,6 +2577,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                     mMainStack.mHistory.remove(i);
 
                     r.inHistory = false;
+                    r.resultTo = null;
                     mWindowManager.removeAppToken(r);
                     if (VALIDATE_TOKENS) {
                         mWindowManager.validateAppTokens(mMainStack.mHistory);
@@ -3685,11 +3689,11 @@ public final class ActivityManagerService extends ActivityManagerNative
                 if (pkgs != null) {
                     for (String pkg : pkgs) {
                         synchronized (ActivityManagerService.this) {
-                          if (forceStopPackageLocked(pkg, -1, false, false, false)) {
-                              setResultCode(Activity.RESULT_OK);
-                              return;
-                          }
-                       }
+                         if (forceStopPackageLocked(pkg, -1, false, false, false)) {
+                             setResultCode(Activity.RESULT_OK);
+                             return;
+                         }
+                        }
                     }
                 }
             }
@@ -4704,7 +4708,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             if (localLOGV) Slog.v(
                 TAG, "getTasks: max=" + maxNum + ", flags=" + flags
                 + ", receiver=" + receiver);
-
+	    /** This could be bad? Possibly, Might look into better way to do it: Pedlar
             if (checkCallingPermission(android.Manifest.permission.GET_TASKS)
                     != PackageManager.PERMISSION_GRANTED) {
                 if (receiver != null) {
@@ -4721,7 +4725,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                         + " requires " + android.Manifest.permission.GET_TASKS;
                 Slog.w(TAG, msg);
                 throw new SecurityException(msg);
-            }
+            } **/
 
             int pos = mMainStack.mHistory.size()-1;
             ActivityRecord next =
@@ -4833,8 +4837,8 @@ public final class ActivityManagerService extends ActivityManagerNative
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum,
             int flags) {
         synchronized (this) {
-            enforceCallingPermission(android.Manifest.permission.GET_TASKS,
-                    "getRecentTasks()");
+            //enforceCallingPermission(android.Manifest.permission.GET_TASKS,
+            //        "getRecentTasks()");
 
             IPackageManager pm = AppGlobals.getPackageManager();
             
@@ -6446,28 +6450,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 sr.crashCount++;
             }
         }
-
-        // If the crashing process is what we consider to be the "home process" and it has been
-        // replaced by a third-party app, clear the package preferred activities from packages
-        // with a home activity running in the process to prevent a repeatedly crashing app
-        // from blocking the user to manually clear the list.
-        if (app == mHomeProcess && mHomeProcess.activities.size() > 0
-                    && (mHomeProcess.info.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-            Iterator it = mHomeProcess.activities.iterator();
-            while (it.hasNext()) {
-                ActivityRecord r = (ActivityRecord)it.next();
-                if (r.isHomeActivity) {
-                    Log.i(TAG, "Clearing package preferred activities from " + r.packageName);
-                    try {
-                        ActivityThread.getPackageManager()
-                                .clearPackagePreferredActivities(r.packageName);
-                    } catch (RemoteException c) {
-                        // pm is in same process, this will never happen.
-                    }
-                }
-            }
-        }
-
+        
         mProcessCrashTimes.put(app.info.processName, app.info.uid, now);
         return true;
     }
@@ -6828,9 +6811,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             sb.append("Subject: ").append(subject).append("\n");
         }
         sb.append("Build: ").append(Build.FINGERPRINT).append("\n");
-        if (Debug.isDebuggerConnected()) {
-            sb.append("Debugger: Connected\n");
-        }
         sb.append("\n");
 
         // Do the rest in a worker thread to avoid blocking the caller on I/O
@@ -9136,6 +9116,10 @@ public final class ActivityManagerService extends ActivityManagerNative
                 TAG, "Removed service that is not running: " + r);
         }
 
+        if (r.connections.size() > 0) {
+            r.connections.clear();
+        }
+
         if (r.bindings.size() > 0) {
             r.bindings.clear();
         }
@@ -9963,6 +9947,7 @@ public final class ActivityManagerService extends ActivityManagerNative
             }
 
             ProcessRecord proc = mBackupTarget.app;
+            mBackupTarget.app = null;
             mBackupTarget = null;
             mBackupAppName = null;
 
