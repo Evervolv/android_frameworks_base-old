@@ -267,12 +267,13 @@ extends Layout
                 // Do mirroring for right-to-left segments
 
                 for (int i = 0; i < n; i++) {
-                    if (chdirs[i] == Character.DIRECTIONALITY_RIGHT_TO_LEFT) {
+                    if (chdirs[i] == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
+                        chdirs[i] == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
                         int j;
 
                         for (j = i; j < n; j++) {
-                            if (chdirs[j] !=
-                                Character.DIRECTIONALITY_RIGHT_TO_LEFT)
+                            if (chdirs[j] != Character.DIRECTIONALITY_RIGHT_TO_LEFT &&
+                                chdirs[j] != Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC)
                                 break;
                         }
 
@@ -650,7 +651,8 @@ extends Layout
             // Heuristic - LTR unless paragraph contains any RTL chars
             dir = DIR_LEFT_TO_RIGHT;
             for (int j = 0; j < n; j++) {
-                if (chInfo[j] == Character.DIRECTIONALITY_RIGHT_TO_LEFT) {
+                if (chInfo[j] == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
+                    chInfo[j] == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) {
                     dir = DIR_RIGHT_TO_LEFT;
                     break;
                 }
@@ -715,9 +717,6 @@ extends Layout
             byte prev = chInfo[j - 1];
             byte next = chInfo[j + 1];
 
-            boolean isSpace = Character.isWhitespace(chs[j]);
-            boolean nextIsSpace = Character.isWhitespace(chs[j + 1]);
-
             if (d == Character.DIRECTIONALITY_EUROPEAN_NUMBER_SEPARATOR) {
                 if (prev == Character.DIRECTIONALITY_EUROPEAN_NUMBER &&
                     next == Character.DIRECTIONALITY_EUROPEAN_NUMBER)
@@ -729,28 +728,6 @@ extends Layout
                 if (prev == Character.DIRECTIONALITY_ARABIC_NUMBER &&
                     next == Character.DIRECTIONALITY_ARABIC_NUMBER)
                     chInfo[j] = Character.DIRECTIONALITY_ARABIC_NUMBER;
-                // add condition for spaces following the separator
-                if (nextIsSpace &&
-                            (   prev == Character.DIRECTIONALITY_EUROPEAN_NUMBER
-                             || prev == Character.DIRECTIONALITY_ARABIC_NUMBER  ) )
-                            chInfo[j] = SOR;
-            }
-            // add condition if the separator is a space
-            else if (isSpace && prev != SOR &&
-                            (   next == Character.DIRECTIONALITY_EUROPEAN_NUMBER
-                             || next == Character.DIRECTIONALITY_ARABIC_NUMBER
-                             || next == Character.DIRECTIONALITY_OTHER_NEUTRALS) ) {
-                chInfo[j] = SOR;
-                for (int k=j+1; k < n; ++k) {
-                    if (chInfo[k] == Character.DIRECTIONALITY_LEFT_TO_RIGHT) {
-                        chInfo[j] = Character.DIRECTIONALITY_LEFT_TO_RIGHT;
-                        break;
-                    }
-                    if (chInfo[k] == Character.DIRECTIONALITY_RIGHT_TO_LEFT) {
-                        chInfo[j] = Character.DIRECTIONALITY_RIGHT_TO_LEFT;
-                        break;
-                    }
-                }
             }
         }
 
@@ -798,6 +775,44 @@ extends Layout
 
         // dump(chInfo, n, "W6");
 
+        // N1, N2 neutrals
+        cur = SOR;
+        for (int j = 0; j < n; j++) {
+            byte d = chInfo[j];
+
+            if (d == Character.DIRECTIONALITY_LEFT_TO_RIGHT ||
+                d == Character.DIRECTIONALITY_RIGHT_TO_LEFT) {
+                cur = d;
+            } else if (d == Character.DIRECTIONALITY_EUROPEAN_NUMBER ||
+                       d == Character.DIRECTIONALITY_ARABIC_NUMBER) {
+            } else if (cur == SOR) {
+                chInfo[j] = cur;
+            } else {
+                byte dd = SOR;
+                int k;
+
+                for (k = j + 1; k < n; k++) {
+                    dd = chInfo[k];
+
+                    if (dd == Character.DIRECTIONALITY_LEFT_TO_RIGHT ||
+                        dd == Character.DIRECTIONALITY_RIGHT_TO_LEFT) {
+                        break;
+                    }
+                }
+
+                if (dd != cur)
+                    dd = SOR;
+
+                for (int y = j; y < k; y++)
+                    if (chInfo[y]!=Character.DIRECTIONALITY_EUROPEAN_NUMBER)
+                        chInfo[y] = dd;
+
+                j = k - 1;
+            }
+        }
+
+        // dump(chInfo, n, "N12");
+
         // W7 strong direction of european numbers
         cur = SOR;
         for (int j = 0; j < n; j++) {
@@ -810,51 +825,6 @@ extends Layout
 
             if (d == Character.DIRECTIONALITY_EUROPEAN_NUMBER)
                 chInfo[j] = Character.DIRECTIONALITY_LEFT_TO_RIGHT;
-        }
-
-        // dump(chInfo, n, "W7");
-
-        // N1, N2 neutrals
-        cur = SOR;
-        for (int j = 0; j < n; j++) {
-            byte d = chInfo[j];
-
-            if (d == Character.DIRECTIONALITY_LEFT_TO_RIGHT ||
-                d == Character.DIRECTIONALITY_RIGHT_TO_LEFT) {
-                cur = d;
-            } else if (d == Character.DIRECTIONALITY_EUROPEAN_NUMBER ||
-                       d == Character.DIRECTIONALITY_ARABIC_NUMBER) {
-                cur = Character.DIRECTIONALITY_LEFT_TO_RIGHT;
-            } else if (d == Character.DIRECTIONALITY_OTHER_NEUTRALS) {
-               chInfo[j] = cur = SOR;
-            } else {
-                byte dd = SOR;
-                int k;
-
-                for (k = j + 1; k < n; k++) {
-                    dd = chInfo[k];
-
-                    if (dd == Character.DIRECTIONALITY_LEFT_TO_RIGHT ||
-                        dd == Character.DIRECTIONALITY_RIGHT_TO_LEFT ||
-                        dd == Character.DIRECTIONALITY_OTHER_NEUTRALS) {
-                        break;
-                    }
-                    if (dd == Character.DIRECTIONALITY_EUROPEAN_NUMBER ||
-                        dd == Character.DIRECTIONALITY_ARABIC_NUMBER) {
-                        dd = Character.DIRECTIONALITY_LEFT_TO_RIGHT;
-                        break;
-                    }
-                }
-
-                for (int y = j; y < k; y++) {
-                    if (dd == cur)
-                        chInfo[y] = cur;
-                    else
-                        chInfo[y] = SOR;
-                }
-
-                j = k - 1;
-            }
         }
 
         // dump(chInfo, n, "final");
