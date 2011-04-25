@@ -116,7 +116,7 @@ public class StatusBarPolicy {
     private static final boolean SHOW_LOW_BATTERY_WARNING = true;
     private static final boolean SHOW_BATTERY_WARNINGS_IN_CALL = true;
 
-    private int mThemeCompatibility;
+    private boolean mThemeCompatibility;
     
     // phone
     private TelephonyManager mPhone;
@@ -470,7 +470,7 @@ public class StatusBarPolicy {
         // phone_signal
         mPhone = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
         
-        if (mThemeCompatibility == 0) {
+        if (mThemeCompatibility) {
         	mPhoneSignalIconId = R.drawable.stat_sys_signal_6bar_null;
         } else {
         	mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
@@ -957,7 +957,7 @@ public class StatusBarPolicy {
                     Settings.System.AIRPLANE_MODE_ON, 0) == 1) {
                 mPhoneSignalIconId = R.drawable.stat_sys_signal_flightmode;
             } else {
-                if (mThemeCompatibility == 0) {
+                if (mThemeCompatibility) {
                 	mPhoneSignalIconId = R.drawable.stat_sys_signal_6bar_null;
                 } else {
                 	mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
@@ -998,7 +998,7 @@ public class StatusBarPolicy {
             if (mPhone.isNetworkRoaming()) {
                 iconList = sSignalImages_r[mInetCondition];
             } else {
-            	if (mThemeCompatibility == 0) {
+            	if (mThemeCompatibility) {
             		iconList = sSignalImages_6bar[mInetCondition];
             	} else {
             		iconList = sSignalImages[mInetCondition];
@@ -1006,7 +1006,7 @@ public class StatusBarPolicy {
             }
         } else {
         	
-        	if (mThemeCompatibility == 0) {
+        	if (mThemeCompatibility) {
         		iconList = sSignalImages_6bar[mInetCondition];
         	} else {
         		iconList = sSignalImages[mInetCondition];
@@ -1101,9 +1101,9 @@ public class StatusBarPolicy {
         int levelEvdoSnr = 0;
         
         mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
-        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 0);
+        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
         
-        if (mThemeCompatibility == 0) { // Six bar
+        if (mThemeCompatibility) { // Six bar
             if (evdoDbm >= -75) levelEvdoDbm = 6;
             else if (evdoDbm >= -85) levelEvdoDbm = 5;
             else if (evdoDbm >= -90) levelEvdoDbm = 4;
