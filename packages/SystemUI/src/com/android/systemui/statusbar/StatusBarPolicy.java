@@ -950,6 +950,9 @@ public class StatusBarPolicy {
         int iconLevel = -1;
         int[] iconList;
 
+        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
+        
         // Display signal strength while in "emergency calls only" mode
         if (mServiceState == null || (!hasService() && !mServiceState.isEmergencyOnly())) {
             //Slog.d(TAG, "updateSignalStrength: no service");
@@ -978,8 +981,7 @@ public class StatusBarPolicy {
             // asu = 0 (-113dB or less) is very weak
             // signal, its better to show 0 bars to the user in such cases.
             // asu = 99 is a special case, where the signal strength is unknown.
-            if (Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.THEME_COMPATIBILITY_SIGNAL, 0) == 0) { // Six bar
+            if (mThemeCompatibility) { // Six bar
                 if (asu <= 2 || asu == 99) iconLevel = 0;
                 else if (asu >= 12) iconLevel = 6;
                 else if (asu >= 10) iconLevel = 5;
@@ -1034,8 +1036,7 @@ public class StatusBarPolicy {
         int levelDbm = 0;
         int levelEcio = 0;
         
-        if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.THEME_COMPATIBILITY_SIGNAL, 0) == 0) { // Six bar
+        if (mThemeCompatibility) { // Six bar
            /*
              * HTC's signal to icon
 
@@ -1099,10 +1100,7 @@ public class StatusBarPolicy {
         int evdoSnr = mSignalStrength.getEvdoSnr();
         int levelEvdoDbm = 0;
         int levelEvdoSnr = 0;
-        
-        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
-        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
-        
+                
         if (mThemeCompatibility) { // Six bar
             if (evdoDbm >= -75) levelEvdoDbm = 6;
             else if (evdoDbm >= -85) levelEvdoDbm = 5;
