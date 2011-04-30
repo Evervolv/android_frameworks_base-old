@@ -35,6 +35,24 @@
     <string name="defaultMsisdnAlphaTag" msgid="2850889754919584674">"MSISDN1"</string>
     <string name="mmiError" msgid="5154499457739052907">"Problema di connessione o codice MMI non valido."</string>
     <string name="mmiFdnError" msgid="5224398216385316471">"Operazione limitata solo ai numeri di selezione fissa."</string>
+
+    <!-- Names of default profiles. -->
+    <string name="profileNameDefault">Default</string>
+    <string name="profileNameWork">Lavoro</string>
+    <string name="profileNameHome">Casa</string>
+    <string name="profileNameSilent">Silenzioso</string>
+    <string name="profileNameNight">Notte</string>
+
+    <!-- Names of application groups. -->
+    <string name="profileGroupPhone">Telefono</string>
+    <string name="profileGroupCalendar">Calendario</string>
+    <string name="profileGroupGmail">Gmail</string>
+    <string name="profileGroupEmail">Email</string>
+    <string name="profileGroupSMS">SMS</string>
+
+    <!-- Name of wildcard profile. -->
+    <string name="wildcardProfile">Altro</string>
+
     <string name="serviceEnabled" msgid="8147278346414714315">"Il servizio è stato attivato."</string>
     <string name="serviceEnabledFor" msgid="6856228140453471041">"Il servizio è stato attivato per:"</string>
     <string name="serviceDisabled" msgid="1937553226592516411">"Il servizio è stato disattivato."</string>
@@ -133,13 +151,28 @@
     <string name="turn_off_radio" msgid="8198784949987062346">"Disattiva wireless"</string>
     <string name="screen_lock" msgid="799094655496098153">"Blocco schermo"</string>
     <string name="power_off" msgid="4266614107412865048">"Spegni"</string>
+    <string name="reboot_system">Riavvia</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"Spegnimento..."</string>
+    <string name="reboot_progress">Riavvio in corso\u2026</string>
     <string name="shutdown_confirm" msgid="649792175242821353">"Il telefono verrà spento."</string>
+    <string name="reboot_confirm">Il telefono verrà riavviato.</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"Recenti"</string>
     <string name="no_recent_tasks" msgid="279702952298056674">"Nessuna applicazione recente."</string>
     <string name="global_actions" msgid="2406416831541615258">"Opzioni telefono"</string>
+
+    <!-- label for item that emulates the hardware button: home -->
+    <string name="global_action_home">Home</string>
+
+    <!-- label for item that emulates the hardware button: menu -->
+    <string name="global_action_menu">Menu</string>
+
+    <!-- label for item that emulates the hardware button: back -->
+    <string name="global_action_back">Indietro</string>
+
     <string name="global_action_lock" msgid="2844945191792119712">"Blocco schermo"</string>
     <string name="global_action_power_off" msgid="4471879440839879722">"Spegni"</string>
+    <string name="global_action_reboot">Riavvia</string>
+    <string name="global_action_choose_profile">Seleziona profilo</string>
     <string name="global_action_toggle_silent_mode" msgid="8219525344246810925">"Modalità silenziosa"</string>
     <string name="global_action_silent_mode_on_status" msgid="3289841937003758806">"Audio non attivo"</string>
     <string name="global_action_silent_mode_off_status" msgid="1506046579177066419">"Audio attivo"</string>
@@ -335,8 +368,8 @@
     <string name="permdesc_vibrate" msgid="2886677177257789187">"Consente all\'applicazione di controllare la vibrazione."</string>
     <string name="permlab_flashlight" msgid="2155920810121984215">"controllo flash"</string>
     <string name="permdesc_flashlight" msgid="6433045942283802309">"Consente all\'applicazione di controllare il flash."</string>
-    <string name="permlab_accessUsb" msgid="7362327818655760496">"accesso a dispositivi USB"</string>
-    <string name="permdesc_accessUsb" msgid="2414271762914049292">"Consente all\'applicazione di accedere ai dispositivi USB"</string>
+    <string name="permlab_manageUsb" msgid="1113453430645402723">"gestione preferenze e autorizzazioni per dispositivi USB"</string>
+    <string name="permdesc_manageUsb" msgid="6148489202092166164">"Consente all\'applicazione di gestire le preferenze e le autorizzazioni relative ai dispositivi USB."</string>
     <string name="permlab_hardware_test" msgid="4148290860400659146">"esecuzione test hardware"</string>
     <string name="permdesc_hardware_test" msgid="3668894686500081699">"Consente all\'applicazione di controllare varie periferiche per il test dell\'hardware."</string>
     <string name="permlab_callPhone" msgid="3925836347681847954">"chiamata diretta n. telefono"</string>
@@ -399,6 +432,10 @@
     <string name="permdesc_changeWifiState" msgid="2950383153656873267">"Consente a un\'applicazione di connettersi/disconnettersi da punti di accesso Wi-Fi e di apportare modifiche alle reti Wi-Fi configurate."</string>
     <string name="permlab_changeWifiMulticastState" msgid="1368253871483254784">"consenti ricezione multicast Wi-Fi"</string>
     <string name="permdesc_changeWifiMulticastState" msgid="8199464507656067553">"Consente a un\'applicazione di ricevere pacchetti non direttamente indirizzati al tuo dispositivo. Può essere utile durante la ricerca di servizi offerti nelle vicinanze. Consuma di più rispetto alla modalità non multicast."</string>
+    <string name="permlab_accessWimaxState" msgid="2800410363171809280">"visualizzazione stato WiMAX"</string>
+    <string name="permdesc_accessWimaxState" msgid="8298035866227524023">"Consente a un\'applicazione di visualizzare le informazioni relative allo stato della rete WiMAX."</string>
+    <string name="permlab_changeWimaxState" msgid="340465839241528618">"modifica stato WiMAX"</string>
+    <string name="permdesc_changeWimaxState" msgid="474918005058989421">"Consente a un\'applicazione di connettersi/disconnettersi dalla rete WiMAX."</string>
     <string name="permlab_bluetoothAdmin" msgid="1092209628459341292">"gestione Bluetooth"</string>
     <string name="permdesc_bluetoothAdmin" msgid="7256289774667054555">"Consente a un\'applicazione di configurare il telefono Bluetooth locale e di rilevare e abbinare dispositivi remoti."</string>
     <string name="permlab_bluetooth" msgid="8361038707857018732">"creazione connessioni Bluetooth"</string>
@@ -421,7 +458,7 @@
     <string name="permdesc_readDictionary" msgid="1082972603576360690">"Consente a un\'applicazione di leggere parole, nomi e frasi private che l\'utente potrebbe aver memorizzato nel dizionario utente."</string>
     <string name="permlab_writeDictionary" msgid="6703109511836343341">"scrittura nel dizionario definito dall\'utente"</string>
     <string name="permdesc_writeDictionary" msgid="2241256206524082880">"Consente a un\'applicazione di scrivere nuove parole nel dizionario utente."</string>
-    <string name="permlab_sdcardWrite" product="nosdcard" msgid="85430876310764752">"modifica/eliminaz. archivio USB"</string>
+    <string name="permlab_sdcardWrite" product="nosdcard" msgid="85430876310764752">"modifica/eliminaz. contenuti archivio USB"</string>
     <string name="permlab_sdcardWrite" product="default" msgid="8079403759001777291">"modificare/eliminare i contenuti della scheda SD"</string>
     <string name="permdesc_sdcardWrite" product="nosdcard" msgid="6594393334785738252">"Consente di scrivere nell\'archivio USB."</string>
     <string name="permdesc_sdcardWrite" product="default" msgid="6643963204976471878">"Consente a un\'applicazione di scrivere sulla scheda SD."</string>
@@ -553,9 +590,10 @@
     <string name="lockscreen_pattern_correct" msgid="9039008650362261237">"Corretta."</string>
     <string name="lockscreen_pattern_wrong" msgid="4817583279053112312">"Riprova"</string>
     <string name="lockscreen_plugged_in" msgid="613343852842944435">"In carica (<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>)"</string>
+    <string name="lockscreen_discharging">In uso (<xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g>)</string>
     <string name="lockscreen_charged" msgid="4938930459620989972">"Carico."</string>
     <string name="lockscreen_battery_short" msgid="3617549178603354656">"<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>"</string>
-    <string name="lockscreen_low_battery" msgid="1482873981919249740">"Collegare il caricabatterie."</string>
+    <string name="lockscreen_low_battery" msgid="1482873981919249740">"Collegare il caricabatterie (<xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g>)"</string>
     <string name="lockscreen_missing_sim_message_short" msgid="7381499217732227295">"Nessuna SIM presente."</string>
     <string name="lockscreen_missing_sim_message" msgid="2186920585695169078">"Nessuna SIM presente nel telefono."</string>
     <string name="lockscreen_missing_sim_instructions" msgid="8874620818937719067">"Inserisci una SIM."</string>
@@ -580,6 +618,10 @@
     <string name="lockscreen_unlock_label" msgid="737440483220667054">"Sblocca"</string>
     <string name="lockscreen_sound_on_label" msgid="9068877576513425970">"Audio attivato"</string>
     <string name="lockscreen_sound_off_label" msgid="996822825154319026">"Audio disattivato"</string>
+    <!-- Displayed on lock screen's extra left tab - phone -->
+    <string name="lockscreen_phone_label">Telefono</string>
+    <!-- Displayed on lock screen's extra right tab - messaging -->
+    <string name="lockscreen_messaging_label">Messaggi</string>
     <string name="password_keyboard_label_symbol_key" msgid="992280756256536042">"?123"</string>
     <string name="password_keyboard_label_alpha_key" msgid="8001096175167485649">"ABC"</string>
     <string name="password_keyboard_label_alt_key" msgid="1284820942620288678">"ALT"</string>
@@ -589,7 +631,7 @@
     <string name="factorytest_not_system" msgid="4435201656767276723">"L\'azione FACTORY_TEST è supportata soltanto per i pacchetti installati in /system/app."</string>
     <string name="factorytest_no_action" msgid="872991874799998561">"Nessun pacchetto trovato che fornisca l\'azione FACTORY_TEST."</string>
     <string name="factorytest_reboot" msgid="6320168203050791643">"Riavvia"</string>
-    <string name="js_dialog_title" msgid="8143918455087008109">"La pagina all\'indirizzo <xliff:g id="TITLE">%s</xliff:g> indica:"</string>
+    <string name="js_dialog_title" msgid="8143918455087008109">"Avviso relativo alla pagina <xliff:g id="TITLE">%s</xliff:g>:"</string>
     <string name="js_dialog_title_default" msgid="6961903213729667573">"JavaScript"</string>
     <string name="js_dialog_before_unload" msgid="1901675448179653089">"Uscire da questa pagina?"\n\n"<xliff:g id="MESSAGE">%s</xliff:g>"\n\n"Seleziona OK per continuare o Annulla per rimanere nella pagina corrente."</string>
     <string name="save_password_label" msgid="6860261758665825069">"Conferma"</string>
@@ -733,6 +775,7 @@
     <string name="alwaysUse" msgid="4583018368000610438">"Usa come predefinita per questa azione."</string>
     <string name="clearDefaultHintMsg" msgid="4815455344600932173">"Cancella predefinita in Home &gt; Impostazioni &gt; Applicazioni &gt; Gestisci applicazioni."</string>
     <string name="chooseActivity" msgid="1009246475582238425">"Seleziona un\'azione"</string>
+    <string name="chooseUsbActivity" msgid="7892597146032121735">"Seleziona un\'applicazione per il dispositivo USB"</string>
     <string name="noApplications" msgid="1691104391758345586">"Nessuna applicazione è in grado di svolgere questa azione."</string>
     <string name="aerr_title" msgid="653922989522758100">"Spiacenti."</string>
     <string name="aerr_application" msgid="4683614104336409186">"Interruzione imprevista dell\'applicazione <xliff:g id="APPLICATION">%1$s</xliff:g> (processo <xliff:g id="PROCESS">%2$s</xliff:g>). Riprova."</string>
@@ -872,7 +915,7 @@
     <string name="permission_request_notification_with_subtitle" msgid="4325409589686688000">"Autorizzazione richiesta"\n"per l\'account <xliff:g id="ACCOUNT">%s</xliff:g>"</string>
     <string name="input_method_binding_label" msgid="1283557179944992649">"Metodo inserimento"</string>
     <string name="sync_binding_label" msgid="3687969138375092423">"Sinc"</string>
-    <string name="accessibility_binding_label" msgid="4148120742096474641">"Accesso facilitato"</string>
+    <string name="accessibility_binding_label" msgid="4148120742096474641">"Accessibilità"</string>
     <string name="wallpaper_binding_label" msgid="1240087844304687662">"Sfondo"</string>
     <string name="chooser_wallpaper" msgid="7873476199295190279">"Cambia sfondo"</string>
     <string name="pptp_vpn_description" msgid="2688045385181439401">"Protocollo di tunneling Point-to-Point"</string>
@@ -904,4 +947,15 @@
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"L\'archivio USB è attualmente utilizzato da un computer."</string>
     <string name="media_shared" product="default" msgid="5706130568133540435">"La scheda SD è attualmente utilizzata da un computer."</string>
     <string name="media_unknown_state" msgid="729192782197290385">"Stato dei supporti esterni sconosciuto."</string>
+
+    <!--Application killed toast -->
+    <string name="app_killed_message">Applicazione terminata</string>
+
+    <!-- Phone goggles -->
+    <string name="phone_goggles_problem_count">Problema #%1$d: </string>
+    <string name="phone_goggles_description">Risolvi i seguenti %1$d problemi matematici in meno di %2$d secondi per poter effettuare la comunicazione.</string>
+    <plurals name="phone_goggles_countdown">
+        <item quantity="one">%d secondo rimasto</item>
+        <item quantity="other">%d secondi rimasti</item>
+    </plurals>
 </resources>

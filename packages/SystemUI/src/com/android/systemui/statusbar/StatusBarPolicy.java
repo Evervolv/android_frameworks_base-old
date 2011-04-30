@@ -76,6 +76,7 @@ import com.android.server.am.BatteryStatsService;
 import com.android.systemui.R;
 import com.android.wimax.WimaxConstants;
 import com.android.wimax.WimaxSettingsHelper;
+import android.net.wimax.WimaxManagerConstants;
 
 /**
  * This class contains all of the policy about which icons are installed in the status
@@ -261,9 +262,165 @@ public class StatusBarPolicy {
         R.drawable.stat_sys_roaming_cdma_0,
         R.drawable.stat_sys_roaming_cdma_0,
         R.drawable.stat_sys_roaming_cdma_0,
-        R.drawable.stat_sys_roaming_cdma_0 //83
+        R.drawable.stat_sys_roaming_cdma_0, //83
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0,
+        R.drawable.stat_sys_roaming_cdma_0 //239
 
-        // 128-255 Reserved
+        // 240-255 Reserved
     };
 
     //***** Data connection icons
@@ -364,23 +521,29 @@ public class StatusBarPolicy {
     private int mLastWifiSignalLevel = -1;
     private boolean mIsWifiConnected = false;
 
-    // wimax
+    //4G
+    private WimaxSettingsHelper mWimaxSettingsHelper;
     private static final int[][] sWimaxSignalImages = {
-            { R.drawable.stat_sys_wimax_signal_1,
-              R.drawable.stat_sys_wimax_signal_2,
-              R.drawable.stat_sys_wimax_signal_3,
-              R.drawable.stat_sys_wimax_signal_4 },
-            { R.drawable.stat_sys_wimax_signal_1_fully,
-              R.drawable.stat_sys_wimax_signal_2_fully,
-              R.drawable.stat_sys_wimax_signal_3_fully,
-              R.drawable.stat_sys_wimax_signal_4_fully }
+            { R.drawable.stat_sys_data_wimax_signal_0,
+              R.drawable.stat_sys_data_wimax_signal_1,
+              R.drawable.stat_sys_data_wimax_signal_2,
+              R.drawable.stat_sys_data_wimax_signal_3 },
+            { R.drawable.stat_sys_data_wimax_signal_0_fully,
+              R.drawable.stat_sys_data_wimax_signal_1_fully,
+              R.drawable.stat_sys_data_wimax_signal_2_fully,
+              R.drawable.stat_sys_data_wimax_signal_3_fully }
         };
-    private static final int sWimaxTemporarilyNotConnectedImage = 
-            R.drawable.stat_sys_wimax_signal_0;
+    private static final int sWimaxTemporarilyNotConnectedImage =
+             R.drawable.stat_sys_wimax_signal_0;
 
     private int mLastWimaxSignalLevel = -1;
+    private static final int sWimaxDisconnectedImg =
+            R.drawable.stat_sys_data_wimax_signal_disconnected;
+    private static final int sWimaxIdleImg = R.drawable.stat_sys_data_wimax_signal_idle;
     private boolean mIsWimaxConnected = false;
-    private WimaxSettingsHelper mWimaxSettingsHelper;
+    private boolean mIsWimaxEnabled = false;
+    private int mWimaxSignal = 0;
+    private int mWimaxState = 0;
 
     // state of inet connection - 0 not connected, 100 connected
     private int mInetCondition = 0;
@@ -445,6 +608,11 @@ public class StatusBarPolicy {
                      action.equals(ConnectivityManager.INET_CONDITION_ACTION)) {
                 // TODO - stop using other means to get wifi/mobile info
                 updateConnectivity(intent);
+            }
+            else if (action.equals(WimaxManagerConstants.WIMAX_ENABLED_STATUS_CHANGED) ||
+                     action.equals(WimaxManagerConstants.SIGNAL_LEVEL_CHANGED_ACTION) ||
+                     action.equals(WimaxManagerConstants.WIMAX_STATE_CHANGED_ACTION)) {
+                updateWiMAX(intent);
             }
         }
     };
@@ -514,6 +682,13 @@ public class StatusBarPolicy {
             mService.setIcon("wimax", sWimaxSignalImages[0][0], 0);
             mService.setIconVisibility("wimax", false);
             // wimax will get updated by the sticky intents
+        }
+        //enable/disable wimax depending on the value in config.xml
+        boolean isWimaxEnabled = mContext.getResources().getBoolean(
+                com.android.internal.R.bool.config_wimaxEnabled);
+        if (isWimaxEnabled) {
+            mService.setIcon("wimax", sWimaxDisconnectedImg, 0);
+            mService.setIconVisibility("wimax", false);
         }
 
         // TTY status
@@ -587,6 +762,10 @@ public class StatusBarPolicy {
         filter.addAction(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(ConnectivityManager.INET_CONDITION_ACTION);
+        filter.addAction(WimaxManagerConstants.WIMAX_STATE_CHANGED_ACTION);
+        filter.addAction(WimaxManagerConstants.SIGNAL_LEVEL_CHANGED_ACTION);
+        filter.addAction(WimaxManagerConstants.WIMAX_ENABLED_STATUS_CHANGED);
+
         mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
 
         // load config to determine if to distinguish Hspa data icon
@@ -849,8 +1028,10 @@ public class StatusBarPolicy {
                 mService.setIcon("wimax", iconId, 0);
                 // Hide the icon since we're not connected
                 mService.setIconVisibility("wimax", false);
+                mIsWimaxConnected = false;
             }
             updateSignalStrength(); // apply any change in mInetCondition
+            updateWiMAX(intent);
             break;
         }
     }
@@ -950,9 +1131,6 @@ public class StatusBarPolicy {
         int iconLevel = -1;
         int[] iconList;
 
-        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
-        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
-        
         // Display signal strength while in "emergency calls only" mode
         if (mServiceState == null || (!hasService() && !mServiceState.isEmergencyOnly())) {
             //Slog.d(TAG, "updateSignalStrength: no service");
@@ -981,7 +1159,8 @@ public class StatusBarPolicy {
             // asu = 0 (-113dB or less) is very weak
             // signal, its better to show 0 bars to the user in such cases.
             // asu = 99 is a special case, where the signal strength is unknown.
-            if (mThemeCompatibility) { // Six bar
+            if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.THEME_COMPATIBILITY_SIGNAL, 0) == 0) { // Six bar
                 if (asu <= 2 || asu == 99) iconLevel = 0;
                 else if (asu >= 12) iconLevel = 6;
                 else if (asu >= 10) iconLevel = 5;
@@ -1036,7 +1215,8 @@ public class StatusBarPolicy {
         int levelDbm = 0;
         int levelEcio = 0;
         
-        if (mThemeCompatibility) { // Six bar
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.THEME_COMPATIBILITY_SIGNAL, 0) == 0) { // Six bar
            /*
              * HTC's signal to icon
 
@@ -1100,7 +1280,10 @@ public class StatusBarPolicy {
         int evdoSnr = mSignalStrength.getEvdoSnr();
         int levelEvdoDbm = 0;
         int levelEvdoSnr = 0;
-                
+        
+        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
+        
         if (mThemeCompatibility) { // Six bar
             if (evdoDbm >= -75) levelEvdoDbm = 6;
             else if (evdoDbm >= -85) levelEvdoDbm = 5;
@@ -1390,6 +1573,47 @@ public class StatusBarPolicy {
                 mService.setIcon("wimax", iconId, 0);
             }
         }
+
+    private final void updateWiMAX(Intent intent) {
+        final String action = intent.getAction();
+        int iconId = sWimaxDisconnectedImg;
+
+        if (action.equals(WimaxManagerConstants. WIMAX_ENABLED_STATUS_CHANGED)) {
+            int mWimaxStatus = intent.getIntExtra(WimaxManagerConstants.EXTRA_WIMAX_STATUS,
+                    WimaxManagerConstants.WIMAX_STATUS_DISABLED);
+            switch(mWimaxStatus) {
+                case WimaxManagerConstants.WIMAX_STATUS_ENABLED:
+                    mIsWimaxEnabled = true;
+                    break;
+                case WimaxManagerConstants.WIMAX_STATUS_DISABLED:
+                    mIsWimaxEnabled = false;
+                    break;
+            }
+        } else if (action.equals(WimaxManagerConstants.SIGNAL_LEVEL_CHANGED_ACTION)) {
+            mWimaxSignal = intent.getIntExtra(WimaxManagerConstants.EXTRA_NEW_SIGNAL_LEVEL, 0);
+        } else if (action.equals(WimaxManagerConstants.WIMAX_STATE_CHANGED_ACTION)) {
+            mWimaxState = intent.getIntExtra(WimaxManagerConstants.EXTRA_WIMAX_STATE,
+                    WimaxManagerConstants.WIMAX_STATE_UNKNOWN);
+            int mExtraWimaxState = intent.getIntExtra(
+                    WimaxManagerConstants.EXTRA_WIMAX_STATE_DETAIL,
+                    WimaxManagerConstants.WIMAX_DEREGISTRATION);
+
+            switch(mWimaxState) {
+                case WimaxManagerConstants.WIMAX_STATE_DISCONNECTED:
+                    iconId = sWimaxDisconnectedImg;
+                    break;
+                case WimaxManagerConstants.WIMAX_STATE_CONNECTED:
+                    if(mExtraWimaxState == WimaxManagerConstants.WIMAX_IDLE) {
+                        iconId = sWimaxIdleImg;
+                    }
+                    else {
+                        iconId = sWimaxSignalImages[mInetCondition][mWimaxSignal];
+                    }
+                    break;
+            }
+            mService.setIcon("wimax", iconId, 0);
+        }
+        mService.setIconVisibility("wimax", mIsWimaxEnabled);
     }
 
     private final void updateGps(Intent intent) {
@@ -1461,6 +1685,10 @@ public class StatusBarPolicy {
 
         switch (iconMode) {
             case EriInfo.ROAMING_ICON_MODE_NORMAL:
+                if (iconIndex >= iconList.length) {
+                    Slog.e(TAG, "unknown iconIndex " + iconIndex + ", skipping ERI icon update");
+                    return;
+                }
                 mService.setIcon("cdma_eri", iconList[iconIndex], 0);
                 mService.setIconVisibility("cdma_eri", true);
                 break;
@@ -1472,7 +1700,6 @@ public class StatusBarPolicy {
         }
         mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
     }
-
 
     private class StatusBarHandler extends Handler {
         @Override
