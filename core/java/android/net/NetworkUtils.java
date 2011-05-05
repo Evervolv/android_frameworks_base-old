@@ -25,9 +25,6 @@ import java.net.UnknownHostException;
  * {@hide}
  */
 public class NetworkUtils {
-
-    public native static int addRoutingRule(String param1, String param2, String param3, int param4);
-
     /** Bring the named network interface up. */
     public native static int enableInterface(String interfaceName);
 
@@ -158,4 +155,10 @@ public class NetworkUtils {
      * {@hide}
      */
     public native static boolean runDhcpRenew(String interfaceName, DhcpInfo ipInfo);
+
+    /**
+     * {@hide}
+     */
+    public native static int addRoutingRule(String param1, String param2, String param3, int param4);
+
 }

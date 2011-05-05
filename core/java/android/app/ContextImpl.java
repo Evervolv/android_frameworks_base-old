@@ -79,6 +79,8 @@ import android.net.IThrottleManager;
 import android.net.Uri;
 import android.net.wifi.IWifiManager;
 import android.net.wifi.WifiManager;
+import android.net.wimax.WimaxHelper;
+import android.net.wimax.WimaxManagerConstants;
 import android.nfc.NfcManager;
 import android.os.Binder;
 import android.os.Bundle;
@@ -119,8 +121,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -179,8 +179,8 @@ class ContextImpl extends Context {
     private static ConnectivityManager sConnectivityManager;
     private static ThrottleManager sThrottleManager;
     private static WifiManager sWifiManager;
-    private static Object sWimaxController;
     private static LocationManager sLocationManager;
+    private static Object sWimaxManager;
     private static final HashMap<String, SharedPreferencesImpl> sSharedPrefs =
             new HashMap<String, SharedPreferencesImpl>();
 
@@ -965,8 +965,6 @@ class ContextImpl extends Context {
             return getThrottleManager();
         } else if (WIFI_SERVICE.equals(name)) {
             return getWifiManager();
-        } else if (WIMAX_SERVICE.equals(name)) {
-            return getWimaxController();
         } else if (NOTIFICATION_SERVICE.equals(name)) {
             return getNotificationManager();
         } else if (KEYGUARD_SERVICE.equals(name)) {
@@ -1010,6 +1008,8 @@ class ContextImpl extends Context {
             return getDownloadManager();
         } else if (NFC_SERVICE.equals(name)) {
             return getNfcManager();
+        } else if (WimaxManagerConstants.WIMAX_SERVICE.equals(name)) {
+            return getWimaxManager();
         }
 
         return null;
@@ -1092,37 +1092,6 @@ class ContextImpl extends Context {
             }
         }
         return sWifiManager;
-    }
-
-    /*
-     * Use reflection hacks to get an instance of the WimaxController
-     */
-    private Object getWimaxController()
-    {
-        synchronized (sSync) {
-            if (sWimaxController == null) {
-                try {
-                    IBinder b = ServiceManager.getService(WIMAX_SERVICE);
-                    if (b != null) {
-                        Class<?> klass = Class.forName("com.htc.net.wimax.IWimaxController$Stub");
-                        if (klass != null) {
-                            Method asInterface = klass.getMethod("asInterface", IBinder.class);
-                            Object wc = asInterface.invoke(null, b);
-                            if (wc != null) {
-                                klass = Class.forName("com.htc.net.wimax.WimaxController");
-                                if (klass != null) {
-                                    Constructor<?> ctor = klass.getDeclaredConstructors()[1];
-                                    sWimaxController = ctor.newInstance(wc, mMainThread.getHandler());
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Unable to create WimaxController instance", e);
-                }
-            }
-        }
-        return sWimaxController;
     }
 
     private NotificationManager getNotificationManager() {
@@ -1286,6 +1255,15 @@ class ContextImpl extends Context {
             }
         }
         return mNfcManager;
+    }
+
+    private Object getWimaxManager() {
+        synchronized (sSync) {
+            if (sWimaxManager == null) {
+                sWimaxManager = WimaxHelper.createWimaxService(this, mMainThread.getHandler());
+            }
+        }
+        return sWimaxManager;
     }
 
     @Override
