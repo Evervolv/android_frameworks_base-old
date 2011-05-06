@@ -35,7 +35,6 @@
     <string name="defaultMsisdnAlphaTag" msgid="2850889754919584674">"MSISDN1"</string>
     <string name="mmiError" msgid="5154499457739052907">"出现连接问题或 MMI 码无效。"</string>
     <string name="mmiFdnError" msgid="5224398216385316471">"只能对固定拨号号码执行此类操作。"</string>
-    <string name="wildcardProfile">其它</string>
     <string name="serviceEnabled" msgid="8147278346414714315">"已启用服务。"</string>
     <string name="serviceEnabledFor" msgid="6856228140453471041">"已针对以下内容启用了服务："</string>
     <string name="serviceDisabled" msgid="1937553226592516411">"已停用服务。"</string>
@@ -134,17 +133,13 @@
     <string name="turn_off_radio" msgid="8198784949987062346">"关闭收音机"</string>
     <string name="screen_lock" msgid="799094655496098153">"屏幕锁定"</string>
     <string name="power_off" msgid="4266614107412865048">"关机"</string>
-    <string name="reboot_system">重启</string>
     <string name="shutdown_progress" msgid="2281079257329981203">"正在关机..."</string>
-    <string name="reboot_progress">正在重启...</string>
     <string name="shutdown_confirm" msgid="649792175242821353">"您的手机会关机。"</string>
     <string name="recent_tasks_title" msgid="3691764623638127888">"近期任务"</string>
     <string name="no_recent_tasks" msgid="279702952298056674">"没有最近的应用程序。"</string>
     <string name="global_actions" msgid="2406416831541615258">"手机选项"</string>
     <string name="global_action_lock" msgid="2844945191792119712">"屏幕锁定"</string>
     <string name="global_action_power_off" msgid="4471879440839879722">"关机"</string>
-    <string name="global_action_reboot">重启</string>
-    <string name="global_action_choose_profile">情景模式</string>
     <string name="global_action_toggle_silent_mode" msgid="8219525344246810925">"静音模式"</string>
     <string name="global_action_silent_mode_on_status" msgid="3289841937003758806">"声音已关闭"</string>
     <string name="global_action_silent_mode_off_status" msgid="1506046579177066419">"声音已开启"</string>
@@ -561,8 +556,7 @@
     <string name="lockscreen_return_to_call" msgid="5244259785500040021">"返回通话"</string>
     <string name="lockscreen_pattern_correct" msgid="9039008650362261237">"正确！"</string>
     <string name="lockscreen_pattern_wrong" msgid="4817583279053112312">"很抱歉，请重试"</string>
-    <string name="lockscreen_plugged_in" msgid="613343852842944435">"正在充电 （<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>）"</string>
-    <string name="lockscreen_discharging">电池电量 （<xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g>）</string>
+    <string name="lockscreen_plugged_in" msgid="613343852842944435">"正在充电 (<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>)"</string>
     <string name="lockscreen_charged" msgid="4938930459620989972">"已充满。"</string>
     <string name="lockscreen_battery_short" msgid="3617549178603354656">"<xliff:g id="NUMBER">%d</xliff:g><xliff:g id="PERCENT">%%</xliff:g>"</string>
     <string name="lockscreen_low_battery" msgid="1482873981919249740">"连接您的充电器。"</string>
@@ -590,8 +584,6 @@
     <string name="lockscreen_unlock_label" msgid="737440483220667054">"解锁"</string>
     <string name="lockscreen_sound_on_label" msgid="9068877576513425970">"打开声音"</string>
     <string name="lockscreen_sound_off_label" msgid="996822825154319026">"关闭声音"</string>
-    <string name="lockscreen_phone_label">电话</string>
-    <string name="lockscreen_messaging_label">短信</string>
     <string name="password_keyboard_label_symbol_key" msgid="992280756256536042">"?123"</string>
     <string name="password_keyboard_label_alpha_key" msgid="8001096175167485649">"ABC"</string>
     <string name="password_keyboard_label_alt_key" msgid="1284820942620288678">"ALT"</string>
@@ -917,15 +909,4 @@
     <string name="media_shared" product="nosdcard" msgid="5830814349250834225">"某台计算机正在使用 USB 存储设备。"</string>
     <string name="media_shared" product="default" msgid="5706130568133540435">"目前有计算机正在使用 SD 卡。"</string>
     <string name="media_unknown_state" msgid="729192782197290385">"外部媒体处于未知状态。"</string>
-
-    <!--Application killed toast -->
-    <string name="app_killed_message">应用程序已结束</string>
-
-    <!-- Phone goggles -->
-    <string name="phone_goggles_problem_count">问题 #%1$d: </string>
-    <string name="phone_goggles_description">在 %2$d 秒内解决 %1$d 个数学问题以执行您的通信。</string>
-    <plurals name="phone_goggles_countdown">
-        <item quantity="one">还剩 %d 秒</item>
-        <item quantity="other">还剩 %d 秒</item>
-    </plurals>
 </resources>
