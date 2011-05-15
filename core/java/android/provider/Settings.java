@@ -2107,16 +2107,6 @@ public final class Settings {
 		public static final String FARLEFT_AB = "farleftaction_button";
 		
         /**
-         * Which launcher style to use. The value is an integer.
-         * ( 1 - Stock layout    )
-         * ( 2 - Evervolv layout )
-         * ( 3 - Tablet layout   )
-         * 
-         * @hide
-         */
-		public static final String LAUNCHER_STYLE = "launcher_style";
-		
-        /**
          * Which lockscreen style to use. The value is an integer.
          * ( 1 - Tabs style     )
          * ( 2 - Rotary style   )
