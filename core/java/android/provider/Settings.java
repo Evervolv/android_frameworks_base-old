@@ -2083,30 +2083,6 @@ public final class Settings {
 		public static final String CARRIER_CAP = "carrier_caption";
 		
         /**
-         * Used to store the intent used in the Right Action Button (Launcher). The value is an intent string.
-         * @hide
-         */
-		public static final String RIGHT_AB = "rightaction_button";
-		
-        /**
-         * Used to store the intent used in the Left Action Button (Launcher). The value is an intent string.
-         * @hide
-         */
-		public static final String LEFT_AB = "leftaction_button";
-		
-        /**
-         * Used to store the intent used in the Far Right Action Button (Launcher). The value is an intent string.
-         * @hide
-         */
-		public static final String FARRIGHT_AB = "farrightaction_button";
-		
-        /**
-         * Used to store the intent used in the Far Left Action Button (Launcher). The value is an intent string.
-         * @hide
-         */
-		public static final String FARLEFT_AB = "farleftaction_button";
-		
-        /**
          * Which lockscreen style to use. The value is an integer.
          * ( 1 - Tabs style     )
          * ( 2 - Rotary style   )
