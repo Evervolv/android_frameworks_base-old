@@ -1563,14 +1563,6 @@ public final class Settings {
         public static final String VIBRATE_IN_SILENT = "vibrate_in_silent";
 
         /**
-         * Whether volume button should also set complete silence after
-         * vibration.
-         *
-         * @hide
-         */
-        public static final String VOLUME_CONTROL_SILENT = "volume_contol_silent";
-
-        /**
          * The mapping of stream type (integer) to its setting.
          */
         public static final String[] VOLUME_SETTINGS = {

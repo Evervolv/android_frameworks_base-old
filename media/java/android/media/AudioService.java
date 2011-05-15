@@ -1138,8 +1138,6 @@ public class AudioService extends IAudioService.Stub {
      * indices on the stream states.
      */
     private boolean checkForRingerModeChange(int oldIndex, int direction) {
-        boolean mVolumeControlSilent = Settings.System.getInt(mContentResolver,
-                Settings.System.VOLUME_CONTROL_SILENT, 0) != 0;
         boolean vibrateInSilent = System.getInt(mContentResolver,
                 System.VIBRATE_IN_SILENT, 1) == 1;
         boolean adjustVolumeIndex = true;
@@ -1158,8 +1156,7 @@ public class AudioService extends IAudioService.Stub {
         } else if (mRingerMode == AudioManager.RINGER_MODE_VIBRATE) {
             if (direction == AudioManager.ADJUST_RAISE) {
                 newRingerMode = AudioManager.RINGER_MODE_NORMAL;
-            } else if (direction == AudioManager.ADJUST_LOWER
-                    && mVolumeControlSilent) {
+            } else if (direction == AudioManager.ADJUST_LOWER) {
                 newRingerMode = AudioManager.RINGER_MODE_SILENT;
             } else {
                 // prevent last audible index to reach 0
