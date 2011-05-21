@@ -60,6 +60,7 @@ static void setLogLevel(int level) {
 
 // ----------------------------------------------------------------------------
 
+#ifdef BOARD_USE_FROYO_LIBCAMERA
 struct camera_size_type {
     int width;
     int height;
@@ -69,6 +70,7 @@ static const camera_size_type preview_sizes[] = {
     { 1280, 720 }, // 720P
     { 768, 432 },
 };
+#endif
 
 static int getCallingPid() {
     return IPCThreadState::self()->getCallingPid();
@@ -572,12 +574,14 @@ status_t CameraService::Client::registerPreviewBuffers() {
     CameraParameters params(mHardware->getParameters());
     params.getPreviewSize(&w, &h);
 
+#ifdef BOARD_USE_FROYO_LIBCAMERA
     //for 720p recording , preview can be 800X448
     if(w ==  preview_sizes[0].width && h== preview_sizes[0].height){
         LOGD("registerpreviewbufs :changing dimensions to 768X432 for 720p recording.");
         w = preview_sizes[1].width;
         h = preview_sizes[1].height;
     }
+#endif
 
     // FIXME: don't use a hardcoded format here.
     ISurface::BufferHeap buffers(w, h, w, h,
@@ -598,12 +602,14 @@ status_t CameraService::Client::setOverlay() {
     CameraParameters params(mHardware->getParameters());
     params.getPreviewSize(&w, &h);
 
+#ifdef BOARD_USE_FROYO_LIBCAMERA
     //for 720p recording , preview can be 800X448
     if(w == preview_sizes[0].width && h==preview_sizes[0].height){
         LOGD("Changing overlay dimensions to 768X432 for 720p recording.");
         w = preview_sizes[1].width;
         h = preview_sizes[1].height;
     }
+#endif
 
     if (w != mOverlayW || h != mOverlayH || mOrientationChanged) {
         // Force the destruction of any previous overlay
@@ -899,18 +905,7 @@ status_t CameraService::Client::setParameters(const String8& params) {
     status_t result = checkPidAndHardware();
     if (result != NO_ERROR) return result;
 
-
     CameraParameters p(params);
-
-#ifdef BOARD_HAS_LGE_FFC
-    if (!p.get("camera-sensor") || !strcmp(p.get("camera-sensor"),"0")) {
-        if (!strcmp(p.get("rotation"),"90"))
-            p.set("rotation","270");
-        else if (!strcmp(p.get("rotation"),"270"))
-            p.set("rotation","90");
-    }
-#endif
-
     return mHardware->setParameters(p);
 }
 
@@ -1326,12 +1321,8 @@ void CameraService::Client::copyFrameAndPostCopiedFrame(
     client->dataCallback(CAMERA_MSG_PREVIEW_FRAME, frame);
 }
 
-#define FFC_VENDOR_HTC 0x1
-#define FFC_VENDOR_LGE 0x2
-int mFrontCameraType = 0;
-
 int CameraService::Client::getOrientation(int degrees, bool mirror) {
-    if (!mirror || mFrontCameraType == FFC_VENDOR_LGE) {
+    if (!mirror) {
         if (degrees == 0) return 0;
         else if (degrees == 90) return HAL_TRANSFORM_ROT_90;
         else if (degrees == 180) return HAL_TRANSFORM_ROT_180;
@@ -1450,13 +1441,8 @@ static const CameraInfo sCameraInfo[] = {
 
 static int getNumberOfCameras() {
     if (access(HTC_SWITCH_CAMERA_FILE_PATH, W_OK) == 0) {
-        mFrontCameraType = FFC_VENDOR_HTC;
         return 2;
     }
-#ifdef BOARD_HAS_LGE_FFC
-    mFrontCameraType = FFC_VENDOR_LGE;
-    return 2;
-#endif
     /* FIXME: Support non-HTC front camera */
     return 1;
 }
@@ -1489,17 +1475,7 @@ extern "C" sp<CameraHardwareInterface> HAL_openCameraHardware(int cameraId)
 {
     LOGV("openCameraHardware: call createInstance");
     if (getNumberOfCameras() == 2) {
-        if (mFrontCameraType == FFC_VENDOR_HTC) {
-            htcCameraSwitch(cameraId);
-        } else if (mFrontCameraType == FFC_VENDOR_LGE) {
-            sp<CameraHardwareInterface> hardware = openCameraHardware(cameraId);
-            if (hardware != NULL) {
-                CameraParameters params(hardware->getParameters());
-                params.set("camera-sensor", cameraId);
-                hardware->setParameters(params);
-            }
-            return hardware;
-        }
+        htcCameraSwitch(cameraId);
 #ifdef BOARD_USE_REVERSE_FFC
         if (cameraId == 1) {
             /* Change default parameters for the front camera */
