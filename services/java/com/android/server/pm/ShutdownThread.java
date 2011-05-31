@@ -88,6 +88,8 @@ public final class ShutdownThread extends Thread {
     private PowerManager.WakeLock mCpuWakeLock;
     private PowerManager.WakeLock mScreenWakeLock;
     private Handler mHandler;
+
+    private static AlertDialog sConfirmDialog;
     
     private ShutdownThread() {
     }
@@ -128,10 +130,12 @@ public final class ShutdownThread extends Thread {
 
         if (confirm) {
             final CloseDialogReceiver closer = new CloseDialogReceiver(context);
-            final AlertDialog dialog;
+            if (sConfirmDialog != null) {
+                sConfirmDialog.dismiss();
+            }
             // Set different dialog message based on whether or not we're rebooting
             if (mReboot && !mRebootSafeMode) {
-                dialog = new AlertDialog.Builder(context)
+                sConfirmDialog = new AlertDialog.Builder(context)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle(com.android.internal.R.string.reboot_system)
                         .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options, 0, new DialogInterface.OnClickListener() {
@@ -161,7 +165,7 @@ public final class ShutdownThread extends Thread {
                             }
                         })
                         .create();
-                        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                        sConfirmDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
                             public boolean onKey (DialogInterface dialog, int keyCode, KeyEvent event) {
                                 if (keyCode == KeyEvent.KEYCODE_BACK) {
                                     mReboot = false;
@@ -174,7 +178,7 @@ public final class ShutdownThread extends Thread {
                 String actions[] = context.getResources().getStringArray(com.android.internal.R.array.shutdown_reboot_actions);
                 mRebootReason = actions[0];
             } else {
-                dialog = new AlertDialog.Builder(context)
+                sConfirmDialog = new AlertDialog.Builder(context)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle(mRebootSafeMode
                                 ? com.android.internal.R.string.reboot_safemode_title
@@ -188,10 +192,10 @@ public final class ShutdownThread extends Thread {
                         .setNegativeButton(com.android.internal.R.string.no, null)
                         .create();
             }
-            closer.dialog = dialog;
-            dialog.setOnDismissListener(closer);
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-            dialog.show();
+            closer.dialog = sConfirmDialog;
+            sConfirmDialog.setOnDismissListener(closer);
+            sConfirmDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+            sConfirmDialog.show();
         } else {
             beginShutdownSequence(context);
         }
