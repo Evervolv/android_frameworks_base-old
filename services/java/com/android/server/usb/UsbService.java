@@ -26,6 +26,7 @@ import android.content.pm.PackageManager;
 import android.hardware.usb.IUsbManager;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
@@ -154,9 +155,14 @@ public class UsbService extends IUsbManager.Stub {
                 Slog.v(TAG, "USB UEVENT: " + event.toString());
             }
 
+            boolean mTetherOnConnection;
+            mTetherOnConnection = (Settings.System.getInt(mContext.getContentResolver(), 
+        			Settings.System.TETHER_ON_PLUGIN, 0) == 1);
+            
             synchronized (mLock) {
                 String name = event.get("SWITCH_NAME");
                 String state = event.get("SWITCH_STATE");
+                
                 if (name != null && state != null) {
                     try {
                         if (mLegacy) {
@@ -183,6 +189,19 @@ public class UsbService extends IUsbManager.Stub {
                                 // trigger an Intent broadcast
                                 if (mSystemReady) {
                                     update(mConnected == 0);
+                                }
+                                
+                                if (mConfiguration == 1 && mTetherOnConnection) {
+                                	
+                                	ConnectivityManager cm = 
+                                		(ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                                    
+                                	String[] mUsbRegexs;
+                                    mUsbRegexs = cm.getTetherableUsbRegexs();
+                                    
+                                    String[] available = cm.getTetherableIfaces();
+                                    String usbIface = findIface(available, mUsbRegexs);
+                                    cm.tether(usbIface);
                                 }
                             }
                         }
@@ -508,6 +527,17 @@ public class UsbService extends IUsbManager.Stub {
         }
     }
 
+    private String findIface(String[] ifaces, String[] regexes) {
+        for (String iface : ifaces) {
+            for (String regex : regexes) {
+                if (iface.matches(regex)) {
+                    return iface;
+                }
+            }
+        }
+        return null;
+    }
+    
     // accessory support
     private native String[] nativeGetAccessoryStrings();
     private native ParcelFileDescriptor nativeOpenAccessory();

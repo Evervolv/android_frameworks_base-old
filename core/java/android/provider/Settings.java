@@ -2151,6 +2151,12 @@ public final class Settings {
 		*/
 		public static final String THEME_IS_SYSTEM = "theme_is_system";
 		
+		/**
+		* USB: Tether data connection upon USB plugging in.
+		* @hide
+		*/
+		public static final String TETHER_ON_PLUGIN = "tether_on_plugin";
+		
         /* END constants for EVParts */
         
         /**
