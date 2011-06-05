@@ -669,7 +669,7 @@ public class StatusBarPolicy {
         try {
             mPhoneSignalHidden = mContext.getResources().getBoolean(
                 R.bool.config_statusbar_hide_phone_signal);
-            mIconOnSignal = mPhoneSignalHidden;
+            mIconOnSignal = (!mPhoneSignalHidden);
         } catch (Exception e) {
             mPhoneSignalHidden = false;
         }
@@ -1147,85 +1147,89 @@ public class StatusBarPolicy {
     private final void updateSignalStrength() {
         int iconLevel = -1;
         int[] iconList;
-
-        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
-        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
         
-        // Display signal strength while in "emergency calls only" mode
-        if (mServiceState == null || (!hasService() && !mServiceState.isEmergencyOnly())) {
-            //Slog.d(TAG, "updateSignalStrength: no service");
-            if (Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.AIRPLANE_MODE_ON, 0) == 1) {
-                mPhoneSignalIconId = R.drawable.stat_sys_signal_flightmode;
-            } else {
-                if (mThemeCompatibility) {
-                	mPhoneSignalIconId = R.drawable.stat_sys_signal_6bar_null;
-                } else {
-                	mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
-                }
-            }
-            mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
-            // set phone_signal visibility false if hidden
-            if (mPhoneSignalHidden || ((sbIconFlags & ICONSIGNAL) == ICONSIGNAL)) {
-                mService.setIconVisibility("phone_signal", false);
-            }
-            return;
+        if ((sbIconFlags & ICONSIGNAL) == ICONSIGNAL) {
+        	mService.setIconVisibility("phone_signal", false);
+        }else {
+	        mThemeCompatibility = Settings.System.getInt(mContext.getContentResolver(), 
+	        		Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
+	        
+	        // Display signal strength while in "emergency calls only" mode
+	        if (mServiceState == null || (!hasService() && !mServiceState.isEmergencyOnly())) {
+	            //Slog.d(TAG, "updateSignalStrength: no service");
+	            if (Settings.System.getInt(mContext.getContentResolver(),
+	                    Settings.System.AIRPLANE_MODE_ON, 0) == 1) {
+	                mPhoneSignalIconId = R.drawable.stat_sys_signal_flightmode;
+	            } else {
+	                if (mThemeCompatibility) {
+	                	mPhoneSignalIconId = R.drawable.stat_sys_signal_6bar_null;
+	                } else {
+	                	mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+	                }
+	            }
+	            mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
+	            // set phone_signal visibility false if hidden
+	            if (mPhoneSignalHidden) {
+	                mService.setIconVisibility("phone_signal", false);
+	            }
+	            return;
+	        }
+	
+	        if (!isCdma()) {
+	            int asu = mSignalStrength.getGsmSignalStrength();
+	
+	            // ASU ranges from 0 to 31 - TS 27.007 Sec 8.5
+	            // asu = 0 (-113dB or less) is very weak
+	            // signal, its better to show 0 bars to the user in such cases.
+	            // asu = 99 is a special case, where the signal strength is unknown.
+	            if (mThemeCompatibility) { // Six bar
+	                if (asu <= 2 || asu == 99) iconLevel = 0;
+	                else if (asu >= 12) iconLevel = 6;
+	                else if (asu >= 10) iconLevel = 5;
+	                else if (asu >= 8) iconLevel = 4;
+	                else if (asu >= 6)  iconLevel = 3;
+	                else if (asu >= 4)  iconLevel = 2;
+	                else iconLevel = 1;
+	            } else {  // Four bar
+	                if (asu <= 2 || asu == 99) iconLevel = 0;
+	                else if (asu >= 12) iconLevel = 4;
+	                else if (asu >= 8)  iconLevel = 3;
+	                else if (asu >= 5)  iconLevel = 2;
+	            }
+	
+	            // Though mPhone is a Manager, this call is not an IPC
+	            if (mPhone.isNetworkRoaming()) {
+	                iconList = sSignalImages_r[mInetCondition];
+	            } else {
+	            	if (mThemeCompatibility) {
+	            		iconList = sSignalImages_6bar[mInetCondition];
+	            	} else {
+	            		iconList = sSignalImages[mInetCondition];
+	            	}
+	            }
+	        } else {
+	        	
+	        	if (mThemeCompatibility) {
+	        		iconList = sSignalImages_6bar[mInetCondition];
+	        	} else {
+	        		iconList = sSignalImages[mInetCondition];
+	        	}
+	
+	            // If 3G(EV) and 1x network are available than 3G should be
+	            // displayed, displayed RSSI should be from the EV side.
+	            // If a voice call is made then RSSI should switch to 1x.
+	            if ((mPhoneState == TelephonyManager.CALL_STATE_IDLE) && isEvdo()){
+	                iconLevel = getEvdoLevel();
+	                if (false) {
+	                    Slog.d(TAG, "use Evdo level=" + iconLevel + " to replace Cdma Level=" + getCdmaLevel());
+	                }
+	            } else {
+	                iconLevel = getCdmaLevel();
+	            }
+	        }
+	        mPhoneSignalIconId = iconList[iconLevel];
+	        mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
         }
-
-        if (!isCdma()) {
-            int asu = mSignalStrength.getGsmSignalStrength();
-
-            // ASU ranges from 0 to 31 - TS 27.007 Sec 8.5
-            // asu = 0 (-113dB or less) is very weak
-            // signal, its better to show 0 bars to the user in such cases.
-            // asu = 99 is a special case, where the signal strength is unknown.
-            if (mThemeCompatibility) { // Six bar
-                if (asu <= 2 || asu == 99) iconLevel = 0;
-                else if (asu >= 12) iconLevel = 6;
-                else if (asu >= 10) iconLevel = 5;
-                else if (asu >= 8) iconLevel = 4;
-                else if (asu >= 6)  iconLevel = 3;
-                else if (asu >= 4)  iconLevel = 2;
-                else iconLevel = 1;
-            } else {  // Four bar
-                if (asu <= 2 || asu == 99) iconLevel = 0;
-                else if (asu >= 12) iconLevel = 4;
-                else if (asu >= 8)  iconLevel = 3;
-                else if (asu >= 5)  iconLevel = 2;
-            }
-
-            // Though mPhone is a Manager, this call is not an IPC
-            if (mPhone.isNetworkRoaming()) {
-                iconList = sSignalImages_r[mInetCondition];
-            } else {
-            	if (mThemeCompatibility) {
-            		iconList = sSignalImages_6bar[mInetCondition];
-            	} else {
-            		iconList = sSignalImages[mInetCondition];
-            	}
-            }
-        } else {
-        	
-        	if (mThemeCompatibility) {
-        		iconList = sSignalImages_6bar[mInetCondition];
-        	} else {
-        		iconList = sSignalImages[mInetCondition];
-        	}
-
-            // If 3G(EV) and 1x network are available than 3G should be
-            // displayed, displayed RSSI should be from the EV side.
-            // If a voice call is made then RSSI should switch to 1x.
-            if ((mPhoneState == TelephonyManager.CALL_STATE_IDLE) && isEvdo()){
-                iconLevel = getEvdoLevel();
-                if (false) {
-                    Slog.d(TAG, "use Evdo level=" + iconLevel + " to replace Cdma Level=" + getCdmaLevel());
-                }
-            } else {
-                iconLevel = getCdmaLevel();
-            }
-        }
-        mPhoneSignalIconId = iconList[iconLevel];
-        mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
     }
 
     private int getCdmaLevel() {
