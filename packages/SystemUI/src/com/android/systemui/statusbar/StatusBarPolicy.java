@@ -30,6 +30,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -58,6 +59,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.util.Slog;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +76,8 @@ import com.android.internal.telephony.cdma.EriInfo;
 import com.android.internal.telephony.cdma.TtyIntent;
 import com.android.server.am.BatteryStatsService;
 import com.android.systemui.R;
+import com.android.systemui.statusbar.Clock.SettingsObserver;
+
 import android.net.wimax.WimaxManagerConstants;
 
 /**
@@ -116,6 +120,7 @@ public class StatusBarPolicy {
     private static final boolean SHOW_BATTERY_WARNINGS_IN_CALL = true;
 
     private boolean mThemeCompatibility;
+    private int mBatteryStyle;
     
     // phone
     private TelephonyManager mPhone;
@@ -625,6 +630,19 @@ public class StatusBarPolicy {
         // battery
         mService.setIcon("battery", com.android.internal.R.drawable.stat_sys_battery_unknown, 0);
 
+        SettingsObserver settingsObserver = new SettingsObserver(mHandler);
+        settingsObserver.observe();
+        
+        mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.BATTERY_STYLE, 2);
+        
+        Log.d(TAG, "mBatteryStyle: " + mBatteryStyle);
+        
+        //if (mBatteryStyle == 3) {
+        	Log.d(TAG, "STYLE = 3");
+        	mService.setIconVisibility("battery", false);
+        //}
+        
         // phone_signal
         mPhone = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
         
@@ -776,7 +794,10 @@ public class StatusBarPolicy {
     private final void updateBattery(Intent intent) {
         final int id = intent.getIntExtra("icon-small", 0);
         int level = intent.getIntExtra("level", 0);
-        mService.setIcon("battery", id, level);
+        
+        if (mBatteryStyle != 3) {
+        	mService.setIcon("battery", id, level);
+        }
 
         boolean plugged = intent.getIntExtra("plugged", 0) != 0;
         level = intent.getIntExtra("level", -1);
@@ -1636,4 +1657,33 @@ public class StatusBarPolicy {
             }
         }
     }
+
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.BATTERY_STYLE), false, this);
+        }
+
+        @Override public void onChange(boolean selfChange) {
+            updateSettings();
+        }
+    }
+    
+    private void updateSettings() {
+    	mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.BATTERY_STYLE, 2);
+    	
+    	if (mBatteryStyle == 3) {
+    		mService.setIconVisibility("battery", false);
+    	} else {
+    		mService.setIconVisibility("battery", true);
+    	}
+    	
+    }
+    
 }
