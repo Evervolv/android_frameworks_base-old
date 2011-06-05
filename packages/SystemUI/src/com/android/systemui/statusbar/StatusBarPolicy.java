@@ -136,8 +136,8 @@ public class StatusBarPolicy {
     private boolean mIconOnSync;
     private boolean mIconOnWifi;
     private boolean mIconOnBt;
-    private boolean mIconOnAlarm; Not used yet..
-    private boolean mIconOnVolue; Not used yet..
+    private boolean mIconOnAlarm;
+    private boolean mIconOnVolue;
     private boolean mIconOnData;
     
     private boolean mThemeCompatibility;
