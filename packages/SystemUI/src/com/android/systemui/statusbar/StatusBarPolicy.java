@@ -99,11 +99,11 @@ public class StatusBarPolicy {
     private static final int ICONGPS 			= 2;
     private static final int ICONSYNC 			= 4;
     private static final int ICONDATA 			= 8;
-    //private static final int ICONALARM 		= 16; Not used yet.
+    private static final int ICONALARM 		= 16;
     private static final int ICONBLUETOOTH 		= 32;
     private static final int ICONSIGNAL 		= 64;
     private static final int ICONBATTERY 		= 128;
-    //private static final int ICONVOLUME 		= 256; Not used yet.
+    private static final int ICONVOLUME 		= 256;
     
     private int sbIconFlags;
     
@@ -136,8 +136,8 @@ public class StatusBarPolicy {
     private boolean mIconOnSync;
     private boolean mIconOnWifi;
     private boolean mIconOnBt;
-    //private boolean mIconOnAlarm; Not used yet..
-    //private boolean mIconOnVolue; Not used yet..
+    private boolean mIconOnAlarm; Not used yet..
+    private boolean mIconOnVolue; Not used yet..
     private boolean mIconOnData;
     
     private boolean mThemeCompatibility;
