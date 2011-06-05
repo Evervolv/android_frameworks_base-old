@@ -95,6 +95,18 @@ public class StatusBarPolicy {
     private static final int AM_PM_STYLE_SMALL   = 1;
     private static final int AM_PM_STYLE_GONE    = 2;
 
+    private static final int ICONWIFI 			= 1;
+    private static final int ICONGPS 			= 2;
+    private static final int ICONSYNC 			= 4;
+    private static final int ICONDATA 			= 8;
+    //private static final int ICONALARM 		= 16; Not used yet.
+    private static final int ICONBLUETOOTH 		= 32;
+    private static final int ICONSIGNAL 		= 64;
+    private static final int ICONBATTERY 		= 128;
+    //private static final int ICONVOLUME 		= 256; Not used yet.
+    
+    private int sbIconFlags;
+    
     private static final int AM_PM_STYLE = AM_PM_STYLE_GONE;
 
     private static final int INET_CONDITION_THRESHOLD = 50;
@@ -119,6 +131,15 @@ public class StatusBarPolicy {
     private static final boolean SHOW_LOW_BATTERY_WARNING = true;
     private static final boolean SHOW_BATTERY_WARNINGS_IN_CALL = true;
 
+    private boolean mIconOnGps;
+    private boolean mIconOnSignal;
+    private boolean mIconOnSync;
+    private boolean mIconOnWifi;
+    private boolean mIconOnBt;
+    //private boolean mIconOnAlarm; Not used yet..
+    //private boolean mIconOnVolue; Not used yet..
+    private boolean mIconOnData;
+    
     private boolean mThemeCompatibility;
     private int mBatteryStyle;
     
@@ -633,16 +654,6 @@ public class StatusBarPolicy {
         SettingsObserver settingsObserver = new SettingsObserver(mHandler);
         settingsObserver.observe();
         
-        mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(), 
-        		Settings.System.BATTERY_STYLE, 2);
-        
-        Log.d(TAG, "mBatteryStyle: " + mBatteryStyle);
-        
-        //if (mBatteryStyle == 3) {
-        	Log.d(TAG, "STYLE = 3");
-        	mService.setIconVisibility("battery", false);
-        //}
-        
         // phone_signal
         mPhone = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
         
@@ -658,6 +669,7 @@ public class StatusBarPolicy {
         try {
             mPhoneSignalHidden = mContext.getResources().getBoolean(
                 R.bool.config_statusbar_hide_phone_signal);
+            mIconOnSignal = mPhoneSignalHidden;
         } catch (Exception e) {
             mPhoneSignalHidden = false;
         }
@@ -776,17 +788,34 @@ public class StatusBarPolicy {
         } catch (Exception e) {
             mHspaDataDistinguishable = false;
         }
+        
+    	sbIconFlags = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.STATUSBAR_ICON_FLAGS, 0);
+        
+        updateSettings(sbIconFlags);
     }
 
     private final void updateAlarm(Intent intent) {
         boolean alarmSet = intent.getBooleanExtra("alarmSet", false);
         mService.setIconVisibility("alarm_clock", alarmSet);
+        if (alarmSet) {
+            mIconOnAlarm = true;
+        } else {
+        	mIconOnAlarm = false;
+        }
     }
 
     private final void updateSyncState(Intent intent) {
         boolean isActive = intent.getBooleanExtra("active", false);
         boolean isFailing = intent.getBooleanExtra("failing", false);
-        mService.setIconVisibility("sync_active", isActive);
+    	if ((sbIconFlags & ICONSYNC) != ICONSYNC) {
+    		mService.setIconVisibility("sync_active", isActive);
+    	}
+    	if (isActive) {
+       		mIconOnSync = true;
+    	} else {
+       		mIconOnSync = false;
+    	}
         // Don't display sync failing icon: BUG 1297963 Set sync error timeout to "never"
         //mService.setIconVisibility("sync_failing", isFailing && !isActive);
     }
@@ -795,7 +824,7 @@ public class StatusBarPolicy {
         final int id = intent.getIntExtra("icon-small", 0);
         int level = intent.getIntExtra("level", 0);
         
-        if (mBatteryStyle != 3) {
+        if ((sbIconFlags & ICONBATTERY) != ICONBATTERY) {
         	mService.setIcon("battery", id, level);
         }
 
@@ -1137,7 +1166,7 @@ public class StatusBarPolicy {
             }
             mService.setIcon("phone_signal", mPhoneSignalIconId, 0);
             // set phone_signal visibility false if hidden
-            if (mPhoneSignalHidden) {
+            if (mPhoneSignalHidden || ((sbIconFlags & ICONSIGNAL) == ICONSIGNAL)) {
                 mService.setIconVisibility("phone_signal", false);
             }
             return;
@@ -1340,10 +1369,37 @@ public class StatusBarPolicy {
     private final void updateDataIcon() {
         int iconId;
         boolean visible = true;
-
-        if (!isCdma()) {
-            // GSM case, we have to check also the sim state
-            if (mSimState == IccCard.State.READY || mSimState == IccCard.State.UNKNOWN) {
+        if ((sbIconFlags & ICONDATA) == ICONDATA) {
+        	mService.setIconVisibility("data_connection", false);
+        } else {
+        	if (!isCdma()) {
+                // GSM case, we have to check also the sim state
+                if (mSimState == IccCard.State.READY || mSimState == IccCard.State.UNKNOWN) {
+                    if (hasService() && mDataState == TelephonyManager.DATA_CONNECTED) {
+                        switch (mDataActivity) {
+                            case TelephonyManager.DATA_ACTIVITY_IN:
+                                iconId = mDataIconList[1];
+                                break;
+                            case TelephonyManager.DATA_ACTIVITY_OUT:
+                                iconId = mDataIconList[2];
+                                break;
+                            case TelephonyManager.DATA_ACTIVITY_INOUT:
+                                iconId = mDataIconList[3];
+                                break;
+                            default:
+                                iconId = mDataIconList[0];
+                                break;
+                        }
+                        mService.setIcon("data_connection", iconId, 0);
+                    } else {
+                        visible = false;
+                    }
+                } else {
+                    iconId = R.drawable.stat_sys_no_sim;
+                    mService.setIcon("data_connection", iconId, 0);
+                }
+            } else {
+                // CDMA case, mDataActivity can be also DATA_ACTIVITY_DORMANT
                 if (hasService() && mDataState == TelephonyManager.DATA_CONNECTED) {
                     switch (mDataActivity) {
                         case TelephonyManager.DATA_ACTIVITY_IN:
@@ -1355,6 +1411,7 @@ public class StatusBarPolicy {
                         case TelephonyManager.DATA_ACTIVITY_INOUT:
                             iconId = mDataIconList[3];
                             break;
+                        case TelephonyManager.DATA_ACTIVITY_DORMANT:
                         default:
                             iconId = mDataIconList[0];
                             break;
@@ -1363,46 +1420,28 @@ public class StatusBarPolicy {
                 } else {
                     visible = false;
                 }
-            } else {
-                iconId = R.drawable.stat_sys_no_sim;
-                mService.setIcon("data_connection", iconId, 0);
             }
-        } else {
-            // CDMA case, mDataActivity can be also DATA_ACTIVITY_DORMANT
-            if (hasService() && mDataState == TelephonyManager.DATA_CONNECTED) {
-                switch (mDataActivity) {
-                    case TelephonyManager.DATA_ACTIVITY_IN:
-                        iconId = mDataIconList[1];
-                        break;
-                    case TelephonyManager.DATA_ACTIVITY_OUT:
-                        iconId = mDataIconList[2];
-                        break;
-                    case TelephonyManager.DATA_ACTIVITY_INOUT:
-                        iconId = mDataIconList[3];
-                        break;
-                    case TelephonyManager.DATA_ACTIVITY_DORMANT:
-                    default:
-                        iconId = mDataIconList[0];
-                        break;
-                }
-                mService.setIcon("data_connection", iconId, 0);
-            } else {
-                visible = false;
+
+            long ident = Binder.clearCallingIdentity();
+            try {
+                mBatteryStats.notePhoneDataConnectionState(mPhone.getNetworkType(), visible);
+            } catch (RemoteException e) {
+            } finally {
+                Binder.restoreCallingIdentity(ident);
             }
-        }
 
-        long ident = Binder.clearCallingIdentity();
-        try {
-            mBatteryStats.notePhoneDataConnectionState(mPhone.getNetworkType(), visible);
-        } catch (RemoteException e) {
-        } finally {
-            Binder.restoreCallingIdentity(ident);
+            if (mDataIconVisible != visible) {
+                mService.setIconVisibility("data_connection", visible);
+                mDataIconVisible = visible;
+            }
+            if (visible) {
+            	mIconOnData = true;
+            } else {
+            	mIconOnData = false;
+            }
+            
         }
-
-        if (mDataIconVisible != visible) {
-            mService.setIconVisibility("data_connection", visible);
-            mDataIconVisible = visible;
-        }
+        
     }
 
     private final void updateVolume() {
@@ -1426,71 +1465,91 @@ public class StatusBarPolicy {
     private final void updateBluetooth(Intent intent) {
         int iconId = R.drawable.stat_sys_data_bluetooth;
         String action = intent.getAction();
-        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-            mBluetoothEnabled = state == BluetoothAdapter.STATE_ON;
-        } else if (action.equals(BluetoothHeadset.ACTION_STATE_CHANGED)) {
-            mBluetoothHeadsetState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE,
-                    BluetoothHeadset.STATE_ERROR);
-        } else if (action.equals(BluetoothA2dp.ACTION_SINK_STATE_CHANGED)) {
-            BluetoothA2dp a2dp = new BluetoothA2dp(mContext);
-            if (a2dp.getConnectedSinks().size() != 0) {
-                mBluetoothA2dpConnected = true;
-            } else {
-                mBluetoothA2dpConnected = false;
-            }
-        } else if (action.equals(BluetoothPbap.PBAP_STATE_CHANGED_ACTION)) {
-            mBluetoothPbapState = intent.getIntExtra(BluetoothPbap.PBAP_STATE,
-                    BluetoothPbap.STATE_DISCONNECTED);
-        } else if (action.equals(BluetoothHid.HID_DEVICE_STATE_CHANGED_ACTION)) {
-            mBluetoothHidState = intent.getIntExtra(BluetoothHid.HID_DEVICE_STATE,
-                    BluetoothHid.STATE_DISCONNECTED);
-        } else {
-            return;
-        }
-
-        if (mBluetoothHeadsetState == BluetoothHeadset.STATE_CONNECTED || mBluetoothA2dpConnected ||
-                mBluetoothHidState == BluetoothHid.STATE_CONNECTED ||
-                mBluetoothPbapState == BluetoothPbap.STATE_CONNECTED) {
-            iconId = R.drawable.stat_sys_data_bluetooth_connected;
-        }
-
-        mService.setIcon("bluetooth", iconId, 0);
-        mService.setIconVisibility("bluetooth", mBluetoothEnabled);
+    	if ((sbIconFlags & ICONBLUETOOTH) != sbIconFlags) {
+    		mService.setIconVisibility("bluetooth", false);
+    	} else {
+	        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+	            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+	            mBluetoothEnabled = state == BluetoothAdapter.STATE_ON;
+	        } else if (action.equals(BluetoothHeadset.ACTION_STATE_CHANGED)) {
+	            mBluetoothHeadsetState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE,
+	                    BluetoothHeadset.STATE_ERROR);
+	        } else if (action.equals(BluetoothA2dp.ACTION_SINK_STATE_CHANGED)) {
+	            BluetoothA2dp a2dp = new BluetoothA2dp(mContext);
+	            if (a2dp.getConnectedSinks().size() != 0) {
+	                mBluetoothA2dpConnected = true;
+	            } else {
+	                mBluetoothA2dpConnected = false;
+	            }
+	        } else if (action.equals(BluetoothPbap.PBAP_STATE_CHANGED_ACTION)) {
+	            mBluetoothPbapState = intent.getIntExtra(BluetoothPbap.PBAP_STATE,
+	                    BluetoothPbap.STATE_DISCONNECTED);
+	        } else if (action.equals(BluetoothHid.HID_DEVICE_STATE_CHANGED_ACTION)) {
+	            mBluetoothHidState = intent.getIntExtra(BluetoothHid.HID_DEVICE_STATE,
+	                    BluetoothHid.STATE_DISCONNECTED);
+	        } else {
+	            return;
+	        }
+	
+	        if (mBluetoothHeadsetState == BluetoothHeadset.STATE_CONNECTED || mBluetoothA2dpConnected ||
+	                mBluetoothHidState == BluetoothHid.STATE_CONNECTED ||
+	                mBluetoothPbapState == BluetoothPbap.STATE_CONNECTED) {
+	            iconId = R.drawable.stat_sys_data_bluetooth_connected;
+	        }
+	
+	        mService.setIcon("bluetooth", iconId, 0);
+	        mService.setIconVisibility("bluetooth", mBluetoothEnabled);
+	        if (mBluetoothEnabled) {
+	        	mIconOnBt = true;
+	        } else {
+	        	mIconOnBt = false;
+	        }
+    	}
+		
     }
 
+
+	
     private final void updateWifi(Intent intent) {
         final String action = intent.getAction();
-        if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
-
-            final boolean enabled = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
-                    WifiManager.WIFI_STATE_UNKNOWN) == WifiManager.WIFI_STATE_ENABLED;
-
-            if (!enabled) {
-                // If disabled, hide the icon. (We show icon when connected.)
-                mService.setIconVisibility("wifi", false);
-            }
-
-        } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
-            final boolean enabled = intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED,
-                                                           false);
-            if (!enabled) {
-                mService.setIconVisibility("wifi", false);
-            }
-        } else if (action.equals(WifiManager.RSSI_CHANGED_ACTION)) {
-            int iconId;
-            final int newRssi = intent.getIntExtra(WifiManager.EXTRA_NEW_RSSI, -200);
-            int newSignalLevel = WifiManager.calculateSignalLevel(newRssi,
-                                                                  sWifiSignalImages[0].length);
-            if (newSignalLevel != mLastWifiSignalLevel) {
-                mLastWifiSignalLevel = newSignalLevel;
-                if (mIsWifiConnected) {
-                    iconId = sWifiSignalImages[mInetCondition][newSignalLevel];
-                } else {
-                    iconId = sWifiTemporarilyNotConnectedImage;
-                }
-                mService.setIcon("wifi", iconId, 0);
-            }
+        
+        if ((sbIconFlags & ICONWIFI) == ICONWIFI) {
+        	mService.setIconVisibility("wifi", false);
+        } else {
+	        if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+	
+	            final boolean enabled = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+	                    WifiManager.WIFI_STATE_UNKNOWN) == WifiManager.WIFI_STATE_ENABLED;
+	
+	            if (!enabled) {
+	                // If disabled, hide the icon. (We show icon when connected.)
+	                mService.setIconVisibility("wifi", false);
+	                mIconOnWifi = false;
+	            }
+	
+	        } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
+	            final boolean enabled = intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED,
+	                                                           false);
+	            if (!enabled) {
+	                mService.setIconVisibility("wifi", false);
+	                mIconOnWifi = false;
+	            }
+	        } else if (action.equals(WifiManager.RSSI_CHANGED_ACTION)) {
+	            int iconId;
+	            final int newRssi = intent.getIntExtra(WifiManager.EXTRA_NEW_RSSI, -200);
+	            int newSignalLevel = WifiManager.calculateSignalLevel(newRssi,
+	                                                                  sWifiSignalImages[0].length);
+	            if (newSignalLevel != mLastWifiSignalLevel) {
+	                mLastWifiSignalLevel = newSignalLevel;
+	                if (mIsWifiConnected) {
+	                    iconId = sWifiSignalImages[mInetCondition][newSignalLevel];
+	                } else {
+	                    iconId = sWifiTemporarilyNotConnectedImage;
+	                }
+	                mService.setIcon("wifi", iconId, 0);
+	                mIconOnWifi = true;
+	            }
+	        }
         }
     }
 
@@ -1563,18 +1622,24 @@ public class StatusBarPolicy {
     private final void updateGps(Intent intent) {
         final String action = intent.getAction();
         final boolean enabled = intent.getBooleanExtra(LocationManager.EXTRA_GPS_ENABLED, false);
-
-        if (action.equals(LocationManager.GPS_FIX_CHANGE_ACTION) && enabled) {
-            // GPS is getting fixes
-            mService.setIcon("gps", com.android.internal.R.drawable.stat_sys_gps_on, 0);
-            mService.setIconVisibility("gps", true);
-        } else if (action.equals(LocationManager.GPS_ENABLED_CHANGE_ACTION) && !enabled) {
-            // GPS is off
-            mService.setIconVisibility("gps", false);
+        if ((sbIconFlags & ICONGPS) == ICONGPS) {
+        	mService.setIconVisibility("gps", false);
         } else {
-            // GPS is on, but not receiving fixes
-            mService.setIcon("gps", R.drawable.stat_sys_gps_acquiring_anim, 0);
-            mService.setIconVisibility("gps", true);
+	        if (action.equals(LocationManager.GPS_FIX_CHANGE_ACTION) && enabled) {
+	            // GPS is getting fixes
+	            mService.setIcon("gps", com.android.internal.R.drawable.stat_sys_gps_on, 0);
+	            mService.setIconVisibility("gps", true);
+	            mIconOnGps = true;
+	        } else if (action.equals(LocationManager.GPS_ENABLED_CHANGE_ACTION) && !enabled) {
+	            // GPS is off
+	            mService.setIconVisibility("gps", false);
+	            mIconOnGps = false;
+	        } else {
+	            // GPS is on, but not receiving fixes
+	            mService.setIcon("gps", R.drawable.stat_sys_gps_acquiring_anim, 0);
+	            mService.setIconVisibility("gps", true);
+	            mIconOnGps = true;
+	        }
         }
     }
 
@@ -1666,24 +1731,75 @@ public class StatusBarPolicy {
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.BATTERY_STYLE), false, this);
+                    Settings.System.STATUSBAR_ICON_FLAGS), false, this);
+            
         }
 
         @Override public void onChange(boolean selfChange) {
-            updateSettings();
+        	sbIconFlags = Settings.System.getInt(mContext.getContentResolver(), 
+            		Settings.System.STATUSBAR_ICON_FLAGS, 0);
+            updateSettings(sbIconFlags);
         }
     }
     
-    private void updateSettings() {
-    	mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(), 
-        		Settings.System.BATTERY_STYLE, 2);
+    private void updateSettings(int flags) {
+
+    	sbIconFlags = Settings.System.getInt(mContext.getContentResolver(), 
+        		Settings.System.STATUSBAR_ICON_FLAGS, 0);
     	
-    	if (mBatteryStyle == 3) {
+    	if ((sbIconFlags & ICONBATTERY) == ICONBATTERY) {
     		mService.setIconVisibility("battery", false);
     	} else {
     		mService.setIconVisibility("battery", true);
     	}
     	
+    	if ((sbIconFlags & ICONDATA) == ICONDATA) {
+    		mService.setIconVisibility("data_connection", false);
+    	} else {
+    		if (mIconOnData) {
+    			mService.setIconVisibility("data_connection", true);
+    		}
+    	}
+    	
+    	if ((sbIconFlags & ICONBLUETOOTH) == ICONBLUETOOTH) {
+    		mService.setIconVisibility("bluetooth", false);
+    	} else {
+    		if (mIconOnBt) {
+    			mService.setIconVisibility("bluetooth", true);
+    		}
+    	}
+    	
+    	if ((sbIconFlags & ICONSYNC) == ICONSYNC) {
+    		mService.setIconVisibility("sync_active", false);
+    	} else {
+    		if (mIconOnSync) {
+    			mService.setIconVisibility("sync_active", true);
+    		}
+    	}
+    	
+    	if ((sbIconFlags & ICONGPS) == ICONGPS) {
+    		mService.setIconVisibility("gps", false);
+    	} else {
+    		if (mIconOnGps) {
+    			mService.setIconVisibility("gps", true);
+    		}
+    	}
+    	
+    	if ((sbIconFlags & ICONWIFI) == ICONWIFI) {
+    		mService.setIconVisibility("wifi", false);
+    	} else {
+    		if (mIconOnWifi) {
+    			mService.setIconVisibility("wifi", true);
+    		}
+    	}
+    	
+    	if ((sbIconFlags & ICONSIGNAL) == ICONSIGNAL) {
+    		mService.setIconVisibility("phone_signal", false);
+    	} else {
+    		if (mIconOnSignal) {
+    			mService.setIconVisibility("phone_signal", true);
+    		}
+    	}
     }
     
 }

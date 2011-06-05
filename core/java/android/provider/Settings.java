@@ -2157,6 +2157,12 @@ public final class Settings {
 		*/
 		public static final String TETHER_ON_PLUGIN = "tether_on_plugin";
 		
+		/**
+		* Statusbar Icon Flags: Stores the flags used to show/hide various statusbar icons.
+		* @hide
+		*/
+		public static final String STATUSBAR_ICON_FLAGS = "statusbar_icon_flags";
+		
         /* END constants for EVParts */
         
         /**
