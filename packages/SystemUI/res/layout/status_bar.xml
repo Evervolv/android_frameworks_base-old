@@ -48,7 +48,7 @@
             android:layout_alignParentRight="true"
             android:paddingRight="6dip"
             android:gravity="center_vertical"
-            android:orientation="horizontal"/>    
+            android:orientation="horizontal"/>
 
         <com.android.systemui.statusbar.Clock
             android:textAppearance="@*android:style/TextAppearance.StatusBar.Icon"
@@ -65,19 +65,19 @@
              be too small for tablets, but it can easily be changed in device overlay along
              with the size of the statusbar in dimens.xml.  -->
         <ImageButton android:id="@+id/status_home"
-            android:layout_width="25dip"
+            android:layout_width="35dip"
             android:layout_height="match_parent"
             android:background="@drawable/ic_statusbar_home"
             android:visibility="gone"/>
 
         <ImageButton android:id="@+id/status_menu"
-            android:layout_width="25dip"
+            android:layout_width="35dip"
             android:layout_height="match_parent"
             android:background="@drawable/ic_statusbar_menu"
             android:visibility="gone"/>
 
         <ImageButton android:id="@+id/status_back"
-            android:layout_width="25dip"
+            android:layout_width="35dip"
             android:layout_height="match_parent"
             android:background="@drawable/ic_statusbar_back"
             android:paddingRight="6dip"
