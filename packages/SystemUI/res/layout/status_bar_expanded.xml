@@ -17,8 +17,15 @@
 ** limitations under the License.
 */
 -->
-
-<com.android.systemui.statusbar.ExpandedView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.android.systemui.statusbar.ExpandedViewPlus 
+	     xmlns:android="http://schemas.android.com/apk/res/android"
+	     xmlns:ma="http://com.android.systemui.statusbar.widget"
+	     android:layout_height="fill_parent" 
+	     android:layout_width="fill_parent" 
+	     android:orientation="vertical">
+<com.android.systemui.statusbar.ExpandedView
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     android:orientation="vertical"
     android:focusable="true"
     android:descendantFocusability="afterDescendants"
@@ -128,3 +135,14 @@
 
     </FrameLayout>
 </com.android.systemui.statusbar.ExpandedView>
+
+	<com.android.systemui.statusbar.widget.DockPanel
+		android:layout_width="wrap_content" 
+		android:layout_height="fill_parent"
+		android:layout_gravity="right" 
+		ma:dockPosition="right"
+		ma:handleButtonDrawableResourceId="@drawable/right_dock_handle"
+		ma:contentLayoutId="@layout/dockpanel_vertical_content"
+		ma:animationDuration="1000" />
+
+</com.android.systemui.statusbar.ExpandedViewPlus>

@@ -131,7 +131,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
     // expanded notifications
     private boolean mUseTransparentStatusBar = true;
     Dialog mExpandedDialog;
-    ExpandedView mExpandedView;
+    ExpandedViewPlus mExpandedView;
     WindowManager.LayoutParams mExpandedParams;
     ScrollView mScrollView;
     View mNotificationLinearLayout;
@@ -292,7 +292,7 @@ public class StatusBarService extends Service implements CommandQueue.Callbacks 
 
         mIconSize = res.getDimensionPixelSize(com.android.internal.R.dimen.status_bar_icon_size);
 
-        ExpandedView expanded = (ExpandedView)View.inflate(context,
+        ExpandedViewPlus expanded = (ExpandedViewPlus)View.inflate(context,
                 R.layout.status_bar_expanded, null);
         expanded.mService = this;
 
