@@ -1182,7 +1182,7 @@ public class StatusBarPolicy {
 	            // asu = 0 (-113dB or less) is very weak
 	            // signal, its better to show 0 bars to the user in such cases.
 	            // asu = 99 is a special case, where the signal strength is unknown.
-	            if (mThemeCompatibility) { // Six bar
+	            if ((mThemeCompatibility) && (!mPhone.isNetworkRoaming())) { // Six bar
 	                if (asu <= 2 || asu == 99) iconLevel = 0;
 	                else if (asu >= 12) iconLevel = 6;
 	                else if (asu >= 10) iconLevel = 5;

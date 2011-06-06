@@ -1,3 +1,4 @@
+package com.android.systemui.statusbar;
 /*
  * Copyright (C) 2008 The Android Open Source Project
  *
@@ -14,23 +15,22 @@
  * limitations under the License.
  */
 
-package com.android.systemui.statusbar;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.util.Slog;
 
 
-public class ExpandedView extends LinearLayout {
+public class ExpandedViewPlus extends FrameLayout {
     StatusBarService mService;
     int mPrevHeight = -1;
 
-    public ExpandedView(Context context, AttributeSet attrs) {
+    public ExpandedViewPlus(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -53,7 +53,7 @@ public class ExpandedView extends LinearLayout {
              //Slog.d(StatusBarService.TAG, "height changed old=" + mPrevHeight
              //     + " new=" + height);
              mPrevHeight = height;
-             //mService.updateExpandedViewPos(StatusBarService.EXPANDED_LEAVE_ALONE);
+             mService.updateExpandedViewPos(StatusBarService.EXPANDED_LEAVE_ALONE);
          }
      }
 }
