@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	      android:orientation="vertical"
+	      android:background="@drawable/widget_bg"
+	      android:clickable="true" 
+	      android:layout_width="fill_parent"
+	      android:layout_height="wrap_content">
+    	<LinearLayout
+    	android:orientation="horizontal"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+	android:paddingLeft="16dip"
+	android:paddingTop="15dip">
+  
+		<ImageButton android:id="@+id/Widget01"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_airplane_mode">
+		</ImageButton>
+
+		<ImageButton android:id="@+id/Widget02"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_wifi">
+		</ImageButton>
+
+		<ImageButton android:id="@+id/Widget03"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_wimax">
+		</ImageButton>
+
+		<ImageButton android:id="@+id/Widget04"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_bluetooth">
+		</ImageButton>
+
+	</LinearLayout>
+
+    	<LinearLayout
+    	android:orientation="horizontal"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+	android:paddingLeft="16dip">
+
+		<ImageButton android:id="@+id/Widget05"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_sync">
+		</ImageButton>
+
+		<ImageButton android:id="@+id/Widget06"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_mobile_data">
+		</ImageButton>
+
+		<ImageButton android:id="@+id/Widget07"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_orientation">
+		</ImageButton>
+
+		<ImageButton android:id="@+id/Widget08"
+			     android:layout_width="wrap_content"
+			     android:layout_height="wrap_content"
+			     android:paddingLeft="10dip"
+			     android:src="@drawable/widget_hotspot">
+		</ImageButton>
+
+	</LinearLayout>
+</LinearLayout>

@@ -137,12 +137,13 @@
 </com.android.systemui.statusbar.ExpandedView>
 
 	<com.android.systemui.statusbar.widget.DockPanel
-		android:layout_width="wrap_content" 
-		android:layout_height="fill_parent"
-		android:layout_gravity="right" 
-		ma:dockPosition="right"
-		ma:handleButtonDrawableResourceId="@drawable/right_dock_handle"
-		ma:contentLayoutId="@layout/dockpanel_vertical_content"
-		ma:animationDuration="1000" />
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:layout_gravity="top" 
+		ma:dockPosition="top"
+		ma:isOpen="false"
+		ma:handleButtonDrawableResourceId="@drawable/top_dock_handle"
+		ma:contentLayoutId="@layout/dockpanel_horizontal_content"
+		ma:animationDuration="300" />
 
 </com.android.systemui.statusbar.ExpandedViewPlus>
