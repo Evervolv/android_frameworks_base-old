@@ -2156,6 +2156,12 @@ public final class Settings {
 		* @hide
 		*/
 		public static final String TETHER_ON_PLUGIN = "tether_on_plugin";
+
+		/**
+		* USB: Tethering enabled/disabled.
+		* @hide
+		*/
+		public static final String USB_TETHER = "usb_tether";
 		
 		/**
 		* Statusbar Icon Flags: Stores the flags used to show/hide various statusbar icons.

@@ -157,12 +157,15 @@ public class UsbService extends IUsbManager.Stub {
 
             boolean mTetherOnConnection;
             mTetherOnConnection = (Settings.System.getInt(mContext.getContentResolver(), 
-        			Settings.System.TETHER_ON_PLUGIN, 0) == 1);
-            
+                Settings.System.TETHER_ON_PLUGIN, 0) == 1);
+
+            boolean mUsbTether = (Settings.System.getInt(mContext.getContentResolver(), 
+                Settings.System.USB_TETHER, 0) == 1);
+
             synchronized (mLock) {
                 String name = event.get("SWITCH_NAME");
                 String state = event.get("SWITCH_STATE");
-                
+
                 if (name != null && state != null) {
                     try {
                         if (mLegacy) {
@@ -185,20 +188,19 @@ public class UsbService extends IUsbManager.Stub {
                                     update(mConnected == 0);
                                 }
                             } else if ("usb_configuration".equals(name)) {
+
                                 mConfiguration = intState;
                                 // trigger an Intent broadcast
                                 if (mSystemReady) {
                                     update(mConnected == 0);
                                 }
-                                
-                                if (mConfiguration == 1 && mTetherOnConnection) {
-                                	
-                                	ConnectivityManager cm = 
-                                		(ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-                                    
-                                	String[] mUsbRegexs;
+
+                                if (mConfiguration == 1 && mTetherOnConnection && !mUsbTether) {
+                                    ConnectivityManager cm =
+                                        (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                                    String[] mUsbRegexs;
                                     mUsbRegexs = cm.getTetherableUsbRegexs();
-                                    
+
                                     String[] available = cm.getTetherableIfaces();
                                     String usbIface = findIface(available, mUsbRegexs);
                                     cm.tether(usbIface);
@@ -537,7 +539,7 @@ public class UsbService extends IUsbManager.Stub {
         }
         return null;
     }
-    
+
     // accessory support
     private native String[] nativeGetAccessoryStrings();
     private native ParcelFileDescriptor nativeOpenAccessory();
