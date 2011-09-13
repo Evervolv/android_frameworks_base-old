@@ -1,21 +1,32 @@
 package com.android.systemui.statusbar.widget;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.View.OnTouchListener;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.view.animation.Animation.AnimationListener;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.ViewFlipper;
+import com.android.systemui.R;
 
 public class DockPanel extends LinearLayout {
 
@@ -32,7 +43,15 @@ public class DockPanel extends LinearLayout {
 	private FrameLayout contentPlaceHolder;
 	private ImageButton toggleButton;
 	private int animationDuration;
-
+	
+	private ViewFlipper mToolboxFlipper;
+	private TextView mIndicText;
+	private Button mNextButton;
+	private Button mPrevButton;
+	
+	private Context mContext;
+	private GridView mWidgetGrid;
+    private List<WidgetItems> widgetList = new ArrayList<WidgetItems>();
 	// =========================================
 	// Constructors
 	// =========================================
@@ -40,11 +59,12 @@ public class DockPanel extends LinearLayout {
 	public DockPanel(Context context, int contentLayoutId,
 			int handleButtonDrawableId, Boolean isOpen) {
 		super(context);
-
+		
 		this.contentLayoutId = contentLayoutId;
 		this.handleButtonDrawableId = handleButtonDrawableId;
 		this.isOpen = isOpen;
-
+		mContext = context;
+		
 		Init(null);
 	}
 
@@ -54,6 +74,7 @@ public class DockPanel extends LinearLayout {
 		// to prevent from crashing the designer
 		try {
 			Init(attrs);
+			mContext = context;
 		} catch (Exception ex) {
 		}
 	}
@@ -108,8 +129,46 @@ public class DockPanel extends LinearLayout {
 		if (!isOpen) {
 			contentPlaceHolder.setVisibility(GONE);
 		}
+
+		initButtons();
+		mWidgetGrid = (GridView) findViewById(R.id.widget_grid);
+		mToolboxFlipper = (ViewFlipper) findViewById(R.id.toolbox_flipper);
+		mIndicText = (TextView) findViewById(R.id.view_indic);
+		setViewIndic(mToolboxFlipper.getCurrentView());
+		loadWidgets();
 	}
 
+    private void loadWidgets() {
+		for (String widget: getResources().getStringArray(R.array.widget_types)) {
+			WidgetItems widgets = new WidgetItems(widget);
+			widgetList.add(widgets);
+		}
+		
+		WidgetAdapter adapter = new WidgetAdapter(
+				getContext(), R.layout.widget_button, widgetList);
+		
+		mWidgetGrid.setAdapter(adapter);
+    }
+	
+	private void initButtons() {
+		mNextButton = (Button) findViewById(R.id.next_button);
+		mNextButton.setOnClickListener(new OnClickListener() {
+		    @Override
+		    public void onClick(View v) {
+		    	nextView();
+		    }
+		});
+		
+		mPrevButton = (Button) findViewById(R.id.prev_button);
+		mPrevButton.setOnClickListener(new OnClickListener() {
+		    @Override
+		    public void onClick(View v) {
+		    	previousView();
+		    }
+		});
+
+	}
+	
 	private void setDefaultValues(AttributeSet attrs) {
 		// set default values
 		isOpen = true;
@@ -315,6 +374,28 @@ public class DockPanel extends LinearLayout {
 			}
 		});
 		return animation;
+	}
+
+	private void previousView() {
+		mToolboxFlipper.setInAnimation(this.getContext(), R.anim.in_animation1);
+		mToolboxFlipper.setOutAnimation(this.getContext(), R.anim.out_animation1);
+		mToolboxFlipper.showPrevious();
+		setViewIndic(mToolboxFlipper.getCurrentView());
+	}
+	private void nextView() {
+		
+		mToolboxFlipper.setInAnimation(this.getContext(), R.anim.in_animation);
+		mToolboxFlipper.setOutAnimation(this.getContext(), R.anim.out_animation);
+		mToolboxFlipper.showNext();
+		setViewIndic(mToolboxFlipper.getCurrentView());
+	}
+
+	private void setViewIndic(View currentView) {
+		if (currentView == findViewById(R.id.flipper_ll_widgets)) {
+			mIndicText.setText("Power Widgets");
+		} else if (currentView == findViewById(R.id.flipper_ll_media)) {
+			mIndicText.setText("Sound & Media");
+		}
 	}
 
 }

@@ -73,4 +73,15 @@
     <!-- Checkbox label for USB accessory dialogs.  [CHAR LIMIT=50] -->
     <string name="always_use_accessory">Use by default for this USB accessory</string>
 
+    <!-- Strings for Notification toolbox -->
+
+    <string name="prev_butt_text">\u003c\u003c</string>
+    <string name="next_butt_text">\u003e\u003e</string>
+    <string name="hide_butt_text">Hide</string>
+    <string name="text_media">Media</string>
+    <string name="text_volume_control">Volume Control</string>
+    <string name="text_ringtone">Ringtone</string>
+    <string name="text_media_control">Media Control</string>
+    <string name="text_view_indic">View Indicitator</string>
+
 </resources>

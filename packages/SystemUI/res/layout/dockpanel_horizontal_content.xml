@@ -1,80 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	      android:orientation="vertical"
-	      android:background="@drawable/widget_bg"
-	      android:clickable="true" 
+	      android:clickable="true"
+	      android:background="#FF000000"
 	      android:layout_width="fill_parent"
 	      android:layout_height="wrap_content">
-    	<LinearLayout
-    	android:orientation="horizontal"
-    	android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-	android:paddingLeft="16dip"
-	android:paddingTop="15dip">
-  
-		<ImageButton android:id="@+id/Widget01"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_airplane_mode">
-		</ImageButton>
+	<RelativeLayout android:id="@+id/ll_toolbox_header" android:background="#FF696969" android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+		
+		<Button android:id="@+id/prev_button"
+			android:text="@string/prev_butt_text"
+			android:textSize="20dip"
+			android:background="@drawable/flipper_header_buttons"
+			android:paddingLeft="20dip"
+			android:paddingRight="20dip"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true">
+		</Button>
+		<TextView android:id="@+id/view_indic"
+			android:text="@string/text_view_indic" 
+			android:layout_height="wrap_content"
+			android:layout_width="match_parent"
+			android:layout_toRightOf="@+id/prev_button"
+			android:layout_toLeftOf="@+id/next_button"
+			android:layout_centerInParent="true"
+			android:gravity="center">
+		</TextView>
+		<Button android:id="@+id/next_button"
+			android:text="@string/next_butt_text"
+			android:textSize="20dip"
+			android:background="@drawable/flipper_header_buttons"
+			android:paddingLeft="20dip"
+			android:paddingRight="20dip"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentRight="true">
+		</Button>
+			
+	</RelativeLayout>
+	
+	<ViewFlipper android:id="@+id/toolbox_flipper"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        
+		<!--    Each added layout is a new view for the ViewFlipper   -->
+        <include
+        layout="@layout/layout_power_widgets"
+        android:id="@+id/flipper_ll_widgets" />
+        
+        <include
+        layout="@layout/layout_sound_media"
+        android:id="@+id/flipper_ll_media" />
+	      
+	</ViewFlipper>
+	
+	<Button android:id="@+id/hide_button"
+		android:text="@string/hide_butt_text"
+		android:textSize="20dip"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:layout_alignParentBottom="true">
+	</Button>	
 
-		<ImageButton android:id="@+id/Widget02"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_wifi">
-		</ImageButton>
-
-		<ImageButton android:id="@+id/Widget03"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_wimax">
-		</ImageButton>
-
-		<ImageButton android:id="@+id/Widget04"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_bluetooth">
-		</ImageButton>
-
-	</LinearLayout>
-
-    	<LinearLayout
-    	android:orientation="horizontal"
-    	android:layout_width="fill_parent"
-    	android:layout_height="wrap_content"
-	android:paddingLeft="16dip">
-
-		<ImageButton android:id="@+id/Widget05"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_sync">
-		</ImageButton>
-
-		<ImageButton android:id="@+id/Widget06"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_mobile_data">
-		</ImageButton>
-
-		<ImageButton android:id="@+id/Widget07"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_orientation">
-		</ImageButton>
-
-		<ImageButton android:id="@+id/Widget08"
-			     android:layout_width="wrap_content"
-			     android:layout_height="wrap_content"
-			     android:paddingLeft="10dip"
-			     android:src="@drawable/widget_hotspot">
-		</ImageButton>
-
-	</LinearLayout>
 </LinearLayout>

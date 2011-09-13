@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--NEXT
+Translate: Attribute to move a view
+Second Frame
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- fade -->
+<alpha
+android:fromAlpha="1.0"
+android:toAlpha="0.5"
+android:duration="300"
+/>
+<!--Move  -->
+<translate
+android:interpolator="@android:anim/accelerate_interpolator"
+android:fromXDelta="0"
+android:toXDelta="100%"
+android:duration="350"
+/>
+</set>

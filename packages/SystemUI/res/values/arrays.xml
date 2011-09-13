@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="widget_types">
+	    <item>toggleWimax</item>
+	    <item>toggleWifi</item>
+	    <item>toggleGps</item>
+	    <item>toggleSync</item>
+	    <item>toggleWimax</item>
+	    <item>toggleWifi</item>
+	    <item>toggleGps</item>
+	    <item>toggleSync</item>
+	    <item>toggleWimax</item>
+	    <item>toggleWifi</item>
+	    <item>toggleGps</item>
+	    <item>toggleSync</item>
+	    <item>toggleWimax</item>
+	    <item>toggleWifi</item>
+	    <item>toggleGps</item>
+	    <item>toggleSync</item>
+    </string-array>
+</resources>
