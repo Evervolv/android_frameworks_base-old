@@ -123,12 +123,14 @@
         <item>Reboot</item>
         <item>Recovery</item>
         <item>Bootloader</item>
+        <item>Hot Reboot</item>
     </array>
 
     <string-array name="shutdown_reboot_actions">
         <item></item>
         <item>recovery</item>
         <item>bootloader</item>
+        <item>hot</item>
     </string-array>
 
 </resources>
