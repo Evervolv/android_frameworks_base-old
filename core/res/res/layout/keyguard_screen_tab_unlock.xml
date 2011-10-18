@@ -160,6 +160,12 @@
         android:layout_marginBottom="60dip"
         />
 
+    <com.android.internal.widget.RingSelector
+        android:id="@+id/ring_selector"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
 
     <!-- emergency call button shown when sim is PUKd and tab_selector is
          hidden -->

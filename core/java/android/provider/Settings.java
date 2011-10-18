@@ -934,6 +934,76 @@ public final class Settings {
 
         /**
          * Convenience function for retrieving a single system settings value
+         * as an array of {@code long}.  Note that internally setting values are always
+         * stored as strings; this function converts the string to a {@code long}
+         * array for you.  The default value will be returned if the setting is
+         * not defined or not a {@code long} array.
+         *
+         * @param cr The ContentResolver to access.
+         * @param name The name of the setting to retrieve.
+         * @param def Value to return if the setting is not defined.
+         *
+         * @return The setting's current value, or 'def' if it is not defined
+         * or not a valid {@code long}.
+         * @hide
+         */
+        public static long[] getLongArray(ContentResolver cr, String name, long[] def) {
+            String valString = getString(cr, name);
+            long[] value;
+
+            try {
+                value = valString != null ? stringToLongArray(valString) : def;
+            } catch (NumberFormatException e) {
+                value = def;
+            }
+            return value;
+        }
+
+        /**
+         * Convenience function for retrieving a single system settings value
+         * as an array of {@code long}.  Note that internally setting values are always
+         * stored as strings; this function converts the string to a {@code long} array
+         * for you.
+         * <p>
+         * This version does not take a default value.  If the setting has not
+         * been set, or the string value is not a number,
+         * it throws {@link SettingNotFoundException}.
+         *
+         * @param cr The ContentResolver to access.
+         * @param name The name of the setting to retrieve.
+         *
+         * @return The setting's current value.
+         * @throws SettingNotFoundException Thrown if a setting by the given
+         * name can't be found or the setting value is not a long array.
+         * @hide
+         */
+        public static long[] getLongArray(ContentResolver cr, String name)
+                throws SettingNotFoundException {
+            String valString = getString(cr, name);
+            try {
+                return stringToLongArray(valString);
+            } catch (NumberFormatException e) {
+                throw new SettingNotFoundException(name);
+            }
+        }
+        
+        private static long[] stringToLongArray(String inpString)
+        		throws NumberFormatException {
+        	if (inpString == null) {
+        		throw new NumberFormatException();
+    		}
+    		String[] splitStr = inpString.split(",");
+    		int los = splitStr.length;
+    		long[] returnLong = new long[los];
+    		int i;
+    		for (i = 0; i < los; i++) {
+        		returnLong[i] = Long.parseLong(splitStr[i].trim());
+    		}
+    		return returnLong;
+        }
+        
+        /**
+         * Convenience function for retrieving a single system settings value
          * as a floating point number.  Note that internally setting values are
          * always stored as strings; this function converts the string to an
          * float for you. The default value will be returned if the setting
@@ -2078,10 +2148,31 @@ public final class Settings {
          * Which lockscreen style to use. The value is an integer.
          * ( 1 - Tabs style     )
          * ( 2 - Rotary style   )
-         * ( 3 - Unknown style  )
+         * ( 3 - Ring style  )
          * @hide
          */
 		public static final String LOCKSCREEN_STYLE = "lockscreen_style";
+		
+        /**
+         * Which lockscreen ring location to use. The value is an integer.
+         * ( 0 - Right     )
+         * ( 1 - Left  )
+         * ( 2 - Bottom  )
+         * ( 3 - Center  )
+         * @hide
+         */
+		public static final String LOCKSCREEN_RING_LOCATION = "lockscreen_ring_location";
+		
+        /**
+		* Ring Apps to launch with ring style and custom app toggle enabled
+		* @hide
+		*/
+        public static final String[] LOCKSCREEN_CUSTOM_RING_APP_ACTIVITIES = new String[] {
+            "lockscreen_custom_app_activity_1",
+            "lockscreen_custom_app_activity_2",
+            "lockscreen_custom_app_activity_3",
+            "lockscreen_custom_app_activity_4"
+        };
 		
         /**
          * Whether or not to use the screen on animation. The value is boolean (1 or 0).
