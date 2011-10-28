@@ -500,6 +500,10 @@ public class RingSelector extends ViewGroup {
             parent.addView(ring);
         }
 
+        void setActiveState(boolean active) {
+            isActive = active;
+        }
+
         void setHiddenState(boolean hidden) {
             isHidden = hidden;
             if (hidden) hide();
@@ -528,7 +532,7 @@ public class RingSelector extends ViewGroup {
 
         void activate() {
             if (isActive) return;
-            isActive = true;
+            setActiveState(true);
 
             ScaleAnimation scaleAnim = new ScaleAnimation(1.0f, 1.5f, 1.0f, 1.5f,
                     Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
@@ -540,7 +544,7 @@ public class RingSelector extends ViewGroup {
 
         void deactivate() {
             if (!isActive) return;
-            isActive = false;
+            setActiveState(false);
 
             ScaleAnimation scaleAnim = new ScaleAnimation(1.5f, 1.0f, 1.5f, 1.0f,
                     Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
@@ -598,9 +602,11 @@ public class RingSelector extends ViewGroup {
 
                 if (alignment == ALIGN_PHONE) {
                     // answer ring(0) and decline ring(1)
-                    alignCenterY = parentHeight * 3 / 4;
-                    alignCenterX = (ringNum * 2 + 1) * parentWidth / 4;
-
+                    if (ringNum <= 1) {
+                        alignCenterY = parentHeight * 3 / 4;
+                        alignCenterX = (ringNum * 2 + 1) * parentWidth / 4;
+                        mSecRings[ringNum].show();
+                    }
                 } else if (alignment == ALIGN_BOTTOM) {
                     if (ringNum <= 3) { // app rings
                         alignCenterY = parentHeight * 3 / 4 - hRingHeight;
@@ -891,10 +897,13 @@ public class RingSelector extends ViewGroup {
 
                         dispatchTriggerEvent(OnRingTriggerListener.MIDDLE_RING, secIdx);
                         startAnimating();
-                        
-                        for (SecRing secRing : mSecRings) {
-                            secRing.hide();
+
+                        if (mRingAlignment != ALIGN_PHONE) {
+                            for (SecRing secRing : mSecRings) {
+                                secRing.hide();
+                            }
                         }
+                        mSecRings[secIdx].setActiveState(false);
                         
                         setGrabbedState(OnRingTriggerListener.NO_RING);
                         setKeepScreenOn(false);
@@ -908,8 +917,10 @@ public class RingSelector extends ViewGroup {
                     mCurrentRing.hideTarget();
                     mCurrentRing = null;
 
-                    for (SecRing secRing : mSecRings) {
-                        secRing.hide();
+                    if (mRingAlignment != ALIGN_PHONE) {
+                        for (SecRing secRing : mSecRings) {
+                            secRing.hide();
+                        }
                     }
 
                     setGrabbedState(OnRingTriggerListener.NO_RING);
@@ -950,6 +961,11 @@ public class RingSelector extends ViewGroup {
     private void onAnimationDone() {
         resetView();
         mAnimating = false;
+
+        if (mRingAlignment == ALIGN_PHONE) {
+            mSecRings[0].show();
+            mSecRings[1].show();
+        }
     }
 
     private boolean isHorizontal() {
