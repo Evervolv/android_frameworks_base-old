@@ -59,6 +59,14 @@ LOCAL_C_INCLUDES:= \
         $(TOP)/external/tremolo \
         $(TOP)/external/openssl/include \
 
+
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_C_INCLUDES += \
+    $(TOP)/hardware/qcom/display/libgralloc \
+    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
+
 LOCAL_SHARED_LIBRARIES := \
         libbinder         \
         libmedia          \

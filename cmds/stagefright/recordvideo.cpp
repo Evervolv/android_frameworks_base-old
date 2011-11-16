@@ -27,6 +27,10 @@
 #include <media/stagefright/OMXCodec.h>
 #include <media/MediaPlayerInterface.h>
 
+#ifdef QCOM_HARDWARE
+#include <OMX_QCOMExtns.h>
+#endif
+
 using namespace android;
 
 // Print usage showing how to use this utility to record videos

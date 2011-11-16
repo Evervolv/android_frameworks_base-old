@@ -15,8 +15,15 @@ LOCAL_C_INCLUDES:= \
 	frameworks/base/media/libstagefright \
 	frameworks/base/media/libstagefright/include \
 	$(TOP)/frameworks/base/include/media/stagefright/openmax \
-        external/skia/include/core \
-        external/skia/include/images \
+	external/skia/include/core \
+	external/skia/include/images \
+
+
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_C_INCLUDES += \
+    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
 
 LOCAL_CFLAGS += -Wno-multichar
 
@@ -65,6 +72,12 @@ LOCAL_C_INCLUDES:= \
 	$(JNI_H_INCLUDE) \
 	frameworks/base/media/libstagefright \
 	$(TOP)/frameworks/base/include/media/stagefright/openmax
+
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_C_INCLUDES += \
+    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
 
 LOCAL_CFLAGS += -Wno-multichar
 
@@ -115,6 +128,12 @@ LOCAL_C_INCLUDES:= \
 	frameworks/base/media/libstagefright \
 	$(TOP)/frameworks/base/include/media/stagefright/openmax
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_C_INCLUDES += \
+    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
+
 LOCAL_CFLAGS += -Wno-multichar
 
 LOCAL_MODULE_TAGS := debug
@@ -138,6 +157,12 @@ LOCAL_C_INCLUDES:= \
 	$(JNI_H_INCLUDE) \
 	frameworks/base/media/libstagefright \
 	$(TOP)/frameworks/base/include/media/stagefright/openmax
+
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+LOCAL_C_INCLUDES += \
+    $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
+LOCAL_CFLAGS += -DQCOM_HARDWARE
+endif
 
 LOCAL_CFLAGS += -Wno-multichar
 
