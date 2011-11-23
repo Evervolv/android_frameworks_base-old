@@ -2322,7 +2322,7 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
                  HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED : def.format.video.eColorFormat;
 
     if(def.format.video.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar)
-        format = HAL_PIXEL_FORMAT_YCbCr_420_SP;
+        format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
 
     err = native_window_set_buffers_geometry(
             mNativeWindow.get(),
