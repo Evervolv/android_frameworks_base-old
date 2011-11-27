@@ -818,6 +818,12 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
                 return ERROR_UNSUPPORTED;
             }
 
+            if(!strcmp(mComponentName, "OMX.google.h264.decoder")
+                && (profile != kAVCProfileBaseline)) {
+                // The profile is unsupported by the decoder
+                return ERROR_UNSUPPORTED;
+            }
+
         } else if (meta->findData(kKeyVorbisInfo, &type, &data, &size)) {
             addCodecSpecificData(data, size);
 
