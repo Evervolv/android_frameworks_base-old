@@ -39,10 +39,15 @@ ifeq ($(USE_OPENGL_RENDERER),true)
 		external/skia/src/ports \
 		external/skia/include/utils
 
+ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+	LOCAL_C_INCLUDES += \
+		hardware/qcom/display/libtilerenderer
+endif
+
 	LOCAL_CFLAGS += -DUSE_OPENGL_RENDERER -DGL_GLEXT_PROTOTYPES
 	LOCAL_CFLAGS += -fvisibility=hidden
 	LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-	LOCAL_SHARED_LIBRARIES := libcutils libutils libGLESv2 libskia libui
+	LOCAL_SHARED_LIBRARIES := libcutils libutils libGLESv2 libskia libui libtilerenderer
 	LOCAL_MODULE := libhwui
 	LOCAL_MODULE_TAGS := optional
 	
