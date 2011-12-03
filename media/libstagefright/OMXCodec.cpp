@@ -2148,6 +2148,7 @@ status_t OMXCodec::allocateBuffersOnPort(OMX_U32 portIndex) {
     status_t err = OK;
     if ((mFlags & kStoreMetaDataInVideoBuffers)
             && portIndex == kPortIndexInput) {
+        LOGW("Trying to enable metadata mode on encoder");
         err = mOMX->storeMetaDataInBuffers(mNode, kPortIndexInput, OMX_TRUE);
         if (err != OK) {
             LOGE("Storing meta data in video buffers is not supported");
@@ -3717,7 +3718,7 @@ void OMXCodec::drainInputBuffers() {
             }
 
 #ifdef QCOM_HARDWARE
-            if(mIsEncoder && (mQuirks & kAvoidMemcopyInputRecordingFrames) && (i == CAMERA_BUFFERS))
+            if(mIsEncoder && (i == CAMERA_BUFFERS))
                 break;
 #endif
 
