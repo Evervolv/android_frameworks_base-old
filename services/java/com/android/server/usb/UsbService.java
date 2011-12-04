@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.hardware.usb.IUsbManager;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbDevice;
@@ -110,6 +111,8 @@ public class UsbService extends IUsbManager.Stub {
         if (mDeviceManager != null) {
             mDeviceManager.setCurrentSettings(userSettings);
         }
+        else if(new File(Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile)).exists())
+            mDeviceManager = new LegacyUsbDeviceManager(mContext);
     }
 
     public void systemReady() {
