@@ -1761,5 +1761,6 @@
   <java-symbol type="string" name="reboot_hot" />
   <java-symbol type="string" name="reboot_progress" />
   <java-symbol type="string" name="reboot_system" />
+  <java-symbol type="string" name="config_legacyUmsLunFile" />
 
 </resources>
