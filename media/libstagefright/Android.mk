@@ -62,7 +62,7 @@ LOCAL_C_INCLUDES:= \
         $(TOP)/frameworks/base/include/media/stagefright/openmax \
         $(TOP)/external/flac/include \
         $(TOP)/external/tremolo \
-        $(TOP)/external/openssl/include \
+        $(TOP)/external/openssl/include
 
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
