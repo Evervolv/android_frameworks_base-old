@@ -467,10 +467,10 @@ public class PowerManagerService extends IPowerManager.Stub
                 final float windowScale = getFloat(WINDOW_ANIMATION_SCALE, 1.0f);
                 final float transitionScale = getFloat(TRANSITION_ANIMATION_SCALE, 1.0f);
                 mAnimationSetting = 0;
-                if (windowScale > 0.5f) {
+                if (windowScale > 0.1f) {
                     mAnimationSetting |= ANIM_SETTING_OFF;
                 }
-                if (transitionScale > 0.5f) {
+                if (transitionScale > 0.1f) {
                     // Uncomment this if you want the screen-on animation.
                     // mAnimationSetting |= ANIM_SETTING_ON;
                 }

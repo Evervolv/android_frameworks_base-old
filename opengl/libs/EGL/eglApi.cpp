@@ -203,6 +203,7 @@ EGLBoolean eglGetConfigs(   EGLDisplay dpy,
     GLint numConfigs = dp->numTotalConfigs;
     if (!configs) {
         *num_config = numConfigs;
+        LOGI("eglGetConfigs %d", numConfigs);
         return EGL_TRUE;
     }
 
@@ -252,6 +253,9 @@ EGLBoolean eglChooseConfig( EGLDisplay dpy, const EGLint *attrib_list,
             size += 2;
         }
     }
+    
+    LOGI("eglChooseConfig 1");
+    
     if (patch_index >= 0) {
         size += 2; // we need copy the sentinel as well
         EGLint* new_list = (EGLint*)malloc(size*sizeof(EGLint));
@@ -301,6 +305,8 @@ EGLBoolean eglChooseConfig( EGLDisplay dpy, const EGLint *attrib_list,
         free(const_cast<EGLint *>(attrib_list));
         return res;
     }
+    
+    LOGI("eglChooseConfig 2");
 
 
     for (int i=0 ; i<IMPL_NUM_IMPLEMENTATIONS ; i++) {
@@ -327,6 +333,7 @@ EGLBoolean eglChooseConfig( EGLDisplay dpy, const EGLint *attrib_list,
                 }
                 *num_config += n;
                 res = EGL_TRUE;
+                LOGI("eglChooseConfig found: %d", *num_config);
             }
         }
     }
@@ -337,11 +344,13 @@ EGLBoolean eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config,
         EGLint attribute, EGLint *value)
 {
     clearError();
-
+    
+    LOGI("eglGetConfigAttrib %x", attribute);
     egl_display_t const* dp = 0;
     egl_connection_t* cnx = validate_display_config(dpy, config, dp);
     if (!cnx) return EGL_FALSE;
     
+    LOGI("eglGetConfigAttrib 1");
     if (attribute == EGL_CONFIG_ID) {
         *value = dp->configs[intptr_t(config)].configId;
         return EGL_TRUE;
@@ -395,6 +404,7 @@ EGLSurface eglCreateWindowSurface(  EGLDisplay dpy, EGLConfig config,
                     dp->configs[intptr_t(config)].impl, cnx);
             return s;
         }
+        LOGE("EGLSurface creation failed");
 
         // EGLSurface creation failed
         native_window_set_buffers_format(window, 0);
@@ -942,7 +952,10 @@ EGLBoolean eglSwapBuffers(EGLDisplay dpy, EGLSurface draw)
         return setError(EGL_BAD_SURFACE, EGL_FALSE);
 
     egl_surface_t const * const s = get_surface(draw);
-    return s->cnx->egl.eglSwapBuffers(dp->disp[s->impl].dpy, s->surface);
+    // return s->cnx->egl.eglSwapBuffers(dp->disp[s->impl].dpy, s->surface);
+    // Hack to enable EGL configuration
+    s->cnx->egl.eglSwapBuffers(dp->disp[s->impl].dpy, s->surface);
+    return EGL_TRUE;
 }
 
 EGLBoolean eglCopyBuffers(  EGLDisplay dpy, EGLSurface surface,
