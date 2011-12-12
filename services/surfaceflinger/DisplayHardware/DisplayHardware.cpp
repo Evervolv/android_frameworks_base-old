@@ -21,7 +21,7 @@
 
 #include <cutils/properties.h>
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #include <utils/RefBase.h>
 #include <utils/Log.h>
@@ -114,7 +114,7 @@ static status_t selectConfigForPixelFormat(
     EGLConfig* const configs = new EGLConfig[numConfigs];
     eglChooseConfig(dpy, attrs, configs, numConfigs, &n);
     
-/* This section replaced by EGL patch
+
     for (int i=0 ; i<n ; i++) {
         EGLint nativeVisualId = 0;
         eglGetConfigAttrib(dpy, configs[i], EGL_NATIVE_VISUAL_ID, &nativeVisualId);
@@ -124,8 +124,10 @@ static status_t selectConfigForPixelFormat(
             return NO_ERROR;
         }
     }
-*/
+    delete [] configs;
+    return NAME_NOT_FOUND;
     
+/* This section activated by EGL hack to replace for loop
     EGLint t,r,g,b,a,d,v,rd,ndx=0;
     
     LOGI("Wanted surface format = %x", format);
@@ -179,9 +181,11 @@ static status_t selectConfigForPixelFormat(
         
         LOGI("Ignore config %d: RGBA_%d%d%d%d Depth %x Native ID=%x(%x)", i, r,g,b,a, d,v,rd);
     }
-    
     delete [] configs;
     return NAME_NOT_FOUND;
+*/
+    
+
 }
 
 

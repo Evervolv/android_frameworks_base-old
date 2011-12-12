@@ -15,7 +15,7 @@
         android:persistent="true"
         android:allowClearUserData="false"
         android:allowBackup="false"
-        android:hardwareAccelerated="true"
+        android:hardwareAccelerated="false"
         android:label="@string/app_label"
         android:icon="@drawable/ic_launcher_settings">
 
@@ -108,7 +108,7 @@
             android:label="Nyandroid"
             android:icon="@drawable/nyandroid04"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-            android:hardwareAccelerated="true"
+            android:hardwareAccelerated="false"
             android:launchMode="singleInstance"
             android:excludeFromRecents="true">
             <intent-filter>
