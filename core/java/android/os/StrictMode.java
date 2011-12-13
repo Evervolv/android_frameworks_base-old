@@ -123,6 +123,13 @@ public final class StrictMode {
      */
     public static final String VISUAL_PROPERTY = "persist.sys.strictmode.visual";
 
+    /**
+     * The boolean system property to disable strictmode regardless of build type.
+     *
+     * @hide
+     */
+    public static final String OVERRIDE_PROPERTY = "persist.sys.strictmode.override";
+
     // Only log a duplicate stack trace to the logs every second.
     private static final long MIN_LOG_INTERVAL_MS = 1000;
 
@@ -894,10 +901,11 @@ public final class StrictMode {
     public static boolean conditionallyEnableDebugLogging() {
         boolean doFlashes = !amTheSystemServerProcess() &&
                 SystemProperties.getBoolean(VISUAL_PROPERTY, IS_ENG_BUILD);
+        boolean OverrideStrict = SystemProperties.getBoolean(OVERRIDE_PROPERTY, false);
 
         // For debug builds, log event loop stalls to dropbox for analysis.
         // Similar logic also appears in ActivityThread.java for system apps.
-        if (IS_USER_BUILD && !doFlashes) {
+        if (IS_USER_BUILD && !doFlashes || OverrideStrict) {
             setCloseGuardEnabled(false);
             return false;
         }
@@ -906,7 +914,7 @@ public final class StrictMode {
                 StrictMode.DETECT_DISK_READ |
                 StrictMode.DETECT_NETWORK;
 
-        if (!IS_USER_BUILD) {
+        if (!IS_USER_BUILD && !OverrideStrict) {
             threadPolicyMask |= StrictMode.PENALTY_DROPBOX;
             if (IS_ENG_BUILD) {
                 threadPolicyMask |= StrictMode.PENALTY_LOG;
@@ -918,11 +926,11 @@ public final class StrictMode {
 
         StrictMode.setThreadPolicyMask(threadPolicyMask);
 
-        if (IS_USER_BUILD) {
+        if (IS_USER_BUILD || OverrideStrict) {
             setCloseGuardEnabled(false);
         } else {
             VmPolicy.Builder policyBuilder = new VmPolicy.Builder().detectAll().penaltyDropBox();
-            if (IS_ENG_BUILD) {
+            if (IS_ENG_BUILD && !OverrideStrict) {
                 policyBuilder.penaltyLog();
             }
             setVmPolicy(policyBuilder.build());
