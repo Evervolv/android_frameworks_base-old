@@ -286,23 +286,8 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
     EGLDisplay dpy = EGL_NO_DISPLAY;
     EGLSyncKHR fence = EGL_NO_SYNC_KHR;
 
-<<<<<<< HEAD
-    int found, foundSync;
-    int dequeuedCount = 0;
-    bool tryAgain = true;
-#ifdef UNABLE_TO_DEQUEUE
-    int sleepTimeouts = 0;
-    int MaxsleepTimeouts = 5;
-#endif
-    while (tryAgain) {
-        if (mAbandoned) {
-            ST_LOGE("dequeueBuffer: SurfaceTexture has been abandoned!");
-            return NO_INIT;
-        }
-=======
     { // Scope for the lock
         Mutex::Autolock lock(mMutex);
->>>>>>> ics-mr1
 
         int found = -1;
         int foundSync = -1;
@@ -419,53 +404,6 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
                 }
             }
 
-<<<<<<< HEAD
-        // clients are not allowed to dequeue more than one buffer
-        // if they didn't set a buffer count.
-        if (!mClientBufferCount && dequeuedCount) {
-#ifdef UNABLE_TO_DEQUEUE
-            LOGV("SurfaceTexture::dequeue: Not allowed to dequeue more than one buffer");
-            if (sleepTimeouts++ < MaxsleepTimeouts) {
-                LOGD("SurfaceTexture::dequeue: Not allowed to dequeue more than one "
-                     "buffer SLEEPING");
-                usleep(100000);
-            } else {
-                mClientBufferCount = mServerBufferCount;
-                LOGD("SurfaceTexture::dequeue: Not allowed to dequeue more "
-                     "than one buffer RETRY mBufferCount:%d mServerBufferCount:%d",
-                      mBufferCount,
-                      mServerBufferCount);
-            }
-            continue;
-#else
-            return -EINVAL;
-#endif
-        }
-
-        // See whether a buffer has been queued since the last setBufferCount so
-        // we know whether to perform the MIN_UNDEQUEUED_BUFFERS check below.
-        bool bufferHasBeenQueued = mCurrentTexture != INVALID_BUFFER_SLOT;
-        if (bufferHasBeenQueued) {
-            // make sure the client is not trying to dequeue more buffers
-            // than allowed.
-            const int avail = mBufferCount - (dequeuedCount+1);
-            if (avail < (MIN_UNDEQUEUED_BUFFERS-int(mSynchronousMode))) {
-#ifdef UNABLE_TO_DEQUEUE
-                if (mClientBufferCount != 0) {
-                    mBufferCount++;
-                    mClientBufferCount = mServerBufferCount = mBufferCount;
-                    LOGD("SurfaceTexture::dequeuebuffer: MIN EXCEEDED mBuffer:%d bumped",
-                          mBufferCount);
-                    continue;
-                }
-#endif
-                ST_LOGE("dequeueBuffer: MIN_UNDEQUEUED_BUFFERS=%d exceeded "
-                        "(dequeued=%d)",
-                        MIN_UNDEQUEUED_BUFFERS-int(mSynchronousMode),
-                        dequeuedCount);
-                return -EBUSY;
-            }
-=======
             // we're in synchronous mode and didn't find a buffer, we need to
             // wait for some buffers to be consumed
             tryAgain = mSynchronousMode && (foundSync == INVALID_BUFFER_SLOT);
@@ -477,7 +415,6 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
         if (mSynchronousMode && found == INVALID_BUFFER_SLOT) {
             // foundSync guaranteed to be != INVALID_BUFFER_SLOT
             found = foundSync;
->>>>>>> ics-mr1
         }
 
         if (found == INVALID_BUFFER_SLOT) {
@@ -847,13 +784,8 @@ status_t SurfaceTexture::updateTexImage() {
             ST_LOGW("updateTexImage: clearing GL error: %#04x", error);
         }
 
-#ifdef UNABLE_TO_DEQUEUE
-        glBindTexture(getCurrentTextureTarget(), mTexName);
-        glEGLImageTargetTexture2DOES(getCurrentTextureTarget(), (GLeglImageOES)image);
-#else
         glBindTexture(mTexTarget, mTexName);
         glEGLImageTargetTexture2DOES(mTexTarget, (GLeglImageOES)image);
-#endif
 
         bool failed = false;
         while ((error = glGetError()) != GL_NO_ERROR) {
@@ -908,11 +840,7 @@ status_t SurfaceTexture::updateTexImage() {
         mDequeueCondition.signal();
     } else {
         // We always bind the texture even if we don't update its contents.
-#ifdef UNABLE_TO_DEQUEUE
-        glBindTexture(getCurrentTextureTarget(), mTexName);
-#else
         glBindTexture(mTexTarget, mTexName);
-#endif
     }
 
     return OK;

@@ -130,13 +130,6 @@ public final class StrictMode {
      */
     public static final String VISUAL_PROPERTY = "persist.sys.strictmode.visual";
 
-    /**
-     * The boolean system property to disable strictmode regardless of build type.
-     *
-     * @hide
-     */
-    public static final String OVERRIDE_PROPERTY = "persist.sys.strictmode.override";
-
     // Only log a duplicate stack trace to the logs every second.
     private static final long MIN_LOG_INTERVAL_MS = 1000;
 
@@ -906,13 +899,6 @@ public final class StrictMode {
      * @hide
      */
     public static boolean conditionallyEnableDebugLogging() {
-        boolean doFlashes = !amTheSystemServerProcess() &&
-                SystemProperties.getBoolean(VISUAL_PROPERTY, IS_ENG_BUILD);
-        boolean OverrideStrict = SystemProperties.getBoolean(OVERRIDE_PROPERTY, false);
-
-        // For debug builds, log event loop stalls to dropbox for analysis.
-        // Similar logic also appears in ActivityThread.java for system apps.
-        if (IS_USER_BUILD && !doFlashes || OverrideStrict) {
         boolean doFlashes = SystemProperties.getBoolean(VISUAL_PROPERTY, false)
                 && !amTheSystemServerProcess();
         final boolean suppress = SystemProperties.getBoolean(DISABLE_PROPERTY, false);
@@ -936,7 +922,7 @@ public final class StrictMode {
                 StrictMode.DETECT_DISK_READ |
                 StrictMode.DETECT_NETWORK;
 
-        if (!IS_USER_BUILD && !OverrideStrict) {
+        if (!IS_USER_BUILD) {
             threadPolicyMask |= StrictMode.PENALTY_DROPBOX;
         }
         if (doFlashes) {
@@ -945,14 +931,13 @@ public final class StrictMode {
 
         StrictMode.setThreadPolicyMask(threadPolicyMask);
 
-        if (IS_USER_BUILD || OverrideStrict) {
         // VM Policy controls CloseGuard, detection of Activity leaks,
         // and instance counting.
         if (IS_USER_BUILD) {
             setCloseGuardEnabled(false);
         } else {
             VmPolicy.Builder policyBuilder = new VmPolicy.Builder().detectAll().penaltyDropBox();
-            if (IS_ENG_BUILD && !OverrideStrict) {
+            if (IS_ENG_BUILD) {
                 policyBuilder.penaltyLog();
             }
             setVmPolicy(policyBuilder.build());

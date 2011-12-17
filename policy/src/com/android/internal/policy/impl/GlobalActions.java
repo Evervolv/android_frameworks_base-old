@@ -168,57 +168,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             }
         };
 
-<<<<<<< HEAD
-        mItems = Lists.newArrayList(
-                // silent mode
-                mSilentModeToggle,
-                // next: airplane mode
-                mAirplaneModeOn,
-                // next: screenshot
-                new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
-                    public void onPress() {
-                        takeScreenshot();
-                    }
-
-                    public boolean showDuringKeyguard() {
-                        return true;
-                    }
-
-                    public boolean showBeforeProvisioning() {
-                        return true;
-                    }
-                },
-                // next: reboot
-                new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
-                    public void onPress() {
-                    	ShutdownThread.reboot(mContext, "null", true);
-                    }
-
-                    public boolean showDuringKeyguard() {
-                        return true;
-                    }
-
-                    public boolean showBeforeProvisioning() {
-                        return true;
-                    }
-                },
-                // last: power off
-                new SinglePressAction(com.android.internal.R.drawable.ic_lock_power_off, R.string.global_action_power_off) {
-
-                    public void onPress() {
-                        // shutdown by making sure radio and power are handled accordingly.
-                        ShutdownThread.shutdown(mContext, true);
-                    }
-
-                    public boolean showDuringKeyguard() {
-                        return true;
-                    }
-
-                    public boolean showBeforeProvisioning() {
-                        return true;
-                    }
-                });
-=======
         mItems = new ArrayList<Action>();
 
         // first: power off
@@ -240,7 +189,36 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     return true;
                 }
             });
+        // next: reboot
+        mItems.add(
+            new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
+                public void onPress() {
+                    ShutdownThread.reboot(mContext, "null", true);
+                }
 
+                public boolean showDuringKeyguard() {
+                    return true;
+                }
+
+                public boolean showBeforeProvisioning() {
+                    return true;
+                }
+            });
+        // next: screenshot
+        mItems.add(
+            new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
+                public void onPress() {
+                    takeScreenshot();
+                }
+
+                public boolean showDuringKeyguard() {
+                    return true;
+                }
+
+                public boolean showBeforeProvisioning() {
+                    return true;
+                }
+            });
         // next: airplane mode
         mItems.add(mAirplaneModeOn);
 
@@ -248,7 +226,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         if (SHOW_SILENT_TOGGLE) {
             mItems.add(mSilentModeAction);
         }
->>>>>>> ics-mr1
 
         mAdapter = new MyAdapter();
 
@@ -267,8 +244,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     }
 
     /**
-     * functions needed for taking screenhots.  
-     * This leverages the built in ICS screenshot functionality 
+     * functions needed for taking screenhots.
+     * This leverages the built in ICS screenshot functionality
      */
     final Object mScreenshotLock = new Object();
     ServiceConnection mScreenshotConnection = null;
@@ -323,14 +300,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                             msg.arg1 = 1;
                         if (mNavigationBar != null && mNavigationBar.isVisibleLw())
                             msg.arg2 = 1;
-                         */                        
+                         */
 
                         /* wait for the dislog box to close */
                         try {
                             Thread.sleep(1000); 
                         } catch (InterruptedException ie) {
                         }
-                        
+
                         /* take the screenshot */
                         try {
                             messenger.send(msg);
@@ -358,14 +335,10 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         } else {
             mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
         }
-<<<<<<< HEAD
-        mDialog.setTitle(R.string.global_actions);
-=======
         if (SHOW_SILENT_TOGGLE) {
             IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
             mContext.registerReceiver(mRingerModeReceiver, filter);
         }
->>>>>>> ics-mr1
     }
 
 

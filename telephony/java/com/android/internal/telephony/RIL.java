@@ -2947,13 +2947,8 @@ public class RIL extends BaseCommands implements CommandsInterface {
     }
 
 
-<<<<<<< HEAD
     protected Object
      responseICC_IO(Parcel p) {
-=======
-    private Object
-    responseICC_IO(Parcel p) {
->>>>>>> ics-mr1
         int sw1, sw2;
         byte data[] = null;
         Message ret;
@@ -3213,13 +3208,8 @@ public class RIL extends BaseCommands implements CommandsInterface {
         return ret;
     }
 
-<<<<<<< HEAD
    protected Object
    responseCellList(Parcel p) {
-=======
-    private Object
-    responseCellList(Parcel p) {
->>>>>>> ics-mr1
        int num, rssi;
        String location;
        ArrayList<NeighboringCellInfo> response;
