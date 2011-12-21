@@ -77,8 +77,7 @@ public class ImageWallpaper extends WallpaperService {
                 WindowManager windowManager =
                         (WindowManager) getSystemService(Context.WINDOW_SERVICE);
                 Display display = windowManager.getDefaultDisplay();
-                // mIsHwAccelerated = ActivityManager.isHighEndGfx(display);
-                mIsHwAccelerated = false;
+                mIsHwAccelerated = ActivityManager.isHighEndGfx(display);
             }
         }
     }
