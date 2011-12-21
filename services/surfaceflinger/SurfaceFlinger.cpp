@@ -29,8 +29,6 @@
 #include <cutils/log.h>
 #include <cutils/properties.h>
 
-#define LOG_NDEBUG 0
-
 #include <binder/IPCThreadState.h>
 #include <binder/IServiceManager.h>
 #include <binder/MemoryHeapBase.h>
@@ -2627,11 +2625,9 @@ void GraphicPlane::setDisplayHardware(DisplayHardware *hw)
         case 90:
             displayOrientation = ISurfaceComposer::eOrientation90;
             break;
-/*
         case 180:
             displayOrientation = ISurfaceComposer::eOrientation180;
             break;
-*/
         case 270:
             displayOrientation = ISurfaceComposer::eOrientation270;
             break;
