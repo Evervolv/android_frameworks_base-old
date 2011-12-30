@@ -145,6 +145,24 @@
             android:vibrationDuration="20"
             />
 
+        <com.android.internal.widget.SlidingTab
+            android:id="@+id/tab_selector"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="80dip"
+            />
+
+        <com.android.internal.widget.RotarySelector
+            android:id="@+id/rotary_selector"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="60dip"
+            />
+
         <TextView
             android:id="@+id/carrier"
             android:layout_width="fill_parent"

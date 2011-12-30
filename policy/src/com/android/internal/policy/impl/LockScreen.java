@@ -18,6 +18,7 @@ package com.android.internal.policy.impl;
 
 import com.android.internal.R;
 import com.android.internal.widget.LockPatternUtils;
+import com.android.internal.widget.RotarySelector;
 import com.android.internal.widget.SlidingTab;
 import com.android.internal.widget.WaveView;
 import com.android.internal.widget.multiwaveview.MultiWaveView;
@@ -25,6 +26,7 @@ import com.android.internal.widget.multiwaveview.MultiWaveView;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.view.KeyEvent;
@@ -69,6 +71,23 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private UnlockWidgetCommonMethods mUnlockWidgetMethods;
     private View mUnlockWidget;
 
+    private TextView mCarrier;
+    private MultiWaveView mWaveViewSelector;
+    private SlidingTab mTabSelector;
+    private RotarySelector mRotarySelector;
+
+    private static final int LOCK_STYLE_GB = 1;
+    private static final int LOCK_STYLE_ECLAIR = 2;
+    private static final int LOCK_STYLE_ICS = 3;
+
+    // Get the style from settings; TODO: Defaults to GB for testing
+    private int mLockscreenStyle = (Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_ECLAIR));
+
+    private boolean mUseGbLockscreen = (mLockscreenStyle == LOCK_STYLE_GB);
+    private boolean mUseEclairLockscreen = (mLockscreenStyle == LOCK_STYLE_ECLAIR);
+    private boolean mUseIcsLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS);
+
     private interface UnlockWidgetCommonMethods {
         // Update resources based on phone state
         public void updateResources();
@@ -83,6 +102,58 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         public void ping();
     }
 
+    class RotarySelMethods implements RotarySelector.OnDialTriggerListener, UnlockWidgetCommonMethods {
+        private final RotarySelector mRotarySel;
+        
+        RotarySelMethods(RotarySelector rotarySel) {
+            mRotarySel = rotarySel;
+        }
+        
+        /** {@inheritDoc} */
+        public void onDialTrigger(View v, int whichHandle) {
+            if (whichHandle == RotarySelector.OnDialTriggerListener.LEFT_HANDLE) {
+                mCallback.goToUnlockScreen();
+            } else if (whichHandle == RotarySelector.OnDialTriggerListener.RIGHT_HANDLE) {
+                toggleRingMode();
+                updateResources();
+    
+                String message = mSilentMode ? getContext().getString(
+                        R.string.global_action_silent_mode_on_status) : getContext().getString(
+                        R.string.global_action_silent_mode_off_status);
+    
+                final int toastIcon = mSilentMode ? R.drawable.ic_lock_ringer_off
+                        : R.drawable.ic_lock_ringer_on;
+    
+                final int toastColor = mSilentMode ? getContext().getResources().getColor(
+                        R.color.keyguard_text_color_soundoff) : getContext().getResources().getColor(
+                        R.color.keyguard_text_color_soundon);
+                toastMessage(mCarrier, message, toastColor, toastIcon);
+                mCallback.pokeWakelock();
+            }
+        }
+
+        public void onGrabbedStateChange(View v, int grabbedState) {
+            
+        }
+
+        public View getView() {
+            return mRotarySel;
+        }
+
+        public void updateResources() {
+            boolean vibe = mSilentMode
+                && (mAudioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE);
+
+            int iconId = mSilentMode ? (vibe ? R.drawable.ic_jog_dial_vibrate_on
+                    : R.drawable.ic_jog_dial_sound_off) : R.drawable.ic_jog_dial_sound_on;
+    
+            mRotarySelector.setRightHandleResource(iconId);
+        }
+
+        public void reset(boolean animate) { }
+        public void ping() { }
+    }
+    
     class SlidingTabMethods implements SlidingTab.OnTriggerListener, UnlockWidgetCommonMethods {
         private final SlidingTab mSlidingTab;
 
@@ -112,6 +183,22 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                 mCallback.goToUnlockScreen();
             } else if (whichHandle == SlidingTab.OnTriggerListener.RIGHT_HANDLE) {
                 toggleRingMode();
+                updateResources();
+
+                String message = mSilentMode ?
+                        getContext().getString(R.string.global_action_silent_mode_on_status) :
+                        getContext().getString(R.string.global_action_silent_mode_off_status);
+
+                final int toastIcon = mSilentMode
+                    ? R.drawable.ic_lock_ringer_off
+                    : R.drawable.ic_lock_ringer_on;
+
+                final int toastColor = mSilentMode
+                    ? getContext().getResources().getColor(R.color.keyguard_text_color_soundoff)
+                    : getContext().getResources().getColor(R.color.keyguard_text_color_soundon);
+                toastMessage(mCarrier, message, toastColor, toastIcon);
+                
+                
                 mCallback.pokeWakelock();
             }
         }
@@ -347,7 +434,35 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         mSilentMode = isSilentMode();
 
-        mUnlockWidget = findViewById(R.id.unlock_widget);
+        mCarrier = (TextView) findViewById(R.id.carrier);
+
+        mTabSelector = (SlidingTab) findViewById(R.id.tab_selector);
+        mTabSelector.setHoldAfterTrigger(true, false);
+        mTabSelector.setLeftHintText(R.string.lockscreen_unlock_label);
+        
+        mRotarySelector = (RotarySelector) findViewById(R.id.rotary_selector);
+        
+        mWaveViewSelector = (MultiWaveView) findViewById(R.id.unlock_widget);
+        
+        if (mUseGbLockscreen) {
+            mUnlockWidget = findViewById(R.id.tab_selector);
+            mRotarySelector.setVisibility(View.GONE);
+            mTabSelector.setVisibility(View.VISIBLE);
+            mWaveViewSelector.setVisibility(View.GONE);
+        } else if (mUseEclairLockscreen) {
+            mUnlockWidget = findViewById(R.id.rotary_selector);
+            mRotarySelector.setVisibility(View.VISIBLE);
+            mTabSelector.setVisibility(View.GONE);
+            mWaveViewSelector.setVisibility(View.GONE);
+        } else if (mUseIcsLockscreen) {
+            mUnlockWidget = findViewById(R.id.unlock_widget);
+            mRotarySelector.setVisibility(View.GONE);
+            mTabSelector.setVisibility(View.GONE);
+            mWaveViewSelector.setVisibility(View.VISIBLE);
+        }
+        
+        // I don't see how this helps us when adding more lockscreen styles,
+        // but im going to roll with it until we see otherwise.
         if (mUnlockWidget instanceof SlidingTab) {
             SlidingTab slidingTabView = (SlidingTab) mUnlockWidget;
             slidingTabView.setHoldAfterTrigger(true, false);
@@ -360,6 +475,12 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             SlidingTabMethods slidingTabMethods = new SlidingTabMethods(slidingTabView);
             slidingTabView.setOnTriggerListener(slidingTabMethods);
             mUnlockWidgetMethods = slidingTabMethods;
+        } else if (mUnlockWidget instanceof RotarySelector) {
+            RotarySelector rotarySelView = (RotarySelector) mUnlockWidget;
+            rotarySelView.setLeftHandleResource(R.drawable.ic_jog_dial_unlock);
+            RotarySelMethods rotarySelMethods = new RotarySelMethods(rotarySelView);
+            rotarySelView.setOnDialTriggerListener(rotarySelMethods);
+            mUnlockWidgetMethods = rotarySelMethods;
         } else if (mUnlockWidget instanceof WaveView) {
             WaveView waveView = (WaveView) mUnlockWidget;
             WaveViewMethods waveViewMethods = new WaveViewMethods(waveView);
@@ -380,11 +501,55 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         if (DBG) Log.v(TAG, "*** LockScreen accel is "
                 + (mUnlockWidget.isHardwareAccelerated() ? "on":"off"));
     }
-
+    
     private boolean isSilentMode() {
         return mAudioManager.getRingerMode() != AudioManager.RINGER_MODE_NORMAL;
     }
 
+    /**
+     * Displays a message in a text view and then restores the previous text.
+     * @param textView The text view.
+     * @param text The text.
+     * @param color The color to apply to the text, or 0 if the existing color should be used.
+     * @param iconResourceId The left hand icon.
+     */
+    private void toastMessage(final TextView textView, final String text, final int color, final int iconResourceId) {
+        if (mPendingR1 != null) {
+            textView.removeCallbacks(mPendingR1);
+            mPendingR1 = null;
+        }
+        if (mPendingR2 != null) {
+            mPendingR2.run(); // fire immediately, restoring non-toasted appearance
+            textView.removeCallbacks(mPendingR2);
+            mPendingR2 = null;
+        }
+
+        final String oldText = textView.getText().toString();
+        final ColorStateList oldColors = textView.getTextColors();
+
+        mPendingR1 = new Runnable() {
+            public void run() {
+                textView.setText(text);
+                if (color != 0) {
+                    textView.setTextColor(color);
+                }
+                textView.setCompoundDrawablesWithIntrinsicBounds(0, iconResourceId, 0, 0);
+            }
+        };
+
+        textView.postDelayed(mPendingR1, 0);
+        mPendingR2 = new Runnable() {
+            public void run() {
+                textView.setText(oldText);
+                textView.setTextColor(oldColors);
+                textView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+            }
+        };
+        textView.postDelayed(mPendingR2, 3500);
+    }
+    private Runnable mPendingR1;
+    private Runnable mPendingR2;
+    
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU && mEnableMenuKeyInLockScreen) {
