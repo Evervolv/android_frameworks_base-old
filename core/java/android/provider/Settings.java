@@ -1888,6 +1888,64 @@ public final class Settings {
          */
         public static final String POINTER_SPEED = "pointer_speed";
 
+
+        /* START Constants for Evervolv Toolbox */
+
+        /**
+         * Custom caption for the lockscreen and expanded statusbar. The value is a string.
+         * @hide
+         */
+        public static final String CARRIER_CAP = "carrier_caption";
+
+        /**
+         * Which lockscreen style to use. The value is an integer.
+         * ( 1 - Tabs style     )
+         * ( 2 - Rotary style   )
+         * ( 3 - Ring style  )
+         * @hide
+         */
+        public static final String LOCKSCREEN_STYLE = "lockscreen_style";
+
+
+        /**
+         * Whether to wake the screen with the trackball. The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
+
+        /**
+         * Whether to unlock the screen with the trackball.  The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String TRACKBALL_UNLOCK_SCREEN = "trackball_unlock_screen";
+
+        /**
+         * Specifies whether to show AM/PM indicators for 12-hour. The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String HIDE_CLOCK_AMPM = "hide_ampm";
+
+        /**
+         * Specifies whether to show status clock. The value is boolean (1 or 0).
+         * @hide
+         */
+        public static final String HIDE_CLOCK = "hide_clock";
+
+        /**
+         * USB: Tether data connection upon USB plugging in.
+         * @hide
+         */
+         public static final String TETHER_ON_PLUGIN = "tether_on_plugin";
+
+         /**
+          * Statusbar Icon Flags: Stores the flags used to show/hide various statusbar icons.
+          * @hide
+          */
+          public static final String STATUSBAR_ICON_FLAGS = "statusbar_icon_flags";
+
+        /* END Constants for Evervolv Toolbox */
+
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
