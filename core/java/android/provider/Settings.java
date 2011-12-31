@@ -1899,9 +1899,9 @@ public final class Settings {
 
         /**
          * Which lockscreen style to use. The value is an integer.
-         * ( 1 - Tabs style     )
-         * ( 2 - Rotary style   )
-         * ( 3 - Ring style  )
+         * ( 1 - Tabs style: Eclair )
+         * ( 2 - Rotary style: GB   )
+         * ( 3 - MultiwaveView: ICS )
          * @hide
          */
         public static final String LOCKSCREEN_STYLE = "lockscreen_style";
@@ -1943,8 +1943,29 @@ public final class Settings {
           */
           public static final String STATUSBAR_ICON_FLAGS = "statusbar_icon_flags";
 
-        /* END Constants for Evervolv Toolbox */
+        /**
+         * Toggle between multiwaveview 2way and 3way lockscreen style.
+         * @hide
+         */
+        public static final String LOCKSCREEN_STYLE_MULITWAVEVIEW_3WAY =
+                    "lockscreen_style_multiwaveview_3way";
 
+        /**
+         * Toggle to force multiwaveview lockscreen silent mode toggle
+         * even if we have a camera.
+         * @hide
+         */
+        public static final String LOCKSCREEN_STYLE_MULTIWAVEVIEW_SILENTMODE =
+                    "lockscreen_style_multiwaveview_silentmode";
+
+        /**
+         * Store the uri of our custom app.
+         * @hide
+         */
+        public static final String LOCKSCREEN_STYLE_MULTIWAVEVIEW_CUSTOMAPP =
+                    "lockscreen_style_multiwaveview_customapp";
+
+        /* END Constants for Evervolv Toolbox */
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings

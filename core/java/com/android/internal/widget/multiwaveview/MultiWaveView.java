@@ -140,6 +140,7 @@ public class MultiWaveView extends View {
         }
     };
     private int mTargetResourceId;
+    private Drawable[] mTargetDrawableArray;
     private int mTargetDescriptionsResourceId;
     private int mDirectionDescriptionsResourceId;
 
@@ -528,6 +529,18 @@ public class MultiWaveView extends View {
         updateTargetPositions();
     }
 
+    private void internalSetTargetResources(Drawable[] drawables) {
+        Resources res = getContext().getResources();
+        int count = drawables.length;
+        ArrayList<TargetDrawable> targetDrawables = new ArrayList<TargetDrawable>(count);
+        for (int i = 0; i < count; i++) {
+            targetDrawables.add(new TargetDrawable(res, drawables[i]));
+        }
+        mTargetDrawableArray = drawables;
+        mTargetDrawables = targetDrawables;
+        updateTargetPositions();
+    }
+
     /**
      * Loads an array of drawables from the given resourceId.
      *
@@ -542,8 +555,26 @@ public class MultiWaveView extends View {
         }
     }
 
+    /**
+     * Loads an array of drawables from the given array.
+     *
+     * @param resourceId
+     */
+    public void setTargetResources(Drawable[] drawables) {
+        if (mAnimatingTargets) {
+            // postpone this change until we return to the initial state
+            //mNewTargetResources = resourceId;
+        } else {
+            internalSetTargetResources(drawables);
+        }
+    }
+
     public int getTargetResourceId() {
         return mTargetResourceId;
+    }
+
+    public Drawable[] getTargetDrawableArray() {
+        return mTargetDrawableArray;
     }
 
     /**
