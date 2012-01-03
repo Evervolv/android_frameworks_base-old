@@ -61,11 +61,11 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
     private static final boolean DEBUG = false;
 
     private static final String USB_CONNECTED_MATCH =
-            "/sys/devices/virtual/switch/usb_connected";
+            "DEVPATH=/devices/virtual/switch/usb_connected";
     private static final String USB_CONFIGURATION_MATCH =
-            "/sys/devices/virtual/switch/usb_configuration";
+            "DEVPATH=/devices/virtual/switch/usb_configuration";
     private static final String USB_LEGACY_MATCH =
-            "/sys/devices/virtual/switch/usb_mass_storage";
+            "DEVPATH=/devices/virtual/switch/usb_mass_storage";
     private static final String USB_CONNECTED_PATH =
             "/sys/class/switch/usb_connected/state";
     private static final String USB_CONFIGURATION_PATH =
