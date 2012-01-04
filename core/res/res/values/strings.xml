@@ -268,47 +268,61 @@
     <string name="low_memory" product="default">Phone storage is full! Delete some files to free space.</string>
 
 
-    <!-- Display name for any time a piece of data refers to the owner of the phone. For example, this could be used in place of the phone's phone number. -->
+    <!-- Display name for any time a piece of data refers to the owner of the device. For example, this could be used in place of the phone number. -->
     <string name="me">Me</string>
 
     <!-- Power Dialog --> <skip />
-    <!-- Title for the Phone Options dialog to lock the screen, turn off the phone etc. -->
+    <!-- Title for the Tablet Options dialog to lock the screen, turn off the tablet etc. -->
     <string name="power_dialog" product="tablet">Tablet options</string>
     <!-- Title for the Phone Options dialog to lock the screen, turn off the phone etc. -->
     <string name="power_dialog" product="default">Phone options</string>
-    <!-- Button to turn on silent mode, within the Phone Options dialog -->
+    <!-- Button to turn on silent mode, within the Phone/Tablet Options dialog -->
     <string name="silent_mode">Silent mode</string>
-    <!-- Button to turn on the radio, within the Phone Options dialog -->
+    <!-- Button to turn on the radio, within the Phone/Tablet Options dialog -->
     <string name="turn_on_radio">Turn on wireless</string>
-    <!-- Button to turn off the radio, within the Phone Options dialog -->
+    <!-- Button to turn off the radio, within the Phone/Tablet Options dialog -->
     <string name="turn_off_radio">Turn off wireless</string>
-    <!-- Button to lock the screen, within the Phone Options dialog -->
+    <!-- Button to lock the screen, within the Phone/Tablet Options dialog -->
     <string name="screen_lock">Screen lock</string>
-    <!-- Button to turn off the phone, within the Phone Options dialog -->
+    <!-- Button to turn off the device, within the Phone/Tablet Options dialog -->
     <string name="power_off">Power off</string>
+    <!-- Button to reboot the tablet, within the Tablet Options dialog -->
+    <string name="reboot_system" product="tablet">Reboot tablet</string>
     <!-- Button to reboot the phone, within the Phone Options dialog -->
-    <string name="reboot_system">Reboot phone</string>
+    <string name="reboot_system" product="default">Reboot phone</string>
 
-    <!-- label for item that screenshots in phone options dialog -->
+    <!-- Button to take a screenshot, within the Phone/Tablet options dialog -->
     <string name="global_action_screenshot">Screenshot</string>
 
-    <!-- Button to reboot the phone, within the Reboot Options dialog -->
+    <!-- Button to reboot the device, within the Reboot Options dialog -->
     <string name="reboot_reboot">Reboot</string>
-    <!-- Button to reboot the phone into recovery, within the Reboot Options dialog -->
+    <!-- Button to reboot the device into recovery, within the Reboot Options dialog -->
     <string name="reboot_recovery">Recovery</string>
-    <!-- Button to reboot the phone into bootloader, within the Reboot Options dialog -->
+    <!-- Button to reboot the device into bootloader, within the Reboot Options dialog -->
     <string name="reboot_bootloader">Bootloader</string>
-    <!-- Button to reboot the phone into bootmenu, within the Reboot Options dialog -->
+    <!-- Button to hot reboot the device, within the Reboot Options dialog -->
+    <string name="reboot_hot">Hot Reboot</string>
+    <!-- Button to reboot the device into bootmenu, within the Reboot Options dialog -->
     <string name="reboot_bootmenu">Bootmenu</string>
-    <!-- Button to reboot the phone into fastboot, within the Reboot Options dialog -->
+    <!-- Button to reboot the device into fastboot, within the Reboot Options dialog -->
     <string name="reboot_fastboot">Fastboot</string>
-    <!-- Button to reboot the phone into download, within the Reboot Options dialog -->
+    <!-- Button to reboot the device into download, within the Reboot Options dialog -->
     <string name="reboot_download">Download</string>
 
-    <!-- Reboot Progress Dialog. This is shown if the user chooses to reboot the phone. -->
+    <!-- Reboot Progress Dialog. This is shown if the user chooses to reboot the device. -->
     <string name="reboot_progress">Rebooting\u2026</string>
+    <!-- Reboot Confirmation Dialog.  When the user chooses to reboot the tablet, there will be a confirmation dialog.  This is the message. -->
+    <string name="reboot_confirm" product="tablet">Your tablet will reboot.</string>
     <!-- Reboot Confirmation Dialog.  When the user chooses to reboot the phone, there will be a confirmation dialog.  This is the message. -->
-    <string name="reboot_confirm">Your phone will reboot.</string>
+    <string name="reboot_confirm" product="default">Your phone will reboot.</string>
+
+    <!-- Hot Reboot Progress Dialog title. Shown if the user chooses to hot reboot the tablet. -->
+    <string name="hot_reboot_title" product="tablet">Hot reboot tablet</string>
+    <!-- Hot Reboot Progress Dialog title. Shown if the user chooses to hot reboot the phone. -->
+    <string name="hot_reboot_title" product="default">Hot reboot phone</string>
+
+    <!-- Hot Reboot Progress Dialog message. Shown if the user chooses to hot reboot the device. -->
+    <string name="hot_reboot_progress">Restarting android framework\u2026</string>
 
     <!-- Spoken description for ringer silent option. [CHAR LIMIT=NONE] -->
     <string name="silent_mode_silent">Ringer off</string>
@@ -317,17 +331,17 @@
     <!-- Spoken description for ringer normal option. [CHAR LIMIT=NONE] -->
     <string name="silent_mode_ring">Ringer on</string>
 
-    <!-- Shutdown Progress Dialog. This is shown if the user chooses to power off the phone. -->
+    <!-- Shutdown Progress Dialog. This is shown if the user chooses to power off the device. -->
     <string name="shutdown_progress">Shutting down\u2026</string>
 
-    <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the phone, there will
+    <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the tablet, there will
          be a confirmation dialog.  This is the message. -->
     <string name="shutdown_confirm" product="tablet">Your tablet will shut down.</string>
     <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the phone, there will
          be a confirmation dialog.  This is the message. -->
     <string name="shutdown_confirm" product="default">Your phone will shut down.</string>
 
-    <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the phone, it asks
+    <!-- Shutdown Confirmation Dialog.  When the user chooses to power off the device, it asks
          the user if they'd like to shut down.  This is the message.  This is used instead of
          shutdown_confirm when the system is configured to use long press to go directly to the
          power off dialog instead of the global actions menu. -->
@@ -344,36 +358,36 @@
      -->
     <string name="no_recent_tasks">No recent applications.</string>
 
-    <!-- Title of the Global Actions Dialog -->
+    <!-- Title of the Global Actions Dialog on tablets-->
     <string name="global_actions" product="tablet">Tablet options</string>
-    <!-- Title of the Global Actions Dialog -->
+    <!-- Title of the Global Actions Dialog on phones-->
     <string name="global_actions" product="default">Phone options</string>
 
-    <!-- label for item that locks the phone in the phone options dialog -->
+    <!-- label for item that locks the device in the Phone/Tablet options dialog -->
     <string name="global_action_lock">Screen lock</string>
 
-    <!-- label for item that turns off power in phone options dialog -->
+    <!-- label for item that turns off power in the Phone/Tablet options dialog -->
     <string name="global_action_power_off">Power off</string>
 
-    <!-- label for item that reboots the phone in phone options dialog -->
+    <!-- label for item that reboots the device in the Phone/Tablet options dialog -->
     <string name="global_action_reboot">Reboot</string>
 
-    <!-- label for item that enables silent mode in phone options dialog -->
+    <!-- label for item that enables silent mode in the Phone/Tablet options dialog -->
     <string name="global_action_toggle_silent_mode">Silent mode</string>
 
-    <!-- status message in phone options dialog for when silent mode is enabled -->
+    <!-- status message in the Phone/Tablet options dialog for when silent mode is enabled -->
     <string name="global_action_silent_mode_on_status">Sound is OFF</string>
 
-    <!-- status message in phone options dialog for when silent mode is disabled -->
+    <!-- status message in the Phone/Tablet options dialog for when silent mode is disabled -->
     <string name="global_action_silent_mode_off_status">Sound is ON</string>
 
     <!-- label for item that toggles airplane mode -->
     <string name="global_actions_toggle_airplane_mode">Airplane mode</string>
 
-    <!-- status message in phone options dialog for when airplane mode is on -->
+    <!-- status message in the Phone/Tablet options dialog for when airplane mode is on -->
     <string name="global_actions_airplane_mode_on_status">Airplane mode is ON</string>
 
-    <!-- status message in phone options dialog for when airplane mode is off -->
+    <!-- status message in the Phone/Tablet options dialog for when airplane mode is off -->
     <string name="global_actions_airplane_mode_off_status">Airplane mode is OFF</string>
 
     <!-- Text to use when the number in a notification info is too large
@@ -383,7 +397,7 @@
          [CHAR LIMIT=4] -->
     <string name="status_bar_notification_info_overflow">999+</string>
 
-    <!-- Displayed to the user to tell them that they have started up the phone in "safe mode" -->
+    <!-- Displayed to the user to tell them that they have started up the device in "safe mode" -->
     <string name="safeMode">Safe mode</string>
 
     <!-- Label for the Android system components when they are shown to the user. -->
@@ -1814,7 +1828,7 @@
          to unlock the keyguard.  Displayed in one line in a large font.  -->
     <string name="keyguard_password_wrong_pin_code">Incorrect PIN code!</string>
 
-    <!-- Instructions telling the user how to unlock the phone. -->
+    <!-- Instructions telling the user how to unlock the device. -->
     <string name="keyguard_label_text">To unlock, press Menu then 0.</string>
 
     <!-- This can be used in any application wanting to disable the text "Emergency number" -->
@@ -1826,7 +1840,7 @@
     <!-- Default custom app intent -->
     <string name="lockscreen_custom_app_default">intent:#Intent;action=android.intent.action.MAIN;component=com.android.mms/.ui.ConversationList;end</string>
 
-    <!-- On the keyguard screen, it shows the carrier the phone is connected to.  This is displayed if the phone is not connected to a carrier.-->
+    <!-- On the keyguard screen, it shows the carrier the device is connected to.  This is displayed if the device is not connected to a carrier.-->
     <string name="lockscreen_carrier_default">No service.</string>
 
     <!-- Shown in the lock screen to tell the user that the screen is locked. -->
@@ -1851,17 +1865,17 @@
     <!-- On the unlock password screen, shown when the user enters the wrong lock password and must try again. -->
     <string name="lockscreen_password_wrong">Sorry, try again</string>
 
-    <!-- When the lock screen is showing and the phone plugged in, and the battery
+    <!-- When the lock screen is showing and the device plugged in, and the battery
          is not fully charged, show the current charge %.  -->
     <string name="lockscreen_plugged_in">Charging, <xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
-    <!-- When the lock screen is showing, the phone is plugged in and the battery is fully
+    <!-- When the lock screen is showing, the device is plugged in and the battery is fully
          charged, say that it is charged. -->
     <string name="lockscreen_charged">Charged.</string>
     <!-- A short representation of charging information, e.g "34%" -->
     <string name="lockscreen_battery_short"><xliff:g id="number">%d</xliff:g><xliff:g id="percent">%%</xliff:g></string>
 
     <!-- When the lock screen is showing and the battery is low, warn user to plug
-         in the phone soon. -->
+         in the device soon. -->
     <string name="lockscreen_low_battery">Connect your charger.</string>
 
     <!-- Shown in the lock screen when there is no SIM card. -->
@@ -1933,7 +1947,7 @@
     </string>
 
     <!-- For the unlock screen, informational message shown in dialog when user is almost at the limit
-         where they will be locked out and may have to enter an alternate username/password to unlock the phone -->
+         where they will be locked out and may have to enter an alternate username/password to unlock the tablet -->
     <string name="lockscreen_failed_attempts_almost_glogin" product="tablet">
         You have incorrectly drawn your unlock pattern <xliff:g id="number">%d</xliff:g> times.
        After <xliff:g id="number">%d</xliff:g> more unsuccessful attempts,
@@ -1994,15 +2008,15 @@
     <!-- Title of the unlock screen that uses your Google login and password when the user attempted
          too many patterns and we are forcing them to use their account instead. -->
     <string name="lockscreen_glogin_too_many_attempts">Too many pattern attempts!</string>
-    <!-- In the unlock screen, message telling the user that they need to use their Google login and password to unlock the phone -->
+    <!-- In the unlock screen, message telling the user that they need to use their Google login and password to unlock the device -->
     <string name="lockscreen_glogin_instructions">To unlock, sign in with your Google account</string>
-    <!-- Hint caption for the username field when unlocking the phone using login and password -->
+    <!-- Hint caption for the username field when unlocking the device using login and password -->
     <string name="lockscreen_glogin_username_hint">Username (email)</string>
-    <!-- Hint caption for the password field when unlocking the phone using login and password -->
+    <!-- Hint caption for the password field when unlocking the device using login and password -->
     <string name="lockscreen_glogin_password_hint">Password</string>
-    <!-- Button to try to unlock the phone using username and password -->
+    <!-- Button to try to unlock the device using username and password -->
     <string name="lockscreen_glogin_submit_button">Sign in</string>
-    <!-- Displayed to the user when unlocking the phone with a username and password fails. -->
+    <!-- Displayed to the user when unlocking the device with a username and password fails. -->
     <string name="lockscreen_glogin_invalid_input">Invalid username or password.</string>
     <!-- Hint displayed on account unlock screen to advise the user on how to recover the account. -->
     <string name="lockscreen_glogin_account_recovery_hint">Forgot your username or password\?\nVisit <b>google.com/accounts/recovery</b></string>
@@ -2840,13 +2854,13 @@
     <string name="usb_storage_message" product="nosdcard">You have connected to your computer via USB. Touch the button below if you want to copy files between your computer and your Android\u2018s USB storage.</string>
     <!-- See USB_STORAGE.    This is the message. [CHAR LIMIT=NONE] -->
     <string name="usb_storage_message" product="default">You have connected to your computer via USB. Touch the button below if you want to copy files between your computer and your Android\u2018s SD card.</string>
-    <!-- See USB_STORAGE.    This is the button text to mount the phone on the computer. -->
+    <!-- See USB_STORAGE.    This is the button text to mount the device on the computer. -->
     <string name="usb_storage_button_mount">Turn on USB storage</string>
     <!-- See USB_STORAGE_DIALOG.  If there was an error mounting, this is the text. [CHAR LIMIT=NONE] -->
     <string name="usb_storage_error_message" product="nosdcard">There is a problem using your USB storage for USB mass storage.</string>
     <!-- See USB_STORAGE_DIALOG.  If there was an error mounting, this is the text. -->
     <string name="usb_storage_error_message" product="default">There is a problem using your SD card for USB mass storage.</string>
-    <!-- USB_STORAGE: When the user connects the phone to a computer via USB, we show a notification asking if he wants to share files across.  This is the title -->
+    <!-- USB_STORAGE: When the user connects the device to a computer via USB, we show a notification asking if he wants to share files across.  This is the title -->
     <string name="usb_storage_notification_title">USB connected</string>
     <!-- See USB_STORAGE. This is the message. -->
     <string name="usb_storage_notification_message">Select to copy files to/from your computer.</string>
@@ -2878,11 +2892,11 @@
     <!-- USB_STORAGE_ERROR dialog  ok button-->
     <string name="dlg_ok">OK</string>
 
-    <!-- USB_PREFERENCES: Notification for when the user connects the phone to a computer via USB in MTP mode.  This is the title -->
+    <!-- USB_PREFERENCES: Notification for when the user connects the device to a computer via USB in MTP mode.  This is the title -->
     <string name="usb_mtp_notification_title">Connected as a media device</string>
-    <!-- USB_PREFERENCES: Notification for when the user connects the phone to a computer via USB in PTP mode.  This is the title -->
+    <!-- USB_PREFERENCES: Notification for when the user connects the device to a computer via USB in PTP mode.  This is the title -->
     <string name="usb_ptp_notification_title">Connected as a camera</string>
-    <!-- USB_PREFERENCES: Notification for when the user connects the phone to a computer via USB in mass storage mode (for installer CD image).  This is the title -->
+    <!-- USB_PREFERENCES: Notification for when the user connects the device to a computer via USB in mass storage mode (for installer CD image).  This is the title -->
     <string name="usb_cd_installer_notification_title">Connected as an installer</string>
     <!-- USB_PREFERENCES: Notification for when a USB accessory is attached.  This is the title -->
     <string name="usb_accessory_notification_title">Connected to a USB accessory</string>
@@ -2902,9 +2916,9 @@
     <!-- See EXTMEDIA_FORMAT.    This is the button text to format the sd card. -->
     <string name="extmedia_format_button_format">Format</string>
 
-    <!-- Title of notification shown when ADB is actively connected to the phone. -->
+    <!-- Title of notification shown when ADB is actively connected to the device. -->
     <string name="adb_active_notification_title">USB debugging connected</string>
-    <!-- Message of notification shown when ADB is actively connected to the phone. -->
+    <!-- Message of notification shown when ADB is actively connected to the device. -->
     <string name="adb_active_notification_message">Select to disable USB debugging.</string>
 
     <!-- Used to replace %s in urls retreived from the signin server with locales.  For Some        -->
