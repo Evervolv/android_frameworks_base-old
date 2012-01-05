@@ -699,4 +699,16 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         return new BitmapDrawable(getContext().getResources(), bitmapOrig);
     }
 
+    //Not using this for now, but wanted to keep it just in case.
+    protected Drawable convertToGrayscale(Drawable drawable) {
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0);
+
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+
+        drawable.setColorFilter(filter);
+
+        return drawable;
+    }
+
 }
