@@ -101,9 +101,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private boolean mLockStyleIcs3way = (Settings.System.getInt(mContext.getContentResolver(),
             Settings.System.LOCKSCREEN_STYLE_MULITWAVEVIEW_3WAY, 1) == 1);
 
-    private boolean mUseIcsSilentToggle = (Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.LOCKSCREEN_STYLE_MULTIWAVEVIEW_SILENTMODE, 1) == 1);
-
     private String mCustAppUri = (Settings.System.getString(mContext.getContentResolver(),
             Settings.System.LOCKSCREEN_STYLE_MULTIWAVEVIEW_CUSTOMAPP));
 
@@ -154,8 +151,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             }
         }
 
-        public void onGrabbedStateChange(View v, int grabbedState) {
-        }
+        public void onGrabbedStateChange(View v, int grabbedState) { }
 
         public View getView() {
             return mRotarySel;
@@ -171,11 +167,9 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             mRotarySelector.setRightHandleResource(iconId);
         }
 
-        public void reset(boolean animate) {
-        }
+        public void reset(boolean animate) { }
 
-        public void ping() {
-        }
+        public void ping() { }
 
     }
 
@@ -249,8 +243,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             mSlidingTab.reset(animate);
         }
 
-        public void ping() {
-        }
+        public void ping() { }
+
     }
 
     class WaveViewMethods implements WaveView.OnTriggerListener, UnlockWidgetCommonMethods {
@@ -277,8 +271,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             }
         }
 
-        public void updateResources() {
-        }
+        public void updateResources() { }
 
         public View getView() {
             return mWaveView;
@@ -288,8 +281,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             mWaveView.reset();
         }
 
-        public void ping() {
-        }
+        public void ping() { }
+
     }
 
     class MultiWaveViewMethods implements MultiWaveView.OnTriggerListener,
@@ -315,31 +308,52 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                 int count = drawableArray.length();
                 lockDrawables = new Drawable[count];
                 for (int i = 0; i < count; i++) {
-                    if (i == 1) {
-                        try {
-                            Intent intent = Intent.parseUri(mCustAppUri, 0);
-                            lockDrawables[i] = resize(pm.getActivityIcon(intent));
-                        } catch (PackageManager.NameNotFoundException e) {
-                            //TODO: Need to add something so this will follow through
-                        } catch (URISyntaxException e) {
-                            //TODO: Need to add something so this will follow through
+                    //TODO: try to reduce code duplication
+                    if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
+                        // Portrait
+                        if (i == 1) {
+                            try {
+                                Intent intent = Intent.parseUri(mCustAppUri, 0);
+                                lockDrawables[i] = resize(pm.getActivityIcon(intent));
+                            } catch (PackageManager.NameNotFoundException e) {
+                                //TODO: Need to add something so this will follow through
+                                Log.e(TAG, "NameNotFoundException: [" + mCustAppUri + "]");
+                            } catch (URISyntaxException e) {
+                                //TODO: Need to add something so this will follow through
+                                Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
+                            }
+                        } else {
+                            lockDrawables[i] = drawableArray.getDrawable(i);
                         }
                     } else {
-                        lockDrawables[i] = drawableArray.getDrawable(i);
+                        // Landscape
+                        if (i == 0) {
+                            try {
+                                Intent intent = Intent.parseUri(mCustAppUri, 0);
+                                lockDrawables[i] = resize(pm.getActivityIcon(intent));
+                            } catch (PackageManager.NameNotFoundException e) {
+                                //TODO: Need to add something so this will follow through
+                                Log.e(TAG, "NameNotFoundException: [" + mCustAppUri + "]");
+                            } catch (URISyntaxException e) {
+                                //TODO: Need to add something so this will follow through
+                                Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
+                            }
+                        } else {
+                            lockDrawables[i] = drawableArray.getDrawable(i);
+                        }
                     }
                 }
                 mMultiWaveView.setTargetResources(lockDrawables);
             }
         }
 
-        public void onGrabbed(View v, int handle) {
-        }
+        public void onGrabbed(View v, int handle) { }
 
-        public void onReleased(View v, int handle) {
-        }
+        public void onReleased(View v, int handle) { }
 
         public void onTrigger(View v, int target) {
             if (DBG) Log.v(TAG, "onTrigger: target = " + target);
+            if (DBG) Log.v(TAG, "onTrigger: Orientation = " + mCreationOrientation);
             if (!mLockStyleIcs3way) {
                 if (target == 0 || target == 1) { // 0 = unlock/portrait, 1 = unlock/landscape
                     mCallback.goToUnlockScreen();
@@ -348,24 +362,27 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                     mUnlockWidgetMethods.updateResources();
                     mCallback.pokeWakelock();
                 }
-            } else {
-                // This is for portrait only, landscape is different
-                // ie unlock is up / alt is down making these values wrong
-                // XXX: how can we find the orientation from within this function?
-                // Change the onTriggerListener to accept the orientation as well?
-                // For now this is just disabled for landscape (see below)
+            // TODO: try to reduce code duplication
+            } else if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
+                // Portrait
                 if (target == 0) { // 0 = right
                     mCallback.goToUnlockScreen();
                 } else if (target == 1) { // 1 = up
-                    try {
-                        Intent intent = Intent.parseUri(mCustAppUri, 0);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        mContext.startActivity(intent);
-                    } catch (URISyntaxException e) {
-                        Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
-                    }
+                    launchCustomApp(mCustAppUri);
                     mCallback.goToUnlockScreen();
                 } else if (target == 2) { // 2 = left
+                    toggleRingMode();
+                    mUnlockWidgetMethods.updateResources();
+                    mCallback.pokeWakelock();
+                }
+            } else {
+                // Landscape
+                if (target == 1) { // 1 = up
+                    mCallback.goToUnlockScreen();
+                } else if (target == 0) { // 0 = right
+                    launchCustomApp(mCustAppUri);
+                    mCallback.goToUnlockScreen();
+                } else if (target == 3) { // 3 = down
                     toggleRingMode();
                     mUnlockWidgetMethods.updateResources();
                     mCallback.pokeWakelock();
@@ -469,9 +486,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             inflater.inflate(R.layout.keyguard_screen_tab_unlock, this, true);
         } else {
             inflater.inflate(R.layout.keyguard_screen_tab_unlock_land, this, true);
-            // MulitwaveView 3way style wont work on landscape so it must be disabled.
-            // To be fair it does work but the icons are in the wrong places
-            mLockStyleIcs3way = false;
         }
 
         mStatusViewManager = new KeyguardStatusViewManager(this, mUpdateMonitor, mLockPatternUtils,
@@ -690,13 +704,22 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         }
     }
 
-    public void onPhoneStateChanged(String newState) {
-    }
+    public void onPhoneStateChanged(String newState) { }
 
     private Drawable resize(Drawable image) {
         Bitmap d = ((BitmapDrawable)image).getBitmap();
         Bitmap bitmapOrig = Bitmap.createScaledBitmap(d, 55, 55, false);
         return new BitmapDrawable(getContext().getResources(), bitmapOrig);
+    }
+
+    private void launchCustomApp(String uri) {
+        try {
+            Intent intent = Intent.parseUri(uri, 0);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mContext.startActivity(intent);
+        } catch (URISyntaxException e) {
+            Log.e(TAG, "URISyntaxException: [" + uri + "]");
+        }
     }
 
     //Not using this for now, but wanted to keep it just in case.
