@@ -481,13 +481,11 @@ public class NetworkController extends BroadcastReceiver {
                     if (isCdmaEri()) {
                     	if (useSixBar) {
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
-                    		Log.d(TAG,"UseSixBar:");
                     	} else {
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
                     	}
                     } else {
                     	if (useSixBar) {
-                    		Log.d(TAG,"UseSixBar:");
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                     	} else {
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
@@ -497,14 +495,12 @@ public class NetworkController extends BroadcastReceiver {
                     // Though mPhone is a Manager, this call is not an IPC
                     if (mPhone.isNetworkRoaming()) {
                     	if (useSixBar) {
-                    		Log.d(TAG,"UseSixBar:");
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                     	} else {
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
                     	}
                     } else {
                     	if (useSixBar) {
-                    		Log.d(TAG,"UseSixBar:");
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                     	} else {
                     		iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
