@@ -448,16 +448,29 @@ public class NetworkController extends BroadcastReceiver {
     private final void updateTelephonySignalStrength() {
     	//TODO: Correctly make this a setting.
     	boolean useSixBar = true;
-    	
+
         if (!hasService()) {
             if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: !hasService()");
-            mPhoneSignalIconId = R.drawable.stat_sys_signal_0;
-            mDataSignalIconId = R.drawable.stat_sys_signal_0;
+
+            if (useSixBar) {
+                mPhoneSignalIconId = R.drawable.stat_sys_signal_0_6bar;
+                mDataSignalIconId = R.drawable.stat_sys_signal_0_6bar;
+            } else {
+                mPhoneSignalIconId = R.drawable.stat_sys_signal_0;
+                mDataSignalIconId = R.drawable.stat_sys_signal_0;
+            }
         } else {
             if (mSignalStrength == null) {
                 if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: mSignalStrength == null");
-                mPhoneSignalIconId = R.drawable.stat_sys_signal_0;
-                mDataSignalIconId = R.drawable.stat_sys_signal_0;
+
+                if (useSixBar) {
+                    mPhoneSignalIconId = R.drawable.stat_sys_signal_0_6bar;
+                    mDataSignalIconId = R.drawable.stat_sys_signal_0_6bar;
+                } else {
+                    mPhoneSignalIconId = R.drawable.stat_sys_signal_0;
+                    mDataSignalIconId = R.drawable.stat_sys_signal_0;
+                }
+
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[0]);
             } else {
