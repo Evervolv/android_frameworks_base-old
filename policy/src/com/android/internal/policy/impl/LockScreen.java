@@ -34,6 +34,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Rect;
 import android.graphics.Bitmap.Config;
 import android.graphics.drawable.BitmapDrawable;
