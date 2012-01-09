@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scroll2"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fadingEdge="none"
+    android:overScrollMode="ifContentScrolls"
+    >
+	<LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+	    <TextView android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:textSize="15dip"
+            android:text="@string/battery_profile"
+		    android:id="@+id/divider_text_apps"
+		    android:layout_marginLeft="20dip">
+	    </TextView>
+	    
+	    <ImageView android:src="@drawable/divider"
+		    android:layout_height="5dip"
+		    android:layout_width="match_parent"
+		    android:layout_marginBottom="10dip"
+		    android:layout_marginLeft="10dip"
+		    android:layout_marginRight="10dip">
+	    </ImageView>
+	    <LinearLayout android:id="@+id/linearLayout1" android:layout_height="match_parent" android:layout_width="match_parent" android:orientation="horizontal">
+		    <TableLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1"  xmlns:android="http://schemas.android.com/apk/res/android">
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_status_label" />
+			        <TextView style="@style/table_value" android:id="@+id/status" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_power_label" />
+			        <TextView style="@style/table_value" android:id="@+id/power" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_level_label" />
+			        <TextView style="@style/table_value" android:id="@+id/level" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_scale_label" />
+			        <TextView style="@style/table_value" android:id="@+id/scale" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_health_label" />
+			        <TextView style="@style/table_value" android:id="@+id/health" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_voltage_label" />
+			        <TextView style="@style/table_value" android:id="@+id/voltage" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_temperature_label" />
+			        <TextView style="@style/table_value" android:id="@+id/temperature" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+			    <TableRow>
+			        <TextView style="@style/table_label" android:text="@string/battery_info_technology_label" />
+			        <TextView style="@style/table_value" android:id="@+id/technology" android:layout_marginLeft="10dip"/>
+			    </TableRow>
+		    </TableLayout>
+		</LinearLayout>
+		<LinearLayout android:id="@+id/batteryFrame"
+			android:layout_width="match_parent"
+			android:layout_height="150dip"
+			android:orientation="horizontal">
+		     <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+		        	<ImageView android:id="@+id/batteryTab"
+			            android:layout_width="match_parent"
+			            android:layout_height="match_parent"
+			            android:scaleType="fitXY"
+			            android:src="@drawable/batt_100" />
+		            <ImageView android:layout_width="match_parent" 
+		            	android:layout_height="match_parent"
+		            	android:scaleType="fitXY"
+		                android:src="@drawable/batt_shape" />
+		            <ImageView android:id="@+id/batteryTabCharging"
+                    	android:layout_width="match_parent"
+                    	android:layout_height="match_parent"
+                    	android:visibility="gone"
+                        android:src="@drawable/batt_charging"
+                    	android:scaleType="fitXY"/>
+		            <TextView  android:id="@+id/batteryTabText"
+		                android:textSize="20dip"
+			            android:textColor="#FFFFFF"
+			            android:shadowColor="#000000"
+			            android:shadowDx="1.5"
+			            android:shadowDy="1.5"
+			            android:shadowRadius="1.5" 
+				        android:layout_width="wrap_content"
+				        android:layout_height="wrap_content"
+				        android:layout_gravity="bottom|center_horizontal"
+				    android:layout_marginBottom="60dip"/>
+			</FrameLayout>
+		</LinearLayout>
+	</LinearLayout>
+</ScrollView>

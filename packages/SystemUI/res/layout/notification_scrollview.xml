@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:systemui="http://schemas.android.com/apk/res/com.android.systemui"
+    android:layout_width="match_parent" 
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    >
+    <TextView android:id="@+id/noNotificationsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.Large"
+        android:padding="8dp"
+        android:layout_gravity="top"
+        android:gravity="left"
+        android:text="@string/status_bar_no_notifications_title"
+        />
+
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fadingEdge="none"
+        android:overScrollMode="ifContentScrolls"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+            <com.android.systemui.statusbar.policy.NotificationRowLayout
+                android:id="@+id/latestItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                systemui:rowHeight="@dimen/notification_height"
+                />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/title_bar_shadow"
+        android:scaleType="fitXY"
+    />
+
+</FrameLayout>

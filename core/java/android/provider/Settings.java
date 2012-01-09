@@ -1965,6 +1965,14 @@ public final class Settings {
         public static final String LOCKSCREEN_STYLE_MULTIWAVEVIEW_CUSTOMAPP =
                     "lockscreen_style_multiwaveview_customapp";
 
+        /**
+         * String of user-defined widgets, defaulted to ..... TODO .....
+         * Delimited by | (pipe)
+         * @hide
+         */
+
+        public static final String SELECTED_TOOLBOX_WIDGETS = "selected_toolbox_widgets";
+        
         /* END Constants for Evervolv Toolbox */
 
         /**

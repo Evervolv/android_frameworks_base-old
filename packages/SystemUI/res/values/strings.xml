@@ -370,4 +370,83 @@
 
     <!-- Content description of the clear button in the notification panel for accessibility (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_clear_all">Clear all notifications.</string>
+
+
+    <!-- Strings for Notification toolbox -->
+    <string name="title_notif">Notifications</string>
+    <string name="title_widgets">Power Widgets</string>
+    <string name="title_media">Sound \u0026 Media</string>
+    <string name="title_power">Power Management</string>
+    <string name="prev_butt_text">\u003c\u003c</string>
+    <string name="next_butt_text">\u003e\u003e</string>
+    <string name="text_media">Media</string>
+    <string name="text_volume_control">Volume Control</string>
+    <string name="text_ringtone">Ringtone</string>
+    <string name="text_media_control">Media Control</string>
+
+    <string name="battery_info_status_label">Battery status:</string>
+    <string name="battery_info_power_label">Power plug:</string>
+    <string name="battery_info_scale_label">Battery scale:</string>
+    <string name="battery_info_level_label">Battery level:</string>
+    <string name="battery_info_health_label">Battery health:</string>
+    <string name="battery_info_technology_label">Battery technology:</string>
+    <string name="battery_info_voltage_label">Battery voltage:</string>
+    <string name="battery_info_voltage_units">mV</string>
+    <string name="battery_info_temperature_label">Battery temperature:</string>
+    <string name="battery_info_temperature_units">\u00B0 C</string>
+    <string name="battery_profile">Battery Profile</string>
+
+    <string name="default_toolbox_widgets">toggleWifi|toggleBt|toggleGps|toggleSync</string>
+
+
+    <string name="widget_wifi_title">Wi-Fi</string>
+    <string name="widget_wimax_title">Wimax</string>
+    <string name="widget_wifiap_title">Hot Spot</string>
+    <string name="widget_gps_title">Gps</string>
+    <string name="widget_sync_title">Sync</string>
+    <string name="widget_bt_title">Bluetooth</string>
+    <string name="widget_mobdata_title">Mobile Data</string>
+    <string name="widget_usbtether_title">Usb Tether</string>
+    <string name="widget_autorotate_title">Auto Rotate</string>
+    <string name="widget_airplane_title">Airplane Mode</string>
+
+
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_unknown">Unknown</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_charging">Charging</string>
+    <!-- Battery Info screen. Units shown after a value.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_charging_ac">(AC)</string>
+    <!-- Battery Info screen. Units shown after a value.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_charging_usb">(USB)</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_discharging">Discharging</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_not_charging">Not charging</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_status_full">Full</string>
+
+    <!-- Battery Info screen. Units shown after a value.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_power_unplugged">Unplugged</string>
+    <string name="battery_info_power_ac">AC</string>
+    <string name="battery_info_power_usb">USB</string>
+    <string name="battery_info_power_ac_usb">AC+USB</string>
+    <string name="battery_info_power_unknown">Unknown</string>
+
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_unknown">Unknown</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_good">Good</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_overheat">Overheat</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_dead">Dead</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_over_voltage">Over voltage</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_unspecified_failure">Unknown error</string>
+    <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
+    <string name="battery_info_health_cold">Cold</string>
+
+
 </resources>

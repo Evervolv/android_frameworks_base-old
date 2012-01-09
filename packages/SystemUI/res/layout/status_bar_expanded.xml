@@ -84,50 +84,35 @@
         android:layout_height="2dp"
         android:background="@drawable/status_bar_hr"
         />
+	<com.android.systemui.widget.ToolboxLinearLayout
+		      android:id="@+id/toolbox_layout"
+		      android:orientation="vertical"
+		      android:layout_width="match_parent"
+		      android:layout_height="match_parent">
 
-    <FrameLayout
-        android:layout_width="match_parent" 
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        >
-        <TextView android:id="@+id/noNotificationsTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@android:style/TextAppearance.Large"
-            android:padding="8dp"
-            android:layout_gravity="top"
-            android:gravity="left"
-            android:text="@string/status_bar_no_notifications_title"
-            />
+	    <ViewFlipper android:id="@+id/toolbox_flipper"
+		         android:layout_width="match_parent"
+		         android:layout_height="0dp"
+		         android:layout_weight="1">
+	
+		    <!--    Each added layout is a new view for the ViewFlipper   -->
+		    <include
+		    layout="@layout/notification_scrollview"
+		    android:id="@+id/flipper_notification_scrollview" />
 
-        <ScrollView
-            android:id="@+id/scroll"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fadingEdge="none"
-            android:overScrollMode="ifContentScrolls"
-            >
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                >
-                <com.android.systemui.statusbar.policy.NotificationRowLayout
-                    android:id="@+id/latestItems"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    systemui:rowHeight="@dimen/notification_height"
-                    />
+		    <include
+		    layout="@layout/layout_power_widgets"
+		    android:id="@+id/flipper_ll_widgets" />
 
-            </LinearLayout>
-        </ScrollView>
+		    <include
+		    layout="@layout/layout_sound_media"
+		    android:id="@+id/flipper_ll_media" />
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/title_bar_shadow"
-            android:scaleType="fitXY"
-        />
+		    <include
+		    layout="@layout/layout_battery_tools"
+		    android:id="@+id/flipper_ll_battery" />
 
-    </FrameLayout>
+	    </ViewFlipper>
+
+	</com.android.systemui.widget.ToolboxLinearLayout>
 </com.android.systemui.statusbar.phone.ExpandedView>

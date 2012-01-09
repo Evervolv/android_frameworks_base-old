@@ -67,6 +67,7 @@ import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -193,6 +194,9 @@ public class PhoneStatusBar extends StatusBar {
     int mTrackingPosition; // the position of the top of the tracking view.
     private boolean mPanelSlightlyVisible;
 
+    //notification toolbox
+    ViewFlipper mToolboxFlipper;
+
     // ticker
     private Ticker mTicker;
     private View mTickerView;
@@ -316,6 +320,8 @@ public class PhoneStatusBar extends StatusBar {
         mIcons = (LinearLayout)sb.findViewById(R.id.icons);
         mTickerView = sb.findViewById(R.id.ticker);
 
+        mToolboxFlipper = (ViewFlipper) expanded.findViewById(R.id.toolbox_flipper);
+
         mExpandedDialog = new ExpandedDialog(context);
         mExpandedView = expanded;
         mPile = (NotificationRowLayout)expanded.findViewById(R.id.latestItems);
@@ -330,6 +336,7 @@ public class PhoneStatusBar extends StatusBar {
         mDateView = (DateView)expanded.findViewById(R.id.date);
         mSettingsButton = expanded.findViewById(R.id.settings_button);
         mSettingsButton.setOnClickListener(mSettingsButtonListener);
+        mSettingsButton.setOnLongClickListener(mSettingsButtonLongListener);
         mScrollView = (ScrollView)expanded.findViewById(R.id.scroll);
 
         mTicker = new MyTicker(context, sb);
@@ -1005,17 +1012,24 @@ public class PhoneStatusBar extends StatusBar {
                     + " any=" + any + " clearable=" + clearable);
         }
 
-        if (mClearButton.isShown()) {
-            if (clearable != (mClearButton.getAlpha() == 1.0f)) {
-                ObjectAnimator.ofFloat(mClearButton, "alpha",
-                        clearable ? 1.0f : 0.0f)
-                    .setDuration(250)
-                    .start();
+        // Turn the button off when the notification view is not displayed.
+        if (mToolboxFlipper.getDisplayedChild() == 0) {
+            if (mClearButton.isShown()) {
+                if (clearable != (mClearButton.getAlpha() == 1.0f)) {
+                    ObjectAnimator.ofFloat(mClearButton, "alpha",
+                            clearable ? 1.0f : 0.0f)
+                        .setDuration(250)
+                        .start();
+                }
+            } else {
+                mClearButton.setAlpha(clearable ? 1.0f : 0.0f);
             }
+
+            mClearButton.setEnabled(clearable);
         } else {
-            mClearButton.setAlpha(clearable ? 1.0f : 0.0f);
+            mClearButton.setAlpha(0.0f);
+            mClearButton.setEnabled(false);
         }
-        mClearButton.setEnabled(clearable);
 
         /*
         if (mNoNotificationsTitle.isShown()) {
@@ -1999,6 +2013,9 @@ public class PhoneStatusBar extends StatusBar {
                 // because the window itself extends below the content view.
                 mExpandedParams.y = -disph;
             }
+            // A workaround for now.
+            mExpandedParams.y = mTrackingPosition;
+            
             mExpandedDialog.getWindow().setAttributes(mExpandedParams);
 
             // As long as this isn't just a repositioning that's not supposed to affect
@@ -2188,6 +2205,14 @@ public class PhoneStatusBar extends StatusBar {
 
     private View.OnClickListener mSettingsButtonListener = new View.OnClickListener() {
         public void onClick(View v) {
+            nextToolboxView();
+        }
+    };
+
+    private View.OnLongClickListener mSettingsButtonLongListener = new View.OnLongClickListener() {
+
+        @Override
+        public boolean onLongClick(View v) {
             try {
                 // Dismiss the lock screen when Settings starts.
                 ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
@@ -2196,9 +2221,11 @@ public class PhoneStatusBar extends StatusBar {
             v.getContext().startActivity(new Intent(Settings.ACTION_SETTINGS)
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             animateCollapse();
+            return false;
         }
+        
     };
-
+    
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -2332,5 +2359,17 @@ public class PhoneStatusBar extends StatusBar {
             return false;
         }
     }
+    
+    //
+    // Notification Toolbox
+    //
+    
+    private void nextToolboxView() {
+        mToolboxFlipper.setInAnimation(mContext, R.anim.in_animation);
+        mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation);
+        mToolboxFlipper.showNext();
+        setAreThereNotifications();
+    }
+    
 }
 
