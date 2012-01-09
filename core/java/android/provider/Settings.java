@@ -1972,7 +1972,13 @@ public final class Settings {
          */
 
         public static final String SELECTED_TOOLBOX_WIDGETS = "selected_toolbox_widgets";
-        
+
+        /**
+         * Enable/Disable lockscreen volume button music controls to change media tracks.
+         * @hide
+         */
+        public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
+
         /* END Constants for Evervolv Toolbox */
 
         /**

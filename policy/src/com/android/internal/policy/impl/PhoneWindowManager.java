@@ -429,6 +429,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Behavior of ENDCALL Button.  (See Settings.System.END_BUTTON_BEHAVIOR.)
     int mEndcallBehavior;
 
+    // Behavior of VOLUME Buttons for music control
+    boolean mVolBtnMusicControls;
+    // keep track of long-press state
+    boolean mIsLongPress;
+
     // Behavior of POWER button while in-call and screen on.
     // (See Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR.)
     int mIncallPowerBehavior;
@@ -488,6 +493,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.DEFAULT_INPUT_METHOD), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     "fancy_rotation_anim"), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN), false, this);
             updateSettings();
         }
 
@@ -676,6 +683,43 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean isDeviceProvisioned() {
         return Settings.Secure.getInt(
                 mContext.getContentResolver(), Settings.Secure.DEVICE_PROVISIONED, 0) != 0;
+    }
+
+    /**
+     * When a volumeup-key longpress expires, skip songs based on key press
+     * If there is no media playing, start it
+     */
+    Runnable mVolumeUpLongPress = new Runnable() {
+        public void run() {
+            // set the long press flag to true
+            mIsLongPress = true;
+            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_NEXT);
+        };
+    };
+
+    /**
+     * When a volumedown-key longpress expires, skip songs based on key press
+     */
+    Runnable mVolumeDownLongPress = new Runnable() {
+        public void run() {
+            // set the long press flag to true
+            mIsLongPress = true;
+            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+        };
+    };
+
+    private void sendMediaButtonEvent(int code) {
+        long eventtime = SystemClock.uptimeMillis();
+
+        Intent downIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null);
+        KeyEvent downEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, code, 0);
+        downIntent.putExtra(Intent.EXTRA_KEY_EVENT, downEvent);
+        mContext.sendOrderedBroadcast(downIntent, null);
+
+        Intent upIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null);
+        KeyEvent upEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_UP, code, 0);
+        upIntent.putExtra(Intent.EXTRA_KEY_EVENT, upEvent);
+        mContext.sendOrderedBroadcast(upIntent, null);
     }
 
     private void handleLongPressOnHome() {
@@ -917,6 +961,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mIncallPowerBehavior = Settings.Secure.getInt(resolver,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT);
+            mVolBtnMusicControls = (Settings.System.getInt(resolver,
+                    Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN, 1) == 1);
             int accelerometerDefault = Settings.System.getInt(resolver,
                     Settings.System.ACCELEROMETER_ROTATION, DEFAULT_ACCELEROMETER_ROTATION);
             
@@ -2689,6 +2735,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    void handleVolumeLongPress(int keycode) {
+        Runnable btnHandler;
+
+        if (keycode == KeyEvent.KEYCODE_VOLUME_UP)
+            btnHandler = mVolumeUpLongPress;
+        else
+            btnHandler = mVolumeDownLongPress;
+
+        mHandler.postDelayed(btnHandler, ViewConfiguration.getLongPressTimeout());
+    }
+
+    void handleVolumeLongPressAbort() {
+            mHandler.removeCallbacks(mVolumeUpLongPress);
+            mHandler.removeCallbacks(mVolumeDownLongPress);
+    }
+
     /** {@inheritDoc} */
     @Override
     public int interceptKeyBeforeQueueing(KeyEvent event, int policyFlags, boolean isScreenOn) {
@@ -2784,6 +2846,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         cancelPendingScreenshotChordAction();
                     }
                 }
+                if (keyCode != KeyEvent.KEYCODE_VOLUME_MUTE) {
+                    if (mVolBtnMusicControls && !down) {
+                        handleVolumeLongPressAbort();
+
+                        // delay handling volume events if mVolBtnMusicControls is desired
+                        if (isMusicActive() && !mIsLongPress  && (result & ACTION_PASS_TO_USER) == 0)
+                            handleVolumeKey(AudioManager.STREAM_MUSIC, keyCode);
+                    }
+                }
                 if (down) {
                     ITelephony telephonyService = getTelephonyService();
                     if (telephonyService != null) {
@@ -2820,9 +2891,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     }
 
                     if (isMusicActive() && (result & ACTION_PASS_TO_USER) == 0) {
-                        // If music is playing but we decided not to pass the key to the
-                        // application, handle the volume change here.
-                        handleVolumeKey(AudioManager.STREAM_MUSIC, keyCode);
+                        // Care for long-press actions to skip tracks
+                        if(mVolBtnMusicControls) {
+                            // initialize long press flag to false for volume events
+                            mIsLongPress = false;
+
+                            // if the button is held long enough, the following
+                            // procedure will set mIsLongPress=true
+                            handleVolumeLongPress(keyCode);
+                        } else {
+                            // If music is playing but we decided not to pass the key to the
+                            // application, handle the volume change here.
+                            handleVolumeKey(AudioManager.STREAM_MUSIC, keyCode);
+                        }
                         break;
                     }
                 }
