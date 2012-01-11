@@ -41,7 +41,7 @@ public class SignalStrength implements Parcelable {
     /** @hide */
     public static final int SIGNAL_STRENGTH_GREAT = 4;
     /** @hide */
-    public static final int NUM_SIGNAL_STRENGTH_BINS = 5;
+    public static final int NUM_SIGNAL_STRENGTH_BINS = 7;
     /** @hide */
     public static final String[] SIGNAL_STRENGTH_NAMES = {
         "none", "poor", "moderate", "good", "great"
