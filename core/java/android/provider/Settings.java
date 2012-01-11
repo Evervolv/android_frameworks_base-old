@@ -2011,6 +2011,12 @@ public final class Settings {
          */
         public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
 
+        /**
+         * Toggle to let trackball wake the screen.
+         * @hide
+         */
+        public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
