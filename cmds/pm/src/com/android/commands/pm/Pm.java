@@ -212,6 +212,7 @@ public final class Pm {
         int getFlags = 0;
         boolean listDisabled = false, listEnabled = false;
         boolean listSystem = false, listThirdParty = false;
+        boolean listVersion = false;
         try {
             String opt;
             while ((opt=nextOption()) != null) {
@@ -231,6 +232,8 @@ public final class Pm {
                     listThirdParty = true;
                 } else if (opt.equals("-u")) {
                     getFlags |= PackageManager.GET_UNINSTALLED_PACKAGES;
+                } else if (opt.equals("-v")) {
+                    listVersion = true;
                 } else {
                     System.err.println("Error: Unknown option: " + opt);
                     showUsage();
@@ -265,7 +268,22 @@ public final class Pm {
                         System.out.print(info.applicationInfo.sourceDir);
                         System.out.print("=");
                     }
-                    System.out.println(info.packageName);
+                    if (listVersion) {
+                        String version = "";
+                        if (info.versionName != null) {
+                            version =
+                                String.format("%s (#%d)",
+                                              info.versionName,
+                                              info.versionCode);
+                        } else {
+                            version = String.format("(#%d)", info.versionCode);
+                        }
+                        System.out.println(String.format("%s:%s",
+                                                         info.packageName,
+                                                         version));
+                    }else{
+                        System.out.println(info.packageName);
+                    }
                 }
             }
         } catch (RemoteException e) {
@@ -1109,7 +1127,7 @@ public final class Pm {
     }
 
     private static void showUsage() {
-        System.err.println("usage: pm list packages [-f] [-d] [-e] [-s] [-e] [-u] [FILTER]");
+        System.err.println("usage: pm list packages [-f] [-d] [-e] [-s] [-e] [-u] [-v] [FILTER]");
         System.err.println("       pm list permission-groups");
         System.err.println("       pm list permissions [-g] [-f] [-d] [-u] [GROUP]");
         System.err.println("       pm list instrumentation [-f] [TARGET-PACKAGE]");
@@ -1135,6 +1153,7 @@ public final class Pm {
         System.err.println("    -s: filter to only show system packages.");
         System.err.println("    -3: filter to only show third party packages.");
         System.err.println("    -u: also include uninstalled packages.");
+        System.err.println("    -v: show packages version after the package name.");
         System.err.println("");
         System.err.println("pm list permission-groups: prints all known permission groups.");
         System.err.println("");
