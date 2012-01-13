@@ -298,7 +298,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 
         public void updateResources() {
             int resId;
-                // Fall back to showing ring/silence if camera is disabled by DPM...
             if (!mLockStyleIcs3way) {
                 resId = mSilentMode ? R.array.lockscreen_targets_when_silent
                     : R.array.lockscreen_targets_when_soundon;
@@ -306,11 +305,13 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             } else {
                 PackageManager pm = getContext().getPackageManager();
                 Resources res = getContext().getResources();
-                TypedArray drawableArray = res.obtainTypedArray(R.array.lockscreen_targets_when_soundon_3way);
+                TypedArray drawableArray = mSilentMode ?
+                        res.obtainTypedArray(R.array.lockscreen_targets_when_silent_3way)
+                        : res.obtainTypedArray(R.array.lockscreen_targets_when_soundon_3way);
                 int count = drawableArray.length();
                 lockDrawables = new Drawable[count];
+
                 for (int i = 0; i < count; i++) {
-                    //TODO: try to reduce code duplication
                     if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
                         // Portrait
                         if (i == 1) {
@@ -318,10 +319,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                                 Intent intent = Intent.parseUri(mCustAppUri, 0);
                                 lockDrawables[i] = resize(pm.getActivityIcon(intent));
                             } catch (PackageManager.NameNotFoundException e) {
-                                //TODO: Need to add something so this will follow through
                                 Log.e(TAG, "NameNotFoundException: [" + mCustAppUri + "]");
                             } catch (URISyntaxException e) {
-                                //TODO: Need to add something so this will follow through
                                 Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
                             }
                         } else {
@@ -329,15 +328,13 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                         }
                     } else {
                         // Landscape
-                        if (i == 0) {
+                        if (i == 2) {
                             try {
                                 Intent intent = Intent.parseUri(mCustAppUri, 0);
                                 lockDrawables[i] = resize(pm.getActivityIcon(intent));
                             } catch (PackageManager.NameNotFoundException e) {
-                                //TODO: Need to add something so this will follow through
                                 Log.e(TAG, "NameNotFoundException: [" + mCustAppUri + "]");
                             } catch (URISyntaxException e) {
-                                //TODO: Need to add something so this will follow through
                                 Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
                             }
                         } else {
@@ -364,7 +361,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                     mUnlockWidgetMethods.updateResources();
                     mCallback.pokeWakelock();
                 }
-            // TODO: try to reduce code duplication
             } else if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
                 // Portrait
                 if (target == 0) { // 0 = right
@@ -381,7 +377,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                 // Landscape
                 if (target == 1) { // 1 = up
                     mCallback.goToUnlockScreen();
-                } else if (target == 0) { // 0 = right
+                } else if (target == 2) { // 2 = left
                     launchCustomApp(mCustAppUri);
                     mCallback.goToUnlockScreen();
                 } else if (target == 3) { // 3 = down
