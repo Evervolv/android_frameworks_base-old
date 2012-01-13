@@ -1979,6 +1979,12 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
 
+        /**
+          * Statusbar toggle for 6 bar signal strength.
+          * @hide
+          */
+          public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
+
         /* END Constants for Evervolv Toolbox */
 
         /**

@@ -17,9 +17,11 @@
 
 package android.telephony;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.provider.Settings;
 import android.util.Log;
 
 /**
@@ -77,6 +79,9 @@ public class SignalStrength implements Parcelable {
     private int mLteCqi;
 
     private boolean isGsm; // This value is set by the ServiceStateTracker onSignalStrengthResult
+
+    private boolean mUseSixBar;
+    private Context mContext;
 
     /**
      * Create a new SignalStrength from a intent notifier Bundle
@@ -298,13 +303,12 @@ public class SignalStrength implements Parcelable {
 
     /**
      * Get signal level as an int from 0..4
-     * Except when useSixBar is true, use 6bar mod.
+     * Except when mUseSixBar is true, use 6bar mod.
      * 
      * @hide
      */
     public int getLevel() {
         int level;
-        boolean is6Bar = true;
 
         if (isGsm) {
             if ((mLteSignalStrength == -1)
@@ -415,21 +419,22 @@ public class SignalStrength implements Parcelable {
 
     /**
      * Get gsm as level 0..4
-     * Except when useSixBar is true, use 6bar mod.
+     * Except when mUseSixBar is true, use 6bar mod.
      *
      * @hide
      */
     public int getGsmLevel() {
         int level;
-        //TODO: Correctly make this a setting.
-        boolean useSixbar = true;
-        
+
+        mUseSixBar = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
+
         // ASU ranges from 0 to 31 - TS 27.007 Sec 8.5
         // asu = 0 (-113dB or less) is very weak
         // signal, its better to show 0 bars to the user in such cases.
         // asu = 99 is a special case, where the signal strength is unknown.
         int asu = getGsmSignalStrength();
-        if (!useSixbar) {
+        if (!mUseSixBar) {
             if (asu <= 2 || asu == 99) level = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
             else if (asu >= 12) level = SIGNAL_STRENGTH_GREAT;
             else if (asu >= 8)  level = SIGNAL_STRENGTH_GOOD;
@@ -466,7 +471,7 @@ public class SignalStrength implements Parcelable {
 
     /**
      * Get cdma as level 0..4
-     * Except when useSixBar is true, use 6bar mod.
+     * Except when mUseSixBar is true, use 6bar mod.
      *
      * @hide
      */
@@ -475,9 +480,10 @@ public class SignalStrength implements Parcelable {
         final int cdmaEcio = getCdmaEcio();
         int levelDbm;
         int levelEcio;
-        //TODO: Correctly make this a setting.
-        boolean useSixBar = true;
-        
+
+        mUseSixBar = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
+
         /*
          * HTC's signal to icon
 
@@ -489,8 +495,8 @@ public class SignalStrength implements Parcelable {
 		5 -> -85
 		6 -> -75
          */
-        
-        if (!useSixBar) {
+
+        if (!mUseSixBar) {
             if (cdmaDbm >= -75) levelDbm = SIGNAL_STRENGTH_GREAT;
             else if (cdmaDbm >= -85) levelDbm = SIGNAL_STRENGTH_GOOD;
             else if (cdmaDbm >= -95) levelDbm = SIGNAL_STRENGTH_MODERATE;
@@ -517,9 +523,9 @@ public class SignalStrength implements Parcelable {
 		5 -> -110
 		6 -> -90
          */
-        
+
         // Ec/Io are in dB*10
-        if (!useSixBar) {
+        if (!mUseSixBar) {
             if (cdmaEcio >= -90) levelEcio = SIGNAL_STRENGTH_GREAT;
             else if (cdmaEcio >= -110) levelEcio = SIGNAL_STRENGTH_GOOD;
             else if (cdmaEcio >= -130) levelEcio = SIGNAL_STRENGTH_MODERATE;
@@ -573,7 +579,7 @@ public class SignalStrength implements Parcelable {
 
     /**
      * Get Evdo as level 0..4
-     * Except when useSixBar is true, use 6bar mod.
+     * Except when mUseSixBar is true, use 6bar mod.
      *
      * @hide
      */
@@ -582,10 +588,11 @@ public class SignalStrength implements Parcelable {
         int evdoSnr = getEvdoSnr();
         int levelEvdoDbm;
         int levelEvdoSnr;
-        //TODO: Correctly make this a setting.
-        boolean useSixBar = true;
-        
-        if (!useSixBar) {
+
+        mUseSixBar = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
+
+        if (!mUseSixBar) {
             if (evdoDbm >= -65) levelEvdoDbm = SIGNAL_STRENGTH_GREAT;
             else if (evdoDbm >= -75) levelEvdoDbm = SIGNAL_STRENGTH_GOOD;
             else if (evdoDbm >= -90) levelEvdoDbm = SIGNAL_STRENGTH_MODERATE;
@@ -663,16 +670,17 @@ public class SignalStrength implements Parcelable {
 
     /**
      * Get LTE as level 0..4
-     * Except when useSixBar is true, use 6bar mod.
+     * Except when mUseSixBar is true, use 6bar mod.
      *
      * @hide
      */
     public int getLteLevel() {
         int levelLteRsrp = 0;
-        //TODO: Correctly make this a setting.
-        boolean useSixBar = true;
-        
-        if (!useSixBar) {
+
+        mUseSixBar = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
+
+        if (!mUseSixBar) {
 	        if (mLteRsrp == -1) levelLteRsrp = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 	        else if (mLteRsrp >= -85) levelLteRsrp = SIGNAL_STRENGTH_GREAT;
 	        else if (mLteRsrp >= -95) levelLteRsrp = SIGNAL_STRENGTH_GOOD;
@@ -834,4 +842,9 @@ public class SignalStrength implements Parcelable {
     private static void log(String s) {
         Log.w(LOG_TAG, s);
     }
+
+    public void setContext(Context context) {
+        this.mContext = context;
+    }
+
 }
