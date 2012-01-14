@@ -69,4 +69,53 @@
         <item>@string/description_target_camera</item>
     </array>
 
+    <array name="lockscreen_targets_with_camera_3way">
+        <item>@null</item>
+        <item>@drawable/ic_lockscreen_unlock</item>
+        <item>@drawable/ic_lockscreen_send_sms</item>
+        <item>@drawable/ic_lockscreen_camera</item>
+    </array>
+
+    <array name="lockscreen_target_descriptions_with_camera_3way">
+        <item>@null</item>
+        <item>@string/description_target_unlock</item>
+        <item>@string/description_target_send_sms</item>
+        <item>@string/description_target_camera</item>
+    </array>
+
+    <array name="lockscreen_direction_descriptions_3way">
+        <item>@null</item>
+        <item>@string/description_direction_right</item>
+        <item>@string/description_direction_up</item>
+        <item>@string/description_direction_left</item>
+    </array>
+
+    <array name="lockscreen_targets_when_silent_3way">
+        <item>@null</item>
+        <item>@drawable/ic_lockscreen_unlock</item>
+        <item>@drawable/ic_lockscreen_send_sms</item>
+        <item>@drawable/ic_lockscreen_soundon</item>
+    </array>
+
+    <array name="lockscreen_target_descriptions_when_silent_3way">
+        <item>@null</item>
+        <item>@string/description_target_unlock</item>
+        <item>@string/description_target_send_sms</item>
+        <item>@string/description_target_soundon</item>
+    </array>
+
+    <array name="lockscreen_targets_when_soundon_3way">
+        <item>@null</item>
+        <item>@drawable/ic_lockscreen_unlock</item>
+        <item>@drawable/ic_lockscreen_send_sms</item>
+        <item>@drawable/ic_lockscreen_silent</item>
+    </array>
+
+    <array name="lockscreen_target_descriptions_when_soundon_3way">
+        <item>@null</item>
+        <item>@string/description_target_unlock</item>
+        <item>@string/description_target_send_sms</item>
+        <item>@string/description_target_silent</item>
+    </array>
+
 </resources>
