@@ -1985,6 +1985,12 @@ public final class Settings {
           */
           public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
 
+        /**
+          * Toggle to let volume button wake the screen.
+          * @hide
+          */
+          public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
