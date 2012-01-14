@@ -1959,11 +1959,19 @@ public final class Settings {
                     "lockscreen_style_multiwaveview_silentmode";
 
         /**
-         * Store the uri of our custom app.
-         * @hide
-         */
-        public static final String LOCKSCREEN_STYLE_MULTIWAVEVIEW_CUSTOMAPP =
-                    "lockscreen_style_multiwaveview_customapp";
+        * Lockscreen custom app array
+        * 
+        * 1 [0] - Left
+        * 2 [1] - Right
+        * 3 [2] - Top
+        * 
+        * @hide
+        */
+        public static final String[] LOCKSCREEN_CUSTOM_APP_ACTIVITIES = new String[] {
+            "lockscreen_custom_app_activity_1",
+            "lockscreen_custom_app_activity_2",
+            "lockscreen_custom_app_activity_3"
+        };
 
         /**
          * String of user-defined widgets, defaulted to ..... TODO .....

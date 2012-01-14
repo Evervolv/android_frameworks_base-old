@@ -16,42 +16,37 @@
 
 package com.android.internal.policy.impl;
 
+import java.io.File;
+import java.net.URISyntaxException;
+
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.provider.Settings;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import com.android.internal.R;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.RotarySelector;
 import com.android.internal.widget.SlidingTab;
 import com.android.internal.widget.WaveView;
 import com.android.internal.widget.multiwaveview.MultiWaveView;
-
-import android.app.ActivityManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.Rect;
-import android.graphics.Bitmap.Config;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.*;
-import android.util.Log;
-import android.media.AudioManager;
-import android.provider.MediaStore;
-import android.provider.Settings;
-
-import java.io.File;
-import java.net.URISyntaxException;
 
 /**
  * The screen within {@link LockPatternKeyguardView} that shows general
@@ -102,9 +97,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 
     private boolean mLockStyleIcs3way = (Settings.System.getInt(mContext.getContentResolver(),
             Settings.System.LOCKSCREEN_STYLE_MULITWAVEVIEW_3WAY, 1) == 1);
-
-    private String mCustAppUri = (Settings.System.getString(mContext.getContentResolver(),
-            Settings.System.LOCKSCREEN_STYLE_MULTIWAVEVIEW_CUSTOMAPP));
 
     private Drawable[] lockDrawables;
 
@@ -297,53 +289,36 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         }
 
         public void updateResources() {
-            int resId;
-            if (!mLockStyleIcs3way) {
-                resId = mSilentMode ? R.array.lockscreen_targets_when_silent
-                    : R.array.lockscreen_targets_when_soundon;
-                mMultiWaveView.setTargetResources(resId);
-            } else {
-                PackageManager pm = getContext().getPackageManager();
-                Resources res = getContext().getResources();
-                TypedArray drawableArray = mSilentMode ?
-                        res.obtainTypedArray(R.array.lockscreen_targets_when_silent_3way)
-                        : res.obtainTypedArray(R.array.lockscreen_targets_when_soundon_3way);
-                int count = drawableArray.length();
-                lockDrawables = new Drawable[count];
+            boolean isLandscape = (mCreationOrientation == Configuration
+                    .ORIENTATION_LANDSCAPE);
+            lockDrawables = new Drawable[4];
+            int count = lockDrawables.length;
 
-                for (int i = 0; i < count; i++) {
-                    if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
-                        // Portrait
-                        if (i == 1) {
-                            try {
-                                Intent intent = Intent.parseUri(mCustAppUri, 0);
-                                lockDrawables[i] = resize(pm.getActivityIcon(intent));
-                            } catch (PackageManager.NameNotFoundException e) {
-                                Log.e(TAG, "NameNotFoundException: [" + mCustAppUri + "]");
-                            } catch (URISyntaxException e) {
-                                Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
-                            }
+            for (int i = 0; i < count; i++) {
+                if (!isLandscape) {
+                    if (!mLockStyleIcs3way) {
+                        if (i == 1 || i == 3) {
+                            lockDrawables[i] = null;
                         } else {
-                            lockDrawables[i] = drawableArray.getDrawable(i);
+                            lockDrawables[i] = getDrawable(getMappingUri(i));
                         }
                     } else {
-                        // Landscape
-                        if (i == 2) {
-                            try {
-                                Intent intent = Intent.parseUri(mCustAppUri, 0);
-                                lockDrawables[i] = resize(pm.getActivityIcon(intent));
-                            } catch (PackageManager.NameNotFoundException e) {
-                                Log.e(TAG, "NameNotFoundException: [" + mCustAppUri + "]");
-                            } catch (URISyntaxException e) {
-                                Log.e(TAG, "URISyntaxException: [" + mCustAppUri + "]");
-                            }
+                        if (i != 3) { lockDrawables[i] = getDrawable(getMappingUri(i)); }
+                    }
+                } else {
+                    if (!mLockStyleIcs3way) {
+                        if (i == 0 || i == 2) {
+                            lockDrawables[i] = null;
                         } else {
-                            lockDrawables[i] = drawableArray.getDrawable(i);
+                            lockDrawables[i] = getDrawable(getMappingUri(i - 1));
                         }
+                    } else {
+                        if (i != 0) { lockDrawables[i] = getDrawable(getMappingUri(i - 1)); }
                     }
                 }
-                mMultiWaveView.setTargetResources(lockDrawables);
+
             }
+            mMultiWaveView.setTargetResources(lockDrawables);
         }
 
         public void onGrabbed(View v, int handle) { }
@@ -353,39 +328,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         public void onTrigger(View v, int target) {
             if (DBG) Log.v(TAG, "onTrigger: target = " + target);
             if (DBG) Log.v(TAG, "onTrigger: Orientation = " + mCreationOrientation);
-            if (!mLockStyleIcs3way) {
-                if (target == 0 || target == 1) { // 0 = unlock/portrait, 1 = unlock/landscape
-                    mCallback.goToUnlockScreen();
-                } else if (target == 2 || target == 3) { // 2 = alt/portrait, 3 = alt/landscape
-                    toggleRingMode();
-                    mUnlockWidgetMethods.updateResources();
-                    mCallback.pokeWakelock();
-                }
-            } else if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
-                // Portrait
-                if (target == 0) { // 0 = right
-                    mCallback.goToUnlockScreen();
-                } else if (target == 1) { // 1 = up
-                    launchCustomApp(mCustAppUri);
-                    mCallback.goToUnlockScreen();
-                } else if (target == 2) { // 2 = left
-                    toggleRingMode();
-                    mUnlockWidgetMethods.updateResources();
-                    mCallback.pokeWakelock();
-                }
-            } else {
-                // Landscape
-                if (target == 1) { // 1 = up
-                    mCallback.goToUnlockScreen();
-                } else if (target == 2) { // 2 = left
-                    launchCustomApp(mCustAppUri);
-                    mCallback.goToUnlockScreen();
-                } else if (target == 3) { // 3 = down
-                    toggleRingMode();
-                    mUnlockWidgetMethods.updateResources();
-                    mCallback.pokeWakelock();
-                }
-            }
+            doWork(target);
         }
 
         public void onGrabbedStateChange(View v, int handle) {
@@ -409,7 +352,81 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             mMultiWaveView.ping();
         }
     }
+    
+    private String getMappingUri(int target) {
+        String uri;
+        uri = Settings.System.getString(mContext.getContentResolver(),
+                Settings.System.LOCKSCREEN_CUSTOM_APP_ACTIVITIES[target]);
 
+        if (uri == null) {
+            if (target == 0) {
+                uri = "**unlock**";
+            } else if (target == 2) {
+                uri = "**sound**";
+            } else if (target == 1) {
+                uri = getResources().getString(
+                        R.string.lockscreen_custom_app_default);
+            }
+        }
+        return uri;
+    }
+    
+    private Drawable getDrawable(String uri) {
+        int resId;
+        Drawable drawable = null;
+        PackageManager pm = getContext().getPackageManager();
+        Resources res = getContext().getResources();
+        if (uri.equals("**unlock**")) {
+            resId = R.drawable.ic_lockscreen_unlock;
+            drawable = res.getDrawable(resId);
+        } else if (uri.equals("**sound**")) {
+            resId = mSilentMode ? R.drawable.ic_lockscreen_silent
+                    : R.drawable.ic_lockscreen_soundon;
+            drawable = res.getDrawable(resId);
+        } else {
+            try {
+                Intent intent = Intent.parseUri(uri, 0);
+                drawable = resize(pm.getActivityIcon(intent));
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.e(TAG, "NameNotFoundException: [" + uri + "]");
+            } catch (URISyntaxException e) {
+                Log.e(TAG, "URISyntaxException: [" + uri + "]");
+            }
+        }
+        return drawable;
+    }
+    
+    private void doWork(int target) {
+        boolean isLandscape = (mCreationOrientation == Configuration
+                .ORIENTATION_LANDSCAPE);
+        if (isLandscape) { target--; };
+        String work = getMappingUri(target);
+
+        if (work.equals("**unlock**")) {
+            mCallback.goToUnlockScreen();
+        } else if (work.equals("**sound**")) {
+            toggleRingMode();
+            mUnlockWidgetMethods.updateResources();
+            
+            String message = mSilentMode ?
+                    getContext().getString(R.string.global_action_silent_mode_on_status)
+                    : getContext().getString(R.string.global_action_silent_mode_off_status);
+
+                final int toastIcon = mSilentMode ? R.drawable.ic_lock_ringer_off
+                        : R.drawable.ic_lock_ringer_on;
+
+                final int toastColor = mSilentMode ?
+                    getContext().getResources().getColor(R.color.keyguard_text_color_soundoff)
+                    : getContext().getResources().getColor(R.color.keyguard_text_color_soundon);
+                toastMessage(mCarrier, message, toastColor, toastIcon);
+            
+            mCallback.pokeWakelock();
+        } else {
+            launchCustomApp(work);
+            mCallback.goToUnlockScreen();
+        }
+    }
+    
     private void requestUnlockScreen() {
         // Delay hiding lock screen long enough for animation to finish
         postDelayed(new Runnable() {
@@ -489,10 +506,10 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mStatusViewManager = new KeyguardStatusViewManager(this, mUpdateMonitor, mLockPatternUtils,
                 mCallback, false);
 
-        if (mCustAppUri == null) {
-            mCustAppUri = getResources().getString(
-                    R.string.lockscreen_custom_app_default);
-        }
+        //if (mCustAppUri == null) {
+        //    mCustAppUri = getResources().getString(
+        //            R.string.lockscreen_custom_app_default);
+        //}
 
         setFocusable(true);
         setFocusableInTouchMode(true);
