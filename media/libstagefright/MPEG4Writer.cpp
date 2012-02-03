@@ -1966,7 +1966,9 @@ status_t MPEG4Writer::Track::threadEntry() {
           bool success = mMeta->findInt32(kKeyFrameRate, &frameRate);
           CHECK(success);
           success = mMeta->findInt32(kKeyHFR, &hfr);
-          CHECK(success);
+          if (!success) {
+              hfr = 0;
+          }
           multiple = hfr?(hfr/frameRate):1;
           timestampUs = multiple * timestampUs;
         }
