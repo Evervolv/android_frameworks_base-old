@@ -1988,6 +1988,13 @@ public final class Settings {
         public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
 
         /**
+         * Toggle to set notification dropdown view
+         * Notifications(default) or Toolbox
+         * @hide
+         */
+          public static final String NOTIFICATION_DROPDOWN_VIEW = "notification_dropdown_view";
+
+        /**
           * Statusbar toggle for 6 bar signal strength.
           * @hide
           */

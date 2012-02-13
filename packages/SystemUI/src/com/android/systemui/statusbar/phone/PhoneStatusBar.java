@@ -1271,6 +1271,10 @@ public class PhoneStatusBar extends StatusBar {
         if (SPEW) Slog.d(TAG, "performCollapse: mExpanded=" + mExpanded
                 + " mExpandedVisible=" + mExpandedVisible);
 
+        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
+        mToolboxFlipper.setDisplayedChild(ToolboxOnDropdown ? 1 : 0);
+
         if (!mExpandedVisible) {
             return;
         }
@@ -2013,8 +2017,11 @@ public class PhoneStatusBar extends StatusBar {
                 // because the window itself extends below the content view.
                 mExpandedParams.y = -disph;
             }
-            // A workaround for now.
-            mExpandedParams.y = mTrackingPosition;
+
+            // Temporary workaround for toolbox view reveal behavior
+            if (mToolboxFlipper.getDisplayedChild() != 0) {
+                mExpandedParams.y = mTrackingPosition;
+            }
             
             mExpandedDialog.getWindow().setAttributes(mExpandedParams);
 
