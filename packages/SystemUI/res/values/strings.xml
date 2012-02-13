@@ -403,9 +403,7 @@
     <string name="battery_info_temperature_units">\u00B0 C</string>
     <string name="battery_profile">Battery Profile</string>
 
-<!--    <string name="default_toolbox_widgets">toggleWifi|toggleBt|toggleGps|toggleSync</string>    -->
-
-    <string name="default_toolbox_widgets">toggleWifi|toggleBt|toggleSync|toggleRotation</string>
+    <string name="default_toolbox_widgets">toggleWifi|toggleBluetooth|toggleAutoRotate</string>
 
     <string name="widget_wifi_title">Wi-Fi</string>
     <string name="widget_wimax_title">Wimax</string>
