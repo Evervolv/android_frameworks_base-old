@@ -84,35 +84,20 @@
         android:layout_height="2dp"
         android:background="@drawable/status_bar_hr"
         />
-	<com.android.systemui.widget.ToolboxLinearLayout
-		      android:id="@+id/toolbox_layout"
-		      android:orientation="vertical"
-		      android:layout_width="match_parent"
-		      android:layout_height="match_parent">
 
-	    <ViewFlipper android:id="@+id/toolbox_flipper"
-		         android:layout_width="match_parent"
-		         android:layout_height="0dp"
-		         android:layout_weight="1">
-	
-		    <!--    Each added layout is a new view for the ViewFlipper   -->
-		    <include
-		    layout="@layout/notification_scrollview"
-		    android:id="@+id/flipper_notification_scrollview" />
+    <ViewFlipper android:id="@+id/toolbox_flipper"
+	         android:layout_width="match_parent"
+	         android:layout_height="match_parent">
 
-		    <include
-		    layout="@layout/layout_power_widgets"
-		    android:id="@+id/flipper_ll_widgets" />
+	    <!--    Each added layout is a new view for the ViewFlipper   -->
+	    <include
+	    layout="@layout/status_bar_notifications_view"
+	    android:id="@+id/flipper_notifications" />
 
-		    <include
-		    layout="@layout/layout_sound_media"
-		    android:id="@+id/flipper_ll_media" />
+	    <include
+	    layout="@layout/status_bar_settings_view"
+	    android:id="@+id/flipper_settings" />
 
-		    <include
-		    layout="@layout/layout_battery_tools"
-		    android:id="@+id/flipper_ll_battery" />
+    </ViewFlipper>
 
-	    </ViewFlipper>
-
-	</com.android.systemui.widget.ToolboxLinearLayout>
 </com.android.systemui.statusbar.phone.ExpandedView>

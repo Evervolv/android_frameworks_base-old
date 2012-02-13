@@ -403,8 +403,9 @@
     <string name="battery_info_temperature_units">\u00B0 C</string>
     <string name="battery_profile">Battery Profile</string>
 
-    <string name="default_toolbox_widgets">toggleWifi|toggleBt|toggleGps|toggleSync</string>
+<!--    <string name="default_toolbox_widgets">toggleWifi|toggleBt|toggleGps|toggleSync</string>    -->
 
+    <string name="default_toolbox_widgets">toggleWifi|toggleBt|toggleSync|toggleRotation</string>
 
     <string name="widget_wifi_title">Wi-Fi</string>
     <string name="widget_wimax_title">Wimax</string>
@@ -412,10 +413,12 @@
     <string name="widget_gps_title">Gps</string>
     <string name="widget_sync_title">Sync</string>
     <string name="widget_bt_title">Bluetooth</string>
-    <string name="widget_mobdata_title">Mobile Data</string>
-    <string name="widget_usbtether_title">Usb Tether</string>
-    <string name="widget_autorotate_title">Auto Rotate</string>
+    <string name="widget_mobile_data_title">Mobile Data</string>
+    <string name="widget_usb_tether_title">Usb Tether</string>
+    <string name="widget_auto_rotate_title">Auto Rotate</string>
     <string name="widget_airplane_title">Airplane Mode</string>
+
+    <string name="widget_brightness_title">Brightness</string>
 
 
     <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
