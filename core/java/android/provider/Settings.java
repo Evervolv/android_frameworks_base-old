@@ -1989,6 +1989,13 @@ public final class Settings {
         public static final String MAX_WIDGETS_PER_LINE = "max_widgets_per_line";
 
         /**
+         * Boolean to toggle whether or not to use the notification toolbox.
+         * @hide
+         */
+
+        public static final String USE_NOTIFICATION_TOOLBOX = "use_notification_toolbox";
+
+        /**
          * Enable/Disable lockscreen volume button music controls to change media tracks.
          * @hide
          */
