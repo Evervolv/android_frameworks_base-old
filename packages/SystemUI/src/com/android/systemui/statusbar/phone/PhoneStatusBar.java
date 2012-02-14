@@ -48,6 +48,7 @@ import android.util.DisplayMetrics;
 import android.util.Slog;
 import android.util.Log;
 import android.view.Display;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
@@ -56,6 +57,8 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
@@ -131,6 +134,11 @@ public class PhoneStatusBar extends StatusBar {
     private float mExpandAccelPx; // classic value: 2000px/s/s
     private float mCollapseAccelPx; // classic value: 2000px/s/s (will be negated to collapse "up")
 
+    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MAX_OFF_PATH = 250;
+    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+
+
     PhoneStatusBarPolicy mIconPolicy;
 
     // These are no longer handled by the policy, because we need custom strategies for them
@@ -196,6 +204,7 @@ public class PhoneStatusBar extends StatusBar {
 
     //notification toolbox
     ViewFlipper mToolboxFlipper;
+    private GestureDetector gestureDetector;
 
     // ticker
     private Ticker mTicker;
@@ -320,7 +329,16 @@ public class PhoneStatusBar extends StatusBar {
         mIcons = (LinearLayout)sb.findViewById(R.id.icons);
         mTickerView = sb.findViewById(R.id.ticker);
 
+        gestureDetector = new GestureDetector(new MyGestureDetector());
         mToolboxFlipper = (ViewFlipper) expanded.findViewById(R.id.toolbox_flipper);
+        mToolboxFlipper.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (gestureDetector.onTouchEvent(event)) {
+                    return true;
+                }
+                return false;
+            }
+        });
 
         mExpandedDialog = new ExpandedDialog(context);
         mExpandedView = expanded;
@@ -380,6 +398,27 @@ public class PhoneStatusBar extends StatusBar {
         context.registerReceiver(mBroadcastReceiver, filter);
 
         return sb;
+    }
+
+    class MyGestureDetector extends SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            try {
+                if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+                    return false;
+                if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    prevToolboxView();
+                }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    nextToolboxView();
+                }
+            } catch (Exception e) {
+                // nothing
+            }
+            return false;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) { return true; }
     }
 
     protected WindowManager.LayoutParams getRecentsLayoutParams(LayoutParams layoutParams) {
@@ -2022,7 +2061,7 @@ public class PhoneStatusBar extends StatusBar {
             if (mToolboxFlipper.getDisplayedChild() != 0) {
                 mExpandedParams.y = mTrackingPosition;
             }
-            
+
             mExpandedDialog.getWindow().setAttributes(mExpandedParams);
 
             // As long as this isn't just a repositioning that's not supposed to affect
@@ -2230,9 +2269,9 @@ public class PhoneStatusBar extends StatusBar {
             animateCollapse();
             return false;
         }
-        
+
     };
-    
+
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -2366,17 +2405,23 @@ public class PhoneStatusBar extends StatusBar {
             return false;
         }
     }
-    
+
     //
     // Notification Toolbox
     //
-    
+
     private void nextToolboxView() {
         mToolboxFlipper.setInAnimation(mContext, R.anim.in_animation);
         mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation);
         mToolboxFlipper.showNext();
         setAreThereNotifications();
     }
-    
+
+    private void prevToolboxView() {
+        mToolboxFlipper.setInAnimation(mContext, R.anim.in_animation1);
+        mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation1);
+        mToolboxFlipper.showPrevious();
+        setAreThereNotifications();
+    }
 }
 
