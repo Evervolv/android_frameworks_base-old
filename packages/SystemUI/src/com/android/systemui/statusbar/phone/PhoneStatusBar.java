@@ -2251,7 +2251,14 @@ public class PhoneStatusBar extends StatusBar {
 
     private View.OnClickListener mSettingsButtonListener = new View.OnClickListener() {
         public void onClick(View v) {
-            nextToolboxView();
+            try {
+                // Dismiss the lock screen when Settings starts.
+                ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
+            } catch (RemoteException e) {
+            }
+            v.getContext().startActivity(new Intent(Settings.ACTION_SETTINGS)
+                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            animateCollapse();
         }
     };
 
@@ -2264,8 +2271,11 @@ public class PhoneStatusBar extends StatusBar {
                 ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
             } catch (RemoteException e) {
             }
-            v.getContext().startActivity(new Intent(Settings.ACTION_SETTINGS)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.setClassName("com.evervolv.toolbox", "com.evervolv.toolbox" +
+            		".Settings$NotificationToolboxActivity");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            v.getContext().startActivity(intent);
             animateCollapse();
             return false;
         }
