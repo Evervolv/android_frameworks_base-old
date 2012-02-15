@@ -407,9 +407,9 @@ public class PhoneStatusBar extends StatusBar {
                 if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
                     return false;
                 if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                    prevToolboxView();
+                    if (useToolbox()) prevToolboxView();
                 }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                    nextToolboxView();
+                    if (useToolbox()) nextToolboxView();
                 }
             } catch (Exception e) {
                 // nothing
@@ -1220,9 +1220,15 @@ public class PhoneStatusBar extends StatusBar {
 
     private void makeExpandedVisible() {
         if (SPEW) Slog.d(TAG, "Make expanded visible: expanded visible=" + mExpandedVisible);
+
+        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
+        mToolboxFlipper.setDisplayedChild(ToolboxOnDropdown && useToolbox()  ? 1 : 0);
+
         if (mExpandedVisible) {
             return;
         }
+
         mExpandedVisible = true;
         visibilityChanged(true);
 
@@ -1312,7 +1318,7 @@ public class PhoneStatusBar extends StatusBar {
 
         boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-        mToolboxFlipper.setDisplayedChild(ToolboxOnDropdown ? 1 : 0);
+        mToolboxFlipper.setDisplayedChild(ToolboxOnDropdown && useToolbox()  ? 1 : 0);
 
         if (!mExpandedVisible) {
             return;
@@ -2432,6 +2438,11 @@ public class PhoneStatusBar extends StatusBar {
         mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation1);
         mToolboxFlipper.showPrevious();
         setAreThereNotifications();
+    }
+
+    private boolean useToolbox() {
+        return (Settings.System.getInt(mContext.getContentResolver(), Settings
+                .System.USE_NOTIFICATION_TOOLBOX, 1) == 1);
     }
 }
 
