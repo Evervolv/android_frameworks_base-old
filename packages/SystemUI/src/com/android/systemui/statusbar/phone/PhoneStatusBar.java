@@ -329,6 +329,7 @@ public class PhoneStatusBar extends StatusBar {
         mIcons = (LinearLayout)sb.findViewById(R.id.icons);
         mTickerView = sb.findViewById(R.id.ticker);
 
+        // Notification toolbox start
         gestureDetector = new GestureDetector(new MyGestureDetector());
         mToolboxFlipper = (ViewFlipper) expanded.findViewById(R.id.toolbox_flipper);
         mToolboxFlipper.setOnTouchListener(new View.OnTouchListener() {
@@ -339,6 +340,7 @@ public class PhoneStatusBar extends StatusBar {
                 return false;
             }
         });
+        // Notification toolbox end
 
         mExpandedDialog = new ExpandedDialog(context);
         mExpandedView = expanded;
@@ -1221,10 +1223,6 @@ public class PhoneStatusBar extends StatusBar {
     private void makeExpandedVisible() {
         if (SPEW) Slog.d(TAG, "Make expanded visible: expanded visible=" + mExpandedVisible);
 
-        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-        mToolboxFlipper.setDisplayedChild(ToolboxOnDropdown && useToolbox()  ? 1 : 0);
-
         if (mExpandedVisible) {
             return;
         }
@@ -1297,6 +1295,14 @@ public class PhoneStatusBar extends StatusBar {
     }
 
     void performExpand() {
+        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
+        int whichView = (ToolboxOnDropdown && useToolbox()  ? 1 : 0);
+        if (mToolboxFlipper.getDisplayedChild() != whichView) {
+            mToolboxFlipper.setDisplayedChild(whichView);
+        }
+
+
         if (SPEW) Slog.d(TAG, "performExpand: mExpanded=" + mExpanded);
         if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
             return ;
@@ -1315,10 +1321,6 @@ public class PhoneStatusBar extends StatusBar {
     void performCollapse() {
         if (SPEW) Slog.d(TAG, "performCollapse: mExpanded=" + mExpanded
                 + " mExpandedVisible=" + mExpandedVisible);
-
-        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-        mToolboxFlipper.setDisplayedChild(ToolboxOnDropdown && useToolbox()  ? 1 : 0);
 
         if (!mExpandedVisible) {
             return;
