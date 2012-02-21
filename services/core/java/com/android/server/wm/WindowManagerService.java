@@ -343,6 +343,8 @@ public class WindowManagerService extends IWindowManager.Stub
 
     final boolean mLimitedAlphaCompositing;
 
+    final boolean mSetLandscapeProperty;
+
     final WindowManagerPolicy mPolicy = PolicyManager.makeNewWindowManager();
 
     final IActivityManager mActivityManager;
@@ -828,6 +830,8 @@ public class WindowManagerService extends IWindowManager.Stub
         mInTouchMode = context.getResources().getBoolean(
                 com.android.internal.R.bool.config_defaultInTouchMode);
         mInputManager = inputManager; // Must be before createDisplayContentLocked.
+        mSetLandscapeProperty = context.getResources().getBoolean(
+                com.android.internal.R.bool.config_setLandscapeProp);
         mDisplayManagerInternal = LocalServices.getService(DisplayManagerInternal.class);
         mDisplaySettings = new DisplaySettings();
         mDisplaySettings.readSettingsLocked();
@@ -6085,6 +6089,12 @@ public class WindowManagerService extends IWindowManager.Stub
         SystemProperties.set(StrictMode.VISUAL_PROPERTY, value);
     }
 
+    /** {@hide} */
+    public void setLandscapeProperty(String value) {
+        if (!mSetLandscapeProperty) return;
+        SystemProperties.set("sys.orientation.landscape", value);
+    }
+
     private static void convertCropForSurfaceFlinger(Rect crop, int rot, int dw, int dh) {
         if (rot == Surface.ROTATION_90) {
             final int tmp = crop.top;
@@ -7272,8 +7282,13 @@ public class WindowManagerService extends IWindowManager.Stub
         }
 
         if (config != null) {
-            config.orientation = (dw <= dh) ? Configuration.ORIENTATION_PORTRAIT :
-                    Configuration.ORIENTATION_LANDSCAPE;
+            if (dw <= dh) {
+                config.orientation = Configuration.ORIENTATION_PORTRAIT;
+                setLandscapeProperty("0");
+            } else {
+                config.orientation = Configuration.ORIENTATION_LANDSCAPE;
+                setLandscapeProperty("1");
+            }
         }
 
         // Update application display metrics.

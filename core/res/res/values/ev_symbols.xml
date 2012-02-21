@@ -44,4 +44,7 @@
 
   <!-- Array of default activities with custom power management -->
   <java-symbol type="array" name="config_auto_perf_activities" />
+
+  <!-- Landscape Prop -->
+  <java-symbol type="bool" name="config_setLandscapeProp" />
 </resources>

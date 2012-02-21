@@ -2093,4 +2093,8 @@
     <string-array name="config_auto_perf_activities" translatable="false">
     </string-array>
 
+    <!-- Whether to set a system prop (sys.orientation.landscape)
+         when rotating for devices that have rotating buttons -->
+    <bool name="config_setLandscapeProp">false</bool>
+
 </resources>
