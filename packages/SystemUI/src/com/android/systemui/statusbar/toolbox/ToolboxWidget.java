@@ -11,7 +11,6 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 
@@ -59,9 +58,6 @@ public abstract class ToolboxWidget {
     }
 
     protected static final HashMap<String, ToolboxWidget> WIDGETS_LOADED = new HashMap<String, ToolboxWidget>();
-
-    private static View.OnClickListener GLOBAL_ON_CLICK_LISTENER = null;
-    private static View.OnLongClickListener GLOBAL_ON_LONG_CLICK_LISTENER = null;
 
     protected View mWidgetView;
 
@@ -213,30 +209,18 @@ public abstract class ToolboxWidget {
         }
     }
 
-    public static void setGlobalOnClickListener(View.OnClickListener listener) {
-        GLOBAL_ON_CLICK_LISTENER = listener;
-    }
-
     protected View.OnClickListener mClickListener = new View.OnClickListener() {
         public void onClick(View v) {
             String type = (String)v.getTag();
-
             for(Map.Entry<String, ToolboxWidget> entry : WIDGETS_LOADED.entrySet()) {
                 if(entry.getKey().equals(type)) {
+
                     entry.getValue().toggleState();
                     break;
                 }
             }
-
-            if(GLOBAL_ON_CLICK_LISTENER != null) {
-                GLOBAL_ON_CLICK_LISTENER.onClick(v);
-            }
         }
     };
-
-    public static void setGlobalOnLongClickListener(View.OnLongClickListener listener) {
-        GLOBAL_ON_LONG_CLICK_LISTENER = listener;
-    }
 
     protected View.OnLongClickListener mLongClickListener = new View.OnLongClickListener() {
         public boolean onLongClick(View v) {
@@ -247,10 +231,6 @@ public abstract class ToolboxWidget {
                     result = entry.getValue().handleLongClick();
                     break;
                 }
-            }
-
-            if(result && GLOBAL_ON_LONG_CLICK_LISTENER != null) {
-                GLOBAL_ON_LONG_CLICK_LISTENER.onLongClick(v);
             }
             return result;
         }

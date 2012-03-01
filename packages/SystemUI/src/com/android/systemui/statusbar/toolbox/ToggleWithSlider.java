@@ -27,6 +27,7 @@ public abstract class ToggleWithSlider extends ToolboxWidget implements SeekBar.
     protected void updateWidgetView() {
         Log.d(TAG, "updateWidgetView");
         mToggleFrame = (RelativeLayout) mWidgetView.findViewById(R.id.toggle_frame);
+        mToggleFrame.setTag(mType); // This is a hack to make onClick work properly.
         mToggleLabel = (TextView) mWidgetView.findViewById(R.id.toggle_label);
         mToggleLabel.setText(mLabelId);
         mToggleIcon = (ImageView) mWidgetView.findViewById(R.id.toggle_icon);
@@ -35,7 +36,6 @@ public abstract class ToggleWithSlider extends ToolboxWidget implements SeekBar.
         mToggleIndic.setBackgroundResource(mIndicId);
 
         mSlider = (SeekBar) mWidgetView.findViewById(R.id.slider);
-
         mSliderLabel = (TextView) mWidgetView.findViewById(R.id.slider_label);
         mSliderLabel.setText(mSliderLabelId);
     }
@@ -44,14 +44,16 @@ public abstract class ToggleWithSlider extends ToolboxWidget implements SeekBar.
     protected void setupWidget(View view) {
         super.setupWidget(view);
 
-        //mSlider.setOnSeekBarChangeListener(this);
+        mSlider.setOnSeekBarChangeListener(this);
         mToggleFrame.setOnClickListener(mClickListener);
-        mWidgetView.setOnLongClickListener(mLongClickListener);
+        mToggleFrame.setOnLongClickListener(mLongClickListener);
     }
+
+    protected void updateProgress(int progress) { /*do nothing*/ }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+        updateProgress(progress);
     }
 
     @Override
