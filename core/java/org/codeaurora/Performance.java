@@ -51,6 +51,7 @@ public class Performance
 
     /** @hide */ public static final int CPUOPT_CPU0_PWRCLSP = 1;
     /** @hide */ public static final int CPUOPT_CPU0_FREQMIN = 2;
+    /** @hide */ public static final int CPUOPT_CPU1_FREQMIN = 3;
 
     /** &hide */
     public int cpuSetOptions(int reqType, int reqValue) {
