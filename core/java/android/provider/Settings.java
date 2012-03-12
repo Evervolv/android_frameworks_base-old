@@ -2022,6 +2022,16 @@ public final class Settings {
           public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
 
         /**
+          * Statusbar battery icon style options.
+          * 0 - Stock
+          * 1 - Stock w/ percentages
+          * 2 - Hidden
+          *
+          * @hide
+          */
+          public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
+
+        /**
           * Toggle to let volume button wake the screen.
           * @hide
           */

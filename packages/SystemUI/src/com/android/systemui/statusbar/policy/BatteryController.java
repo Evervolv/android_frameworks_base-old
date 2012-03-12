@@ -19,11 +19,18 @@ package com.android.systemui.statusbar.policy;
 import java.util.ArrayList;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Handler;
+import android.provider.Settings;
+import android.util.Log;
 import android.util.Slog;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -36,12 +43,25 @@ public class BatteryController extends BroadcastReceiver {
     private ArrayList<ImageView> mIconViews = new ArrayList<ImageView>();
     private ArrayList<TextView> mLabelViews = new ArrayList<TextView>();
 
+    private BatterySettingsObserver mObserver = null;
+    private int mBatteryStyle;
+    private int mLastBatteryLevel;
+    private boolean mLastPluggedState;
+    private static final int BATT_STOCK = 0;
+    private static final int BATT_PERCENT = 1;
+    private static final int BATT_HIDDEN = 2;
+
     public BatteryController(Context context) {
         mContext = context;
+
+        mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.STATUSBAR_BATT_STYLE, BATT_STOCK);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         context.registerReceiver(this, filter);
+        mObserver = new BatterySettingsObserver(new Handler());
+        mObserver.observe();
     }
 
     public void addIconView(ImageView v) {
@@ -53,17 +73,33 @@ public class BatteryController extends BroadcastReceiver {
     }
 
     public void onReceive(Context context, Intent intent) {
+        batteryChange(context, intent);
+    }
+
+    private void batteryChange(Context context, Intent intent) {
         final String action = intent.getAction();
         if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
             final int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+            final int icon;
             final boolean plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
-            final int icon = plugged ? R.drawable.stat_sys_battery_charge 
-                                     : R.drawable.stat_sys_battery;
+            mLastPluggedState = plugged;
+            mLastBatteryLevel = level;
+            if (mBatteryStyle == BATT_PERCENT) {
+                icon = plugged ? R.drawable.stat_sys_battery_charge
+                                         : R.drawable.stat_sys_battery_mod;
+            } else {
+                icon = plugged ? R.drawable.stat_sys_battery_charge
+                                         : R.drawable.stat_sys_battery;
+            }
             int N = mIconViews.size();
             for (int i=0; i<N; i++) {
                 ImageView v = mIconViews.get(i);
                 v.setImageResource(icon);
                 v.setImageLevel(level);
+                if (mBatteryStyle == BATT_HIDDEN)
+                    v.setVisibility(View.GONE);
+                else
+                    v.setVisibility(View.VISIBLE);
                 v.setContentDescription(mContext.getString(R.string.accessibility_battery_level,
                         level));
             }
@@ -72,7 +108,65 @@ public class BatteryController extends BroadcastReceiver {
                 TextView v = mLabelViews.get(i);
                 v.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format,
                         level));
+                if (mBatteryStyle == BATT_HIDDEN)
+                    v.setVisibility(View.GONE);
+                else
+                    v.setVisibility(View.VISIBLE);
             }
         }
     }
+
+    private void batteryChange() {
+        final int icon;
+        if (mBatteryStyle == BATT_PERCENT) {
+            icon = mLastPluggedState ? R.drawable.stat_sys_battery_charge
+                                     : R.drawable.stat_sys_battery_mod;
+        } else {
+            icon = mLastPluggedState ? R.drawable.stat_sys_battery_charge
+                                     : R.drawable.stat_sys_battery;
+        }
+        int N = mIconViews.size();
+        for (int i=0; i<N; i++) {
+            ImageView v = mIconViews.get(i);
+            v.setImageResource(icon);
+            v.setImageLevel(mLastBatteryLevel);
+            if (mBatteryStyle == BATT_HIDDEN)
+                v.setVisibility(View.GONE);
+            else
+                v.setVisibility(View.VISIBLE);
+            v.setContentDescription(mContext.getString(R.string.accessibility_battery_level,
+                    mLastBatteryLevel));
+        }
+        N = mLabelViews.size();
+        for (int i=0; i<N; i++) {
+            TextView v = mLabelViews.get(i);
+            v.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format,
+                    mLastBatteryLevel));
+            if (mBatteryStyle == BATT_HIDDEN)
+                v.setVisibility(View.GONE);
+            else
+                v.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private class BatterySettingsObserver extends ContentObserver {
+        public BatterySettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings
+                    .System.STATUSBAR_BATT_STYLE), false, this);
+        }
+
+        @Override
+        public void onChangeUri(Uri uri, boolean selfChange) {
+            Log.d("BatteryController", "onChangeUri");
+            mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.STATUSBAR_BATT_STYLE, BATT_STOCK);
+            batteryChange();
+        }
+    }
+
 }
