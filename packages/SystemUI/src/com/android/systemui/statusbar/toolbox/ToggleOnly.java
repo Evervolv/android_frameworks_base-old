@@ -27,7 +27,6 @@ public abstract class ToggleOnly extends ToolboxWidget {
         if (ToolboxHelper.isTablet(mWidgetView.getContext()) || mIconId == 0) {
             mWidgetLabel.setText(mLabelId);
         } else {
-
             mWidgetIcon.setVisibility(View.VISIBLE);
             mWidgetLabel.setVisibility(View.GONE);
         }

@@ -35,13 +35,11 @@ public class BluetoothWidget extends ToggleOnly {
 
     @Override
     protected void toggleState() {
-        Log.d(TAG, "Bluetooth: toggleState()");
         sBluetoothState.toggleState(mWidgetView.getContext());
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(TAG,"BlueTooth: onReceive()");
         sBluetoothState.onActualStateChange(context, intent);
         updateState();
     }
