@@ -32,8 +32,6 @@ public class NotificationsWidget extends ToggleOnly implements SharedPreferences
     }
 
     @Override
-    protected void toggleState(String which) { }
-    @Override
     protected boolean handleLongClick() { return false; }
 
     @Override
