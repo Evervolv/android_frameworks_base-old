@@ -36,6 +36,7 @@ public abstract class ToolboxWidget {
     public static final String WIDGET_MOBILEDATA = "toggleMobileData";
     public static final String WIDGET_USBTETHER = "toggleUsbTether";
     public static final String WIDGET_WIMAX = "toggleWimax";
+    public static final String WIDGET_NOTIFICATIONS = "toggleNotifications";
 
     public static final String WIDGET_BRIGHTNESS = "toggleBrightness";
     public static final String WIDGET_UNKNOWN = "unknown";
@@ -57,6 +58,7 @@ public abstract class ToolboxWidget {
         WIDGETS.put(WIDGET_MOBILEDATA, MobileDataWidget.class);
         WIDGETS.put(WIDGET_USBTETHER, UsbTetherWidget.class);
         WIDGETS.put(WIDGET_WIMAX, WimaxWidget.class);
+        WIDGETS.put(WIDGET_NOTIFICATIONS, NotificationsWidget.class);
     }
 
     protected static final HashMap<String, ToolboxWidget> WIDGETS_LOADED = new HashMap<String, ToolboxWidget>();
