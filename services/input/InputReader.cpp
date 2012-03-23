@@ -2800,6 +2800,9 @@ void TouchInputMapper::configureParameters() {
                         && getDevice()->isExternal();
         mParameters.associatedDisplayId = 0;
     }
+
+    getDevice()->getConfiguration().tryGetProperty(String8("touch.filterTouchEvents"),
+            mParameters.filterTouchEvents);
 }
 
 void TouchInputMapper::dumpParameters(String8& dump) {
@@ -2834,6 +2837,8 @@ void TouchInputMapper::dumpParameters(String8& dump) {
             mParameters.associatedDisplayId, toString(mParameters.associatedDisplayIsExternal));
     dump.appendFormat(INDENT4 "OrientationAware: %s\n",
             toString(mParameters.orientationAware));
+    dump.appendFormat(INDENT4 "FilterTouchEvents: %s\n",
+            toString(mParameters.filterTouchEvents));
 }
 
 void TouchInputMapper::configureRawPointerAxes() {
@@ -3523,6 +3528,8 @@ void TouchInputMapper::reset(nsecs_t when) {
         mPointerController->clearSpots();
     }
 
+    resetFilters();
+
     InputMapper::reset(when);
 }
 
@@ -3534,6 +3541,20 @@ void TouchInputMapper::process(const RawEvent* rawEvent) {
     if (rawEvent->type == EV_SYN && rawEvent->code == SYN_REPORT) {
         sync(rawEvent->when);
     }
+}
+
+/* Filters that can change the value of havePointerIds. */
+void TouchInputMapper::applyFilters(bool* outHavePointerIds) {
+    if(*outHavePointerIds) {
+        applyFiltersWithId();
+    }
+}
+
+/* Filters that assume havePointerIds == true. */
+void TouchInputMapper::applyFiltersWithId() {
+}
+
+void TouchInputMapper::resetFilters() {
 }
 
 void TouchInputMapper::sync(nsecs_t when) {
@@ -3579,9 +3600,16 @@ void TouchInputMapper::sync(nsecs_t when) {
         mCurrentRawPointerData.clear();
         mCurrentButtonState = 0;
     } else {
+        if(mParameters.filterTouchEvents) {
+            applyFilters(&havePointerIds);
+        }
+
         // Preprocess pointer data.
         if (!havePointerIds) {
             assignPointerIds();
+            if(mParameters.filterTouchEvents) {
+                applyFiltersWithId();
+            }
         }
 
         // Handle policy on initial down or hover events.
@@ -5936,6 +5964,67 @@ bool MultiTouchInputMapper::hasStylus() const {
             || mTouchButtonAccumulator.hasStylus();
 }
 
+void MultiTouchInputMapper::applyFilters(bool* outHavePointerIds) {
+    applyBadTouchReleaseFilter();
+
+    if (applyJumpyTouchFilter()) {
+        *outHavePointerIds = false;
+    }
+
+    TouchInputMapper::applyFilters(outHavePointerIds);
+}
+
+void MultiTouchInputMapper::resetFilters() {
+    mJumpyTouchFilter.jumpyPointsDropped = 0;
+}
+
+/* Searches for a jump to 0x0. When found replaces all pointers with old ones.
+ */
+void MultiTouchInputMapper::applyBadTouchReleaseFilter() {
+    uint32_t pointerCount = mCurrentRawPointerData.pointerCount;
+
+    // Nothing to do if there are no points.
+    if (pointerCount == 0) {
+        return;
+    }
+
+    if (pointerCount != mLastRawPointerData.pointerCount) {
+        return;
+    }
+
+    bool replace = false;
+
+    for (uint32_t i = 0; i < pointerCount; i++) {
+        int32_t y = mCurrentRawPointerData.pointers[i].y;
+        int32_t x = mCurrentRawPointerData.pointers[i].x;
+
+        if (x == 0 && y == 0) {
+            replace = true;
+            break;
+        }
+    }
+
+    if (replace) {
+#ifdef DEBUG_HACKS
+        ALOGD("BadTouchReleaseFilter: Found jump to (0, 0), replacing new points.");
+#endif
+        for (uint32_t i = 0; i < pointerCount; i++) {
+            int32_t y = mCurrentRawPointerData.pointers[i].y;
+            int32_t x = mCurrentRawPointerData.pointers[i].x;
+
+            int32_t ly = mLastRawPointerData.pointers[i].y;
+            int32_t lx = mLastRawPointerData.pointers[i].x;
+
+            mCurrentRawPointerData.pointers[i].y = ly;
+            mCurrentRawPointerData.pointers[i].x = lx;
+#ifdef DEBUG_HACKS
+             ALOGD("BadTouchReleaseFilter: Replacing (%d, %d) with (%d, %d).",
+                  x, y, lx, ly);
+#endif
+        }
+    }
+}
+
 /* Special hack for devices that have bad screen data: drop points where
  * the coordinate value for one axis has jumped to the other pointer's location.
  */
@@ -5945,13 +6034,19 @@ bool MultiTouchInputMapper::applyJumpyTouchFilter() {
         return false;
     }
 
+    // If last event was hovering then this may be a new touch
+    if (mLastRawPointerData.isHovering(0)) {
+        mJumpyTouchFilter.jumpyPointsDropped = 0;
+        return false;
+    }
+
     uint32_t pointerCount = mCurrentRawPointerData.pointerCount;
     if (mLastRawPointerData.pointerCount != pointerCount) {
 #if DEBUG_HACKS
-        LOGD("JumpyTouchFilter: Different pointer count %d -> %d",
+        ALOGD("JumpyTouchFilter: Different pointer count %d -> %d",
                 mLastRawPointerData.pointerCount, pointerCount);
         for (uint32_t i = 0; i < pointerCount; i++) {
-            LOGD("  Pointer %d (%d, %d)", i,
+            ALOGD("  Pointer %d (%d, %d)", i,
                     mCurrentRawPointerData.pointers[i].x, mCurrentRawPointerData.pointers[i].y);
         }
 #endif
@@ -5961,10 +6056,13 @@ bool MultiTouchInputMapper::applyJumpyTouchFilter() {
                 // Just drop the first few events going from 1 to 2 pointers.
                 // They're bad often enough that they're not worth considering.
                 mCurrentRawPointerData.pointerCount = 1;
+                mCurrentRawPointerData.pointers[0] = mLastRawPointerData.pointers[0];
                 mJumpyTouchFilter.jumpyPointsDropped += 1;
 
 #if DEBUG_HACKS
-                LOGD("JumpyTouchFilter: Pointer 2 dropped");
+                ALOGD("JumpyTouchFilter: Pointer 0 replaced (%d, %d)",
+                     mCurrentRawPointerData.pointers[0].x, mCurrentRawPointerData.pointers[0].y);
+                ALOGD("JumpyTouchFilter: Pointer 1 dropped");
 #endif
                 return true;
             } else if (mLastRawPointerData.pointerCount == 2 && pointerCount == 1) {
@@ -5976,7 +6074,7 @@ bool MultiTouchInputMapper::applyJumpyTouchFilter() {
 
 #if DEBUG_HACKS
                 for (int32_t i = 0; i < 2; i++) {
-                    LOGD("JumpyTouchFilter: Pointer %d replaced (%d, %d)", i,
+                    ALOGD("JumpyTouchFilter: Pointer %d replaced (%d, %d)", i,
                             mCurrentRawPointerData.pointers[i].x, mCurrentRawPointerData.pointers[i].y);
                 }
 #endif
@@ -5987,7 +6085,7 @@ bool MultiTouchInputMapper::applyJumpyTouchFilter() {
         mJumpyTouchFilter.jumpyPointsDropped = 0;
 
 #if DEBUG_HACKS
-        LOGD("JumpyTouchFilter: Transition - drop limit reset");
+        ALOGD("JumpyTouchFilter: Transition - drop limit reset");
 #endif
         return false;
     }
@@ -6014,7 +6112,7 @@ bool MultiTouchInputMapper::applyJumpyTouchFilter() {
             int32_t y = mCurrentRawPointerData.pointers[i].y;
 
 #if DEBUG_HACKS
-            LOGD("JumpyTouchFilter: Point %d (%d, %d)", i, x, y);
+            ALOGD("JumpyTouchFilter: Point %d (%d, %d)", i, x, y);
 #endif
 
             // Check if a touch point is too close to another's coordinates
@@ -6079,7 +6177,7 @@ bool MultiTouchInputMapper::applyJumpyTouchFilter() {
         // Correct the jumpy pointer if one was found.
         if (badPointerIndex >= 0) {
 #if DEBUG_HACKS
-            LOGD("JumpyTouchFilter: Replacing bad pointer %d with (%d, %d)",
+            ALOGD("JumpyTouchFilter: Replacing bad pointer %d with (%d, %d)",
                     badPointerIndex,
                     mLastRawPointerData.pointers[badPointerReplacementIndex].x,
                     mLastRawPointerData.pointers[badPointerReplacementIndex].y);
