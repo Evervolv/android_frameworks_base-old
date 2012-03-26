@@ -29,6 +29,8 @@
 #include "include/AACExtractor.h"
 #ifdef QCOM_HARDWARE
 #include "include/ExtendedExtractor.h"
+#else
+#include "include/AVIExtractor.h"
 #endif
 
 #include "matroska/MatroskaExtractor.h"
@@ -122,10 +124,9 @@ void DataSource::RegisterDefaultSniffers() {
     RegisterSniffer(SniffMPEG2TS);
     RegisterSniffer(SniffMP3);
     RegisterSniffer(SniffAAC);
+    RegisterSniffer(SniffMPEG2PS);
 #ifdef QCOM_HARDWARE
     ExtendedExtractor::RegisterSniffers();
-#else
-    RegisterSniffer(SniffMPEG2PS);
 #endif
 
     char value[PROPERTY_VALUE_MAX];
