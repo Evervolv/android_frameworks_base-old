@@ -45,7 +45,13 @@ ifeq ($(USE_OPENGL_RENDERER),true)
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
 LOCAL_CFLAGS += -DQCOM_HARDWARE
+
+ifeq ($(TARGET_BOARD_PLATFORM),qsd8k)
+LOCAL_CFLAGS += -DTARGET8x50
 endif
+
+endif # QCOM_HARDWARE
+
 	LOCAL_MODULE := libhwui
 	LOCAL_MODULE_TAGS := optional
 	
