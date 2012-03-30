@@ -55,6 +55,10 @@ Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
 #define MIN_HEIGHT 320;
 #endif
 
+#ifdef SAMSUNG_CODEC_SUPPORT
+#include "include/ColorFormat.h"
+#endif
+
 namespace android {
 
 template<class T>
@@ -534,6 +538,15 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
         format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
 #endif
 
+#ifdef SAMSUNG_CODEC_SUPPORT
+    OMX_COLOR_FORMATTYPE eNativeColorFormat = def.format.video.eColorFormat;
+    setNativeWindowColorFormat(eNativeColorFormat);
+    err = native_window_set_buffers_geometry(
+            mNativeWindow.get(),
+            def.format.video.nFrameWidth,
+            def.format.video.nFrameHeight,
+           eNativeColorFormat);
+#else
     err = native_window_set_buffers_geometry(
             mNativeWindow.get(),
 #ifdef QCOM_HARDWARE
@@ -544,6 +557,7 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
             def.format.video.nFrameWidth,
             def.format.video.nFrameHeight,
             def.format.video.eColorFormat);
+#endif
 #endif
 
 
@@ -692,6 +706,25 @@ status_t ACodec::allocateOutputBuffersFromNativeWindow() {
 
     return err;
 }
+
+#ifdef SAMSUNG_CODEC_SUPPORT
+void ACodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat)
+{
+    // In case of Samsung decoders, we set proper native color format for the Native Window
+    if (!strcasecmp(mComponentName.c_str(), "OMX.SEC.AVC.Decoder")
+        || !strcasecmp(mComponentName.c_str(), "OMX.SEC.FP.AVC.Decoder")) {
+        switch (eNativeColorFormat) {
+            case OMX_COLOR_FormatYUV420SemiPlanar:
+                eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_SP;
+                break;
+            case OMX_COLOR_FormatYUV420Planar:
+            default:
+                eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_P;
+                break;
+        }
+    }
+}
+#endif
 
 status_t ACodec::cancelBufferToNativeWindow(BufferInfo *info) {
     CHECK_EQ((int)info->mStatus, (int)BufferInfo::OWNED_BY_US);
