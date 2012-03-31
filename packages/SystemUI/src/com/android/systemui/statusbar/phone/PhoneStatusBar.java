@@ -1295,14 +1295,6 @@ public class PhoneStatusBar extends StatusBar {
     }
 
     void performExpand() {
-        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-        int whichView = (ToolboxOnDropdown && useToolbox()  ? 1 : 0);
-        if (mToolboxFlipper.getDisplayedChild() != whichView) {
-            mToolboxFlipper.setDisplayedChild(whichView);
-        }
-
-
         if (SPEW) Slog.d(TAG, "performExpand: mExpanded=" + mExpanded);
         if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
             return ;
@@ -1532,6 +1524,12 @@ public class PhoneStatusBar extends StatusBar {
         final int y = (int)event.getRawY();
         if (action == MotionEvent.ACTION_DOWN) {
             if (!mExpanded) {
+                boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
+                int whichView = ((ToolboxOnDropdown && useToolbox()) ? 1 : 0);
+                if (mToolboxFlipper.getDisplayedChild() != whichView) {
+                    mToolboxFlipper.setDisplayedChild(whichView);
+                }
                 mViewDelta = statusBarSize - y;
             } else {
                 mTrackingView.getLocationOnScreen(mAbsPos);
