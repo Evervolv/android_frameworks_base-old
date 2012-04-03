@@ -83,17 +83,17 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private SlidingTab mTabSelector;
     private RotarySelector mRotarySelector;
 
-    private static final int LOCK_STYLE_GB = 1;
-    private static final int LOCK_STYLE_ECLAIR = 2;
-    private static final int LOCK_STYLE_ICS = 3;
+    private static final int LOCK_STYLE_ICS = 1;
+    private static final int LOCK_STYLE_GB = 2;
+    private static final int LOCK_STYLE_ECLAIR = 3;
 
     // Get the style from settings
     private int mLockscreenStyle = (Settings.System.getInt(mContext.getContentResolver(),
             Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_ICS));
 
+    private boolean mUseIcsLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS);
     private boolean mUseGbLockscreen = (mLockscreenStyle == LOCK_STYLE_GB);
     private boolean mUseEclairLockscreen = (mLockscreenStyle == LOCK_STYLE_ECLAIR);
-    private boolean mUseIcsLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS);
 
     private boolean mLockStyleIcs3way = (Settings.System.getInt(mContext.getContentResolver(),
             Settings.System.LOCKSCREEN_STYLE_MULITWAVEVIEW_3WAY, 1) == 1);
@@ -528,7 +528,12 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 
         mWaveViewSelector = (MultiWaveView) findViewById(R.id.unlock_widget);
 
-        if (mUseGbLockscreen) {
+        if (mUseIcsLockscreen) {
+            mUnlockWidget = findViewById(R.id.unlock_widget);
+            mRotarySelector.setVisibility(View.GONE);
+            mTabSelector.setVisibility(View.GONE);
+            mWaveViewSelector.setVisibility(View.VISIBLE);
+        } else if (mUseGbLockscreen) {
             mUnlockWidget = findViewById(R.id.tab_selector);
             mRotarySelector.setVisibility(View.GONE);
             mTabSelector.setVisibility(View.VISIBLE);
@@ -538,11 +543,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             mRotarySelector.setVisibility(View.VISIBLE);
             mTabSelector.setVisibility(View.GONE);
             mWaveViewSelector.setVisibility(View.GONE);
-        } else if (mUseIcsLockscreen) {
-            mUnlockWidget = findViewById(R.id.unlock_widget);
-            mRotarySelector.setVisibility(View.GONE);
-            mTabSelector.setVisibility(View.GONE);
-            mWaveViewSelector.setVisibility(View.VISIBLE);
         }
 
         // I don't see how this helps us when adding more lockscreen styles,
