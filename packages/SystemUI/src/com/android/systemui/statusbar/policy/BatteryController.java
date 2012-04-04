@@ -55,7 +55,7 @@ public class BatteryController extends BroadcastReceiver {
         mContext = context;
 
         mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.STATUSBAR_BATT_STYLE, BATT_STOCK);
+                Settings.System.STATUSBAR_BATT_STYLE, BATT_PERCENT);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -164,7 +164,7 @@ public class BatteryController extends BroadcastReceiver {
         public void onChangeUri(Uri uri, boolean selfChange) {
             Log.d("BatteryController", "onChangeUri");
             mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.STATUSBAR_BATT_STYLE, BATT_STOCK);
+                    Settings.System.STATUSBAR_BATT_STYLE, BATT_PERCENT);
             batteryChange();
         }
     }
