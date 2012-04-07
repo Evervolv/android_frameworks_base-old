@@ -866,9 +866,7 @@ status_t SurfaceTexture::updateTexImage() {
         if (isGPUSupportedFormat(mSlots[buf].mGraphicBuffer->format) &&
             ((avoidBindTexture == false) ||
             (isGPUSupportedFormatInHW(mSlots[buf].mGraphicBuffer->format)))) {
-
-            EGLImageKHR image = mSlots[buf].mEglImage;
-#else
+#endif
         if (image == EGL_NO_IMAGE_KHR) {
             if (mSlots[buf].mGraphicBuffer == 0) {
                 ST_LOGE("buffer at slot %d is null", buf);
@@ -877,29 +875,16 @@ status_t SurfaceTexture::updateTexImage() {
             image = createImage(dpy, mSlots[buf].mGraphicBuffer);
             mSlots[buf].mEglImage = image;
             mSlots[buf].mEglDisplay = dpy;
-#endif
-            if (image == EGL_NO_IMAGE_KHR) {
 #ifdef QCOM_HARDWARE
-		EGLDisplay dpy = eglGetCurrentDisplay();
-                if (mSlots[buf].mGraphicBuffer == 0) {
-                    ST_LOGE("buffer at slot %d is null", buf);
-                    return BAD_VALUE;
-                }
-                image = createImage(dpy, mSlots[buf].mGraphicBuffer);
-                mSlots[buf].mEglImage = image;
-                mSlots[buf].mEglDisplay = dpy;
-
-                // GPU is not efficient in handling GL_TEXTURE_EXTERNAL_OES
-                // texture target. Depending on the image format, decide,
-                // the texture target to be used
-
-                if (isComposition) {
+            // GPU is not efficient in handling GL_TEXTURE_EXTERNAL_OES
+            // texture target. Depending on the image format, decide,
+            // the texture target to be used.
+            if (isComposition) {
                 mTexTarget =
                    decideTextureTarget (mSlots[buf].mGraphicBuffer->format);
-                }
-
-                if (image == EGL_NO_IMAGE_KHR) {
+            }
 #endif
+            if (image == EGL_NO_IMAGE_KHR) {
                 // NOTE: if dpy was invalid, createImage() is guaranteed to
                 // fail. so we'd end up here.
                 return -EINVAL;
@@ -924,7 +909,7 @@ status_t SurfaceTexture::updateTexImage() {
             return -EINVAL;
         }
 #ifdef QCOM_HARDWARE
-      }
+        }
 #endif
         if (mCurrentTexture != INVALID_BUFFER_SLOT) {
             if (mUseFenceSync) {
