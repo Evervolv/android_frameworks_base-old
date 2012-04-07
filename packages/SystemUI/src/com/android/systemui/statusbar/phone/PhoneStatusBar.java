@@ -1336,6 +1336,14 @@ public class PhoneStatusBar extends StatusBar {
             mPostCollapseCleanup.run();
             mPostCollapseCleanup = null;
         }
+
+        //make sure the default notif dropdown view is shown right away for next pulldown
+        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
+        int whichView = ((ToolboxOnDropdown && useToolbox()) ? 1 : 0);
+        if (mToolboxFlipper.getDisplayedChild() != whichView) {
+            mToolboxFlipper.setDisplayedChild(whichView);
+        }
     }
 
     void doAnimation() {
@@ -1524,12 +1532,6 @@ public class PhoneStatusBar extends StatusBar {
         final int y = (int)event.getRawY();
         if (action == MotionEvent.ACTION_DOWN) {
             if (!mExpanded) {
-                boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-                int whichView = ((ToolboxOnDropdown && useToolbox()) ? 1 : 0);
-                if (mToolboxFlipper.getDisplayedChild() != whichView) {
-                    mToolboxFlipper.setDisplayedChild(whichView);
-                }
                 mViewDelta = statusBarSize - y;
             } else {
                 mTrackingView.getLocationOnScreen(mAbsPos);
