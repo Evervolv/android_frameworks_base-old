@@ -345,7 +345,16 @@ private:
                     uint32_t* width, uint32_t* height, PixelFormat* format,
                     uint32_t reqWidth, uint32_t reqHeight,
                     uint32_t minLayerZ, uint32_t maxLayerZ);
+#ifdef ADRENO_130_GPU
+            status_t directCaptureScreenImplLocked(DisplayID dpy,
+                    sp<IMemoryHeap>* heap,
+                    uint32_t* width, uint32_t* height, PixelFormat* format,
+                    uint32_t reqWidth, uint32_t reqHeight,
+                    uint32_t minLayerZ, uint32_t maxLayerZ);
 
+            status_t directRenderScreenToTextureLocked(DisplayID dpy,
+                    GLuint* textureName, GLfloat* uOut, GLfloat* vOut);
+#endif
             status_t turnElectronBeamOffImplLocked(int32_t mode);
             status_t turnElectronBeamOnImplLocked(int32_t mode);
             status_t electronBeamOffAnimationImplLocked();
