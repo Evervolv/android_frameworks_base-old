@@ -38,4 +38,9 @@
 
   <!-- Component name of the combo network location provider. -->
   <java-symbol type="string" name="config_comboNetworkLocationProvider" />
+
+  <!-- Config.xml entries -->
+  <java-symbol type="array" name="config_deviceKeyHandlerLibs" />
+  <java-symbol type="array" name="config_deviceKeyHandlerClasses" />
+
 </resources>
