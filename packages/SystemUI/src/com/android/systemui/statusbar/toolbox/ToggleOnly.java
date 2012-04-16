@@ -1,5 +1,6 @@
 package com.android.systemui.statusbar.toolbox;
 
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -24,7 +25,11 @@ public abstract class ToggleOnly extends ToolboxWidget {
         mWidgetIcon.setImageResource(mIconId);
         mWidgetIndic = (ImageView) mWidgetView.findViewById(R.id.widget_indic);
         mWidgetIndic.setBackgroundResource(mIndicId);
-        if (ToolboxHelper.isTablet(mWidgetView.getContext()) || mIconId == 0) {
+        
+        int lineMax =  Settings.System.getInt(mWidgetView.getContext().getContentResolver(),
+                Settings.System.MAX_WIDGETS_PER_LINE, 3);
+        
+        if ((ToolboxHelper.isTablet(mWidgetView.getContext()) && lineMax < 4)  || mIconId == 0) {
             mWidgetLabel.setText(mLabelId);
         } else {
             mWidgetIcon.setVisibility(View.VISIBLE);
