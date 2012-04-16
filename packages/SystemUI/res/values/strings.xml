@@ -415,7 +415,7 @@
     <string name="widget_usb_tether_title">Usb Tether</string>
     <string name="widget_auto_rotate_title">Auto Rotate</string>
     <string name="widget_airplane_title">Airplane Mode</string>
-    <string name="widget_notifications_title">Notifications</string>
+    <string name="widget_notifications_title">DnD</string>
 
     <string name="widget_brightness_title">Brightness</string>
 
