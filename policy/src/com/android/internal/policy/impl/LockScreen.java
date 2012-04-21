@@ -34,6 +34,7 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -722,8 +723,11 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     public void onPhoneStateChanged(String newState) { }
 
     private Drawable resize(Drawable image) {
-        Bitmap d = ((BitmapDrawable)image).getBitmap();
-        Bitmap bitmapOrig = Bitmap.createScaledBitmap(d, 55, 55, false);
+        int size = 48;
+        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, size, getResources().getDisplayMetrics());
+
+        Bitmap d = ((BitmapDrawable) image).getBitmap();
+        Bitmap bitmapOrig = Bitmap.createScaledBitmap(d, px, px, false);
         return new BitmapDrawable(getContext().getResources(), bitmapOrig);
     }
 
