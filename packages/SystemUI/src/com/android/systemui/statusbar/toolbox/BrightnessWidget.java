@@ -17,19 +17,23 @@ import com.android.systemui.R;
 public class BrightnessWidget extends ToggleWithSlider {
 
     private static final int MAXIMUM_BACKLIGHT = android.os.Power.BRIGHTNESS_ON;
+
     private static final int AUTO_OFF = 0;
     private static final int AUTO_ON = 1;
 
-    private int mOldBrightness;
-    private int mOldAutomatic;
+    private static final Uri MODE_URI = Settings.System.getUriFor(
+            Settings.System.SCREEN_BRIGHTNESS_MODE);
+    private static final Uri BRIGHTNESS_URI = Settings.System.getUriFor(
+            Settings.System.SCREEN_BRIGHTNESS);
 
     private static final List<Uri> OBSERVED_URIS = new ArrayList<Uri>();
     static {
-        OBSERVED_URIS.add(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE));
-        OBSERVED_URIS.add(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS));
+        OBSERVED_URIS.add(MODE_URI);
+        OBSERVED_URIS.add(BRIGHTNESS_URI);
     }
 
-    private Context mContext;
+    private int minBright;
+    private int curProgress;
 
     public BrightnessWidget() {
         if (mType == WIDGET_UNKNOWN) {
@@ -43,85 +47,83 @@ public class BrightnessWidget extends ToggleWithSlider {
 
     @Override
     public void onChangeUri(Uri uri) {
-        if (uri.equals(Settings.System.SCREEN_BRIGHTNESS)) {
-            updateProgress(getBrightnessValue(mWidgetView.getContext(), 0));
-        } else {
-            updateState();
+        // ToolboxWidget calls updateState() on MODE_URI change so only
+        // need to update seekbar progress on BRIGHTNESS_URI change
+        if (uri.equals(BRIGHTNESS_URI)) {
+            mSlider.setProgress(getBrightnessValue(minBright) - minBright);
         }
     }
 
     @Override
     protected boolean handleLongClick() {
-
         return false;
     }
 
     @Override
     protected void toggleState() {
-        int mode = getBrightnessMode(mWidgetView.getContext(), 0);
+        int mode = getBrightnessMode(AUTO_OFF);
         int toggle = (mode == 1) ? AUTO_OFF : AUTO_ON;
         Settings.System.putInt(mWidgetView.getContext().getContentResolver(),
                 Settings.System.SCREEN_BRIGHTNESS_MODE, toggle);
-        updateState();
     }
 
     @Override
     public void setupWidget(View view) {
         super.setupWidget(view);
-        mOldBrightness = getBrightnessValue(mWidgetView.getContext(), 0);
-        mOldAutomatic = getBrightnessMode(mWidgetView.getContext(), 0);
-        mSlider.setMax(MAXIMUM_BACKLIGHT);
-        mSlider.setProgress(getBrightnessValue(mWidgetView.getContext(), 0));
+        minBright = mWidgetView.getContext().getResources().getInteger(
+                com.android.internal.R.integer.config_screenBrightnessDim);
+        mSlider.setMax(MAXIMUM_BACKLIGHT - minBright);
+        mSlider.setProgress(getBrightnessValue(minBright) - minBright);
     }
 
     @Override
     protected void updateState() {
-        mState = (getBrightnessMode(mWidgetView.getContext(), 0) == 1) ?
+        mState = (getBrightnessMode(AUTO_OFF) == AUTO_ON) ?
                 STATE_ENABLED : STATE_DISABLED;
-        switch (mState) {
-            case STATE_DISABLED:
-                mSlider.setEnabled(true);
-                setBrightnessValue(mSlider.getProgress());
-                mIndicId = 0;
-                break;
-            case STATE_ENABLED:
-                mSlider.setEnabled(false);
-                mIndicId = R.drawable.widget_indic_on;
-                break;
-            default:
-                mSlider.setEnabled(true);
-                mIndicId = 0;
-                break;
+        if (mState == STATE_ENABLED) {
+            mSlider.setEnabled(false);
+            mIndicId = R.drawable.widget_indic_on;
+        } else {
+            mSlider.setEnabled(true);
+            mIndicId = 0;
         }
     }
 
     @Override
     protected void updateProgress(int progress) {
-        Settings.System.putInt(mWidgetView.getContext().getContentResolver(),
-                Settings.System.SCREEN_BRIGHTNESS_MODE,
-                        Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
-        setBrightnessValue(progress);
+        // seekbar progress is changing
+        curProgress = progress + minBright;
+        setBrightnessValue(curProgress);
+
     }
 
-    private int getBrightnessMode(Context context, int defaultValue) {
+    @Override
+    protected void updateAfterProgress() {
+        // stopped tracking touch so now update global brightness level setting
+        Settings.System.putInt(mWidgetView.getContext().getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS, curProgress);
+    }
+
+    private int getBrightnessMode(int defaultValue) {
         int brightnessMode = defaultValue;
         try {
-            brightnessMode = Settings.System.getInt(context.getContentResolver(),
+            brightnessMode = Settings.System.getInt(
+                    mWidgetView.getContext().getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS_MODE);
         } catch (SettingNotFoundException snfe) {
         }
         return brightnessMode;
     }
 
-    private int getBrightnessValue(Context context, int defaultValue) {
-        int value;
+    private int getBrightnessValue(int defaultValue) {
+        int curBrightness = defaultValue;
         try {
-            value = Settings.System.getInt(context.getContentResolver(),
+            curBrightness = Settings.System.getInt(
+                    mWidgetView.getContext().getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS);
-        } catch (SettingNotFoundException ex) {
-            value = MAXIMUM_BACKLIGHT;
+        } catch (SettingNotFoundException snfe) {
         }
-        return value;
+        return curBrightness;
     }
 
     private void setBrightnessValue(int brightness) {

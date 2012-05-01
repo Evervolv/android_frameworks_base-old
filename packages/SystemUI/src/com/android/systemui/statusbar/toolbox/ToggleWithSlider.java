@@ -51,6 +51,8 @@ public abstract class ToggleWithSlider extends ToolboxWidget implements SeekBar.
 
     protected void updateProgress(int progress) { /*do nothing*/ }
 
+    protected void updateAfterProgress() { /*do nothing*/ }
+
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         updateProgress(progress);
@@ -63,7 +65,7 @@ public abstract class ToggleWithSlider extends ToolboxWidget implements SeekBar.
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-
+        updateAfterProgress();
     }
 
 }
