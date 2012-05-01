@@ -25,6 +25,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -32,9 +33,11 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Resources;
 import android.content.res.Configuration;
+import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -203,6 +206,7 @@ public class PhoneStatusBar extends StatusBar {
     private boolean mPanelSlightlyVisible;
 
     //notification toolbox
+    private ToolboxSettingsObserver mToolboxSettingsObserver = null;
     ViewFlipper mToolboxFlipper;
     private GestureDetector gestureDetector;
 
@@ -340,6 +344,9 @@ public class PhoneStatusBar extends StatusBar {
                 return false;
             }
         });
+        useDefaultToolboxView();
+        mToolboxSettingsObserver = new ToolboxSettingsObserver(new Handler());
+        mToolboxSettingsObserver.observe();
         // Notification toolbox end
 
         mExpandedDialog = new ExpandedDialog(context);
@@ -1338,13 +1345,8 @@ public class PhoneStatusBar extends StatusBar {
             mPostCollapseCleanup = null;
         }
 
-        //make sure the default notif dropdown view is shown right away for next pulldown
-        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-        int whichView = ((ToolboxOnDropdown && useToolbox()) ? 1 : 0);
-        if (mToolboxFlipper.getDisplayedChild() != whichView) {
-            mToolboxFlipper.setDisplayedChild(whichView);
-        }
+        //ensure default toolbox view is shown on next pulldown
+        useDefaultToolboxView();
     }
 
     void doAnimation() {
@@ -2439,6 +2441,15 @@ public class PhoneStatusBar extends StatusBar {
     // Notification Toolbox
     //
 
+    private void useDefaultToolboxView() {
+        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
+        int whichView = ((ToolboxOnDropdown && useToolbox()) ? 1 : 0);
+        if (mToolboxFlipper.getDisplayedChild() != whichView) {
+            mToolboxFlipper.setDisplayedChild(whichView);
+        }
+    }
+
     private void nextToolboxView() {
         mToolboxFlipper.setInAnimation(mContext, R.anim.in_animation);
         mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation);
@@ -2457,5 +2468,30 @@ public class PhoneStatusBar extends StatusBar {
         return (Settings.System.getInt(mContext.getContentResolver(), Settings
                 .System.USE_NOTIFICATION_TOOLBOX, 1) == 1);
     }
+
+    private class ToolboxSettingsObserver extends ContentObserver {
+        public ToolboxSettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+
+            // default pulldown view setting
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings
+                    .System.NOTIFICATION_DROPDOWN_VIEW), false, this);
+
+            // toolbox on/off setting
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings
+                    .System.USE_NOTIFICATION_TOOLBOX), false, this);
+        }
+
+        @Override
+        public void onChangeUri(Uri uri, boolean selfChange) {
+            Log.d("ToolboxSettingsObserver", "onChangeUri");
+            useDefaultToolboxView();
+        }
+    }
+
 }
 
