@@ -542,8 +542,8 @@ static player_type getDefaultPlayerType() {
 player_type getPlayerType(int fd, int64_t offset, int64_t length)
 {
     union {
-    char buf[20];
-    long *bufl;
+        char buf[20];
+        long bufl[];
     };
     lseek(fd, offset, SEEK_SET);
     read(fd, buf, sizeof(buf));
