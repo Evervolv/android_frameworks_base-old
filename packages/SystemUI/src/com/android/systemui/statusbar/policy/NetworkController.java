@@ -462,10 +462,12 @@ public class NetworkController extends BroadcastReceiver {
 
         boolean useSixBar = (Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
+        boolean ThemeCompat = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.THEME_COMPATIBILITY_SIGNAL, 1) == 1;
 
         if (!hasService()) {
             if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: !hasService()");
-            if (useSixBar) {
+            if (useSixBar && ThemeCompat) {
                 mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
                 mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
             } else {
@@ -475,7 +477,7 @@ public class NetworkController extends BroadcastReceiver {
         } else {
             if (mSignalStrength == null) {
                 if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: mSignalStrength == null");
-                if (useSixBar) {
+                if (useSixBar && ThemeCompat) {
                     mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
                     mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
                 } else {
@@ -488,7 +490,7 @@ public class NetworkController extends BroadcastReceiver {
                 int iconLevel;
                 int[] iconList;
                 if (isCdma() && mAlwaysShowCdmaRssi) {
-                    if (useSixBar) {
+                    if (useSixBar && ThemeCompat) {
                         mLastSignalLevel = iconLevel = mSignalStrength.getSixBarCdmaLevel();
                         if(DEBUG) Slog.d(TAG, "mAlwaysShowCdmaRssi=" + mAlwaysShowCdmaRssi
                                 + " set to cdmaLevel=" + mSignalStrength.getSixBarCdmaLevel()
@@ -500,19 +502,19 @@ public class NetworkController extends BroadcastReceiver {
                                 + " instead of level=" + mSignalStrength.getLevel());
                     }
                 } else {
-                    mLastSignalLevel = iconLevel = (useSixBar) ?
+                    mLastSignalLevel = iconLevel = (useSixBar && ThemeCompat) ?
                             mSignalStrength.getSixBarLevel() : mSignalStrength.getLevel();
                 }
 
                 if (isCdma()) {
                     if (isCdmaEri()) {
-                        if (useSixBar) {
+                        if (useSixBar && ThemeCompat) {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                         } else {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
                         }
                     } else {
-                        if (useSixBar) {
+                        if (useSixBar && ThemeCompat) {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                         } else {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
@@ -521,13 +523,13 @@ public class NetworkController extends BroadcastReceiver {
                 } else {
                     // Though mPhone is a Manager, this call is not an IPC
                     if (mPhone.isNetworkRoaming()) {
-                        if (useSixBar) {
+                        if (useSixBar && ThemeCompat) {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                         } else {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
                         }
                     } else {
-                        if (useSixBar) {
+                        if (useSixBar && ThemeCompat) {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                         } else {
                             iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
@@ -538,7 +540,7 @@ public class NetworkController extends BroadcastReceiver {
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[iconLevel]);
 
-                if (useSixBar) {
+                if (useSixBar && ThemeCompat) {
                     mDataSignalIconId = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition][iconLevel];
                 } else {
                     mDataSignalIconId = TelephonyIcons.DATA_SIGNAL_STRENGTH[mInetCondition][iconLevel];

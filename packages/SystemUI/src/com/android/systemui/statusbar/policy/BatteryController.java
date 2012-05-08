@@ -45,6 +45,7 @@ public class BatteryController extends BroadcastReceiver {
 
     private BatterySettingsObserver mObserver = null;
     private int mBatteryStyle;
+    private boolean mThemeCompat;
     private int mLastBatteryLevel;
     private boolean mLastPluggedState;
     private static final int BATT_STOCK = 0;
@@ -56,6 +57,8 @@ public class BatteryController extends BroadcastReceiver {
 
         mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.STATUSBAR_BATT_STYLE, BATT_PERCENT);
+        mThemeCompat = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -84,7 +87,7 @@ public class BatteryController extends BroadcastReceiver {
             final boolean plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
             mLastPluggedState = plugged;
             mLastBatteryLevel = level;
-            if (mBatteryStyle == BATT_PERCENT) {
+            if (mBatteryStyle == BATT_PERCENT && mThemeCompat) {
                 icon = plugged ? R.drawable.stat_sys_battery_charge
                                          : R.drawable.stat_sys_battery_mod;
             } else {
@@ -118,7 +121,7 @@ public class BatteryController extends BroadcastReceiver {
 
     private void batteryChange() {
         final int icon;
-        if (mBatteryStyle == BATT_PERCENT) {
+        if (mBatteryStyle == BATT_PERCENT && mThemeCompat) {
             icon = mLastPluggedState ? R.drawable.stat_sys_battery_charge
                                      : R.drawable.stat_sys_battery_mod;
         } else {
@@ -158,6 +161,8 @@ public class BatteryController extends BroadcastReceiver {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(Settings
                     .System.STATUSBAR_BATT_STYLE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(Settings
+                    .System.THEME_COMPATIBILITY_BATTERY), false, this);
         }
 
         @Override
@@ -165,6 +170,8 @@ public class BatteryController extends BroadcastReceiver {
             Log.d("BatteryController", "onChangeUri");
             mBatteryStyle = Settings.System.getInt(mContext.getContentResolver(),
                     Settings.System.STATUSBAR_BATT_STYLE, BATT_PERCENT);
+            mThemeCompat = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
             batteryChange();
         }
     }
