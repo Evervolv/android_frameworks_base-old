@@ -138,7 +138,6 @@
             android:outerRadius="@dimen/multiwaveview_target_placement_radius"
             android:snapMargin="@dimen/multiwaveview_snap_margin"
             android:hitRadius="@dimen/multiwaveview_hit_radius"
-            android:rightChevronDrawable="@drawable/ic_lockscreen_chevron_right"
             android:horizontalOffset="0dip"
             android:verticalOffset="60dip"
             android:feedbackCount="3"
