@@ -1885,6 +1885,15 @@ public final class Settings {
          */
         public static final String POWER_SOUNDS_ENABLED = "power_sounds_enabled";
 
+	
+
+        /**
+         * Whether to wake the screen with the trackball, the value is boolean.
+         * @hide
+         */
+        public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
+ 
+
         /**
          * Whether to play a sound for dock events.
          * @hide
