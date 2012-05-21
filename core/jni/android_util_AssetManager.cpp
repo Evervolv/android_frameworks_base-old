@@ -439,7 +439,7 @@ static jint android_content_AssetManager_addAssetPath(JNIEnv* env, jobject clazz
 {
     ScopedUtfChars path8(env, path);
     if (path8.c_str() == NULL) {
-        return NULL;
+        return JNI_FALSE;
     }
 
     AssetManager* am = assetManagerForJavaObject(env, clazz);
@@ -577,7 +577,7 @@ static jint android_content_AssetManager_getResourceIdentifier(JNIEnv* env, jobj
         ? env->GetStringLength(defPackage) : 0;
 
     jint ident = am->getResources().identifierForName(
-        name16.get(), name16.size(), defType16, defTypeLen, defPackage16, defPackageLen);
+        (const char16_t*)name16.get(), name16.size(), defType16, defTypeLen, defPackage16, defPackageLen);
 
     if (defPackage16) {
         env->ReleaseStringChars(defPackage, (jchar*)defPackage16);
