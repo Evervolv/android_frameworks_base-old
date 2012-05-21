@@ -568,6 +568,13 @@ class ServerThread extends Thread {
             } catch (Throwable e) {
                 reportWtf("starting NetworkTimeUpdate service", e);
             }
+
+            try {
+                Slog.i(TAG, "AssetRedirectionManager Service");
+                ServiceManager.addService("assetredirection", new AssetRedirectionManagerService(context));
+            } catch (Throwable e) {
+                Slog.e(TAG, "Failure starting AssetRedirectionManager Service", e);
+            }
         }
 
         // Before things start rolling, be sure we have decided whether
