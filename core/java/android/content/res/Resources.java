@@ -1880,6 +1880,9 @@ public class Resources {
         }
     }
 
+    /**
+     * @hide
+     */
     public final void updateStringCache() {
         synchronized (mTmpValue) {
             mAssets.recreateStringBlocks();
