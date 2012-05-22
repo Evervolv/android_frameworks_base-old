@@ -12,7 +12,6 @@ LOCAL_C_INCLUDES := \
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
 LOCAL_C_INCLUDES += \
     $(TOP)/vendor/qcom/opensource/omx/mm-core/omxcore/inc
-LOCAL_CFLAGS += -DQCOM_HARDWARE
 endif
 
 

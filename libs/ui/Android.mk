@@ -66,10 +66,9 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_C_INCLUDES := \
     external/skia/include/core
 
-ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
-ifneq ($(BOARD_USES_LEGACY_QCOM),true)
-LOCAL_CFLAGS += -DQCOM_HARDWARE
-endif
+# Legacy gralloc cannot handle this flag: undefine it
+ifeq ($(BOARD_USES_LEGACY_QCOM),true)
+	LOCAL_CFLAGS += -UQCOM_HARDWARE
 endif
 
 LOCAL_MODULE:= libui

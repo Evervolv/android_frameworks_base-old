@@ -15,8 +15,7 @@ LOCAL_C_INCLUDES := \
 	$(JNI_H_INCLUDE)
 
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
-LOCAL_C_INCLUDES +=  hardware/qcom/display/libqcomui
-LOCAL_CFLAGS += -DQCOM_HARDWARE
+	LOCAL_C_INCLUDES +=  hardware/qcom/display/libqcomui
 endif
 
 LOCAL_SHARED_LIBRARIES := \
