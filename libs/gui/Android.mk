@@ -43,10 +43,6 @@ ifeq ($(TARGET_QCOM_HDMI_OUT),true)
 	LOCAL_CFLAGS += -DQCOM_HDMI_OUT
 endif
 
-ifeq ($(TARGET_BOARD_PLATFORM),qsd8k)
-	LOCAL_CFLAGS += -DTARGET8x50
-endif
-
 endif # QCOM_HARDWARE
 
 LOCAL_MODULE:= libgui

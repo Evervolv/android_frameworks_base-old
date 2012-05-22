@@ -664,9 +664,7 @@ status_t SurfaceTexture::queueBuffer(int buf, int64_t timestamp,
         updatedGeometry.set(mNextBufferInfo.width,
                             mNextBufferInfo.height, mNextBufferInfo.format);
         updateBufferGeometry(mSlots[buf].mGraphicBuffer, updatedGeometry);
-#ifndef TARGET8x50
         updateBufferS3DFormat(mSlots[buf].mGraphicBuffer, mS3DFormat);
-#endif
         sp<GraphicBuffer> buffer = mSlots[buf].mGraphicBuffer;
 #endif
 
