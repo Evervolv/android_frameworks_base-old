@@ -81,10 +81,6 @@ LOCAL_SHARED_LIBRARIES += \
 	libQcomUI
 LOCAL_C_INCLUDES += hardware/qcom/display/libqcomui
 
-ifeq ($(TARGET_BOARD_PLATFORM),qsd8k)
-LOCAL_CFLAGS += -DTARGET8x50
-endif
-
 endif # LEGACY_QCOM
 
 ifeq ($(TARGET_QCOM_HDMI_OUT),true)
