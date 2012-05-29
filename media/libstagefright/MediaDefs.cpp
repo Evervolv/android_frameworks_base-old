@@ -51,9 +51,9 @@ const char *MEDIA_MIMETYPE_CONTAINER_AVI = "video/avi";
 const char *MEDIA_MIMETYPE_CONTAINER_MPEG2PS = "video/mp2p";
 
 const char *MEDIA_MIMETYPE_CONTAINER_WVM = "video/wvm";
-
 #ifdef QCOM_HARDWARE
 const char *MEDIA_MIMETYPE_AUDIO_EVRC = "audio/evrc";
+
 const char *MEDIA_MIMETYPE_VIDEO_WMV = "video/x-ms-wmv";
 const char *MEDIA_MIMETYPE_AUDIO_WMA = "audio/x-ms-wma";
 const char *MEDIA_MIMETYPE_CONTAINER_ASF = "video/x-ms-asf";
@@ -65,8 +65,7 @@ const char *MEDIA_MIMETYPE_VIDEO_DIVX311 = "video/divx311";
 const char *MEDIA_MIMETYPE_VIDEO_DIVX4 = "video/divx4";
 const char *MEDIA_MIMETYPE_CONTAINER_MPEG2 = "video/mp2";
 const char *MEDIA_MIMETYPE_CONTAINER_3G2 = "video/3g2";
-#endif // QCOM_HARDWARE
-
+#endif
 const char *MEDIA_MIMETYPE_TEXT_3GPP = "text/3gpp-tt";
 
 }  // namespace android

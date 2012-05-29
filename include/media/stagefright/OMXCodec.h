@@ -261,9 +261,11 @@ private:
 
     void setAMRFormat(bool isWAMR, int32_t bitRate);
     status_t setAACFormat(int32_t numChannels, int32_t sampleRate, int32_t bitRate);
-    void setG711Format(int32_t numChannels);
 #ifdef QCOM_HARDWARE
     void setEVRCFormat( int32_t sampleRate, int32_t numChannels, int32_t bitRate);
+#endif
+    void setG711Format(int32_t numChannels);
+#ifdef QCOM_HARDWARE
     void setQCELPFormat( int32_t sampleRate, int32_t numChannels, int32_t bitRate);
 #endif
 
@@ -375,7 +377,6 @@ private:
     status_t parseAVCCodecSpecificData(
             const void *data, size_t size,
             unsigned *profile, unsigned *level, const sp<MetaData> &meta);
-
 #ifdef QCOM_HARDWARE
     void parseFlags( uint32_t flags );
 #endif

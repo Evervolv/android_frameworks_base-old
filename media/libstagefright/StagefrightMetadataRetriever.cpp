@@ -252,21 +252,11 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
 #ifdef QCOM_HARDWARE
     if (converter.isValid()) {
         err = converter.convert(
-            (const uint8_t *)buffer->data() + buffer->range_offset(),
-            width, height,
-            crop_left, crop_top, crop_right, crop_bottom,
-            frame->mData,
-            frame->mWidth,
-            frame->mHeight,
-            0, 0, frame->mWidth - 1, frame->mHeight - 1);
-    }
-    else {
-        err = ERROR_UNSUPPORTED;
-    }
 #else
     CHECK(converter.isValid());
 
     err = converter.convert(
+#endif
             (const uint8_t *)buffer->data() + buffer->range_offset(),
             width, height,
             crop_left, crop_top, crop_right, crop_bottom,
@@ -274,6 +264,11 @@ static VideoFrame *extractVideoFrameWithCodecFlags(
             frame->mWidth,
             frame->mHeight,
             0, 0, frame->mWidth - 1, frame->mHeight - 1);
+#ifdef QCOM_HARDWARE
+    }
+    else {
+        err = ERROR_UNSUPPORTED;
+    }
 #endif
 
     buffer->release();
@@ -368,26 +363,24 @@ VideoFrame *StagefrightMetadataRetriever::getFrameAtTime(
             mime);
     } else {
         frame = extractVideoFrameWithCodecFlags(
-                &mClient, trackMeta, source, OMXCodec::kPreferSoftwareCodecs,
-                timeUs, option);
-    }
 #else
     VideoFrame *frame =
         extractVideoFrameWithCodecFlags(
+#endif
                 &mClient, trackMeta, source, OMXCodec::kPreferSoftwareCodecs,
                 timeUs, option);
+#ifdef QCOM_HARDWARE
+    }
 #endif
 
 #if defined(TARGET8x60) || !defined(QCOM_HARDWARE)
     if (frame == NULL) {
         LOGV("Software decoder failed to extract thumbnail, "
              "trying hardware decoder.");
-
-        frame = extractVideoFrameWithCodecFlags(&mClient, trackMeta, source, 0,
+            frame = extractVideoFrameWithCodecFlags(&mClient, trackMeta, source, 0,
                         timeUs, option);
     }
 #endif
-
     return frame;
 }
 
@@ -574,6 +567,7 @@ void StagefrightMetadataRetriever::parseMetaData() {
 #else
         CHECK(meta->findCString(kKeyMIMEType, &fileMIME));
 #endif
+
 
         if (!strcasecmp(fileMIME, "video/x-matroska")) {
             sp<MetaData> trackMeta = mExtractor->getTrackMetaData(0);

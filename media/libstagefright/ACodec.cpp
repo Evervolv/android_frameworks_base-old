@@ -38,7 +38,6 @@ Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
 #include <gui/SurfaceTextureClient.h>
 
 #include <OMX_Component.h>
-
 #ifdef QCOM_HARDWARE
 #include <OMX_QCOMExtns.h>
 #include <gralloc_priv.h>

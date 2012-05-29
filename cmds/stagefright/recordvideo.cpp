@@ -26,7 +26,6 @@
 #include <media/stagefright/OMXClient.h>
 #include <media/stagefright/OMXCodec.h>
 #include <media/MediaPlayerInterface.h>
-
 #ifdef QCOM_HARDWARE
 #include <OMX_QCOMExtns.h>
 #endif

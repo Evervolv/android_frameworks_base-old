@@ -1,4 +1,5 @@
 /*
+ * Portions Copyright (C) 2012 VMware, Inc. All Rights Reserved.
  * Copyright (C) 2009 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

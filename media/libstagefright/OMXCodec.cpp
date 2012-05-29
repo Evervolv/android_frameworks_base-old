@@ -41,6 +41,9 @@
 #include <media/stagefright/OMXCodec.h>
 #include <media/stagefright/Utils.h>
 #include <utils/Vector.h>
+#ifdef QCOM_HARDWARE
+#include <cutils/properties.h>
+#endif
 
 #include <OMX_Audio.h>
 #include <OMX_Component.h>
@@ -48,11 +51,11 @@
 #ifdef QCOM_HARDWARE
 #include <cutils/properties.h>
 #include <OMX_QCOMExtns.h>
+
 #include <gralloc_priv.h>
 #include <qcom_ui.h>
 #include <QOMX_AudioExtensions.h>
 #endif
-
 #include "include/avc_utils.h"
 #ifdef SAMSUNG_CODEC_SUPPORT
 #include "include/ColorFormat.h"
@@ -136,7 +139,8 @@ const int32_t ColorFormatInfo::preferredColorFormat[] = {
     QOMX_COLOR_FormatYVU420PackedSemiPlanar32m4ka
 #endif
 };
-#endif // QCOM_HARDWARE
+#endif
+
 
 #define FACTORY_CREATE_ENCODER(name) \
 static sp<MediaSource> Make##name(const sp<MediaSource> &source, const sp<MetaData> &meta) { \
@@ -230,9 +234,11 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.video.decoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.Video.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.SEC.AVC.Decoder" },
+    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.SEC.FP.AVC.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.google.h264.decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.google.avc.decoder" },
     { MEDIA_MIMETYPE_AUDIO_VORBIS, "OMX.google.vorbis.decoder" },
+    { MEDIA_MIMETYPE_VIDEO_VPX, "OMX.SEC.VP8.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_VPX, "OMX.google.vpx.decoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG2, "OMX.Nvidia.mpeg2v.decode" },
 #ifdef QCOM_HARDWARE
@@ -853,7 +859,6 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
                 LOGE("Profile and/or level exceed the decoder's capabilities.");
                 return ERROR_UNSUPPORTED;
             }
-
             if(!strcmp(mComponentName, "OMX.google.h264.decoder")
                 && (profile != kAVCProfileBaseline)) {
                 LOGE("%s does not support profiles > kAVCProfileBaseline", mComponentName);
@@ -870,11 +875,10 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
         } else if (meta->findData(kKeyRawCodecSpecificData, &type, &data, &size)) {
             LOGV("OMXCodec::configureCodec found kKeyRawCodecSpecificData of size %d\n", size);
             addCodecSpecificData(data, size);
-#endif
         }
+
     }
 
-#ifdef QCOM_HARDWARE
     if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX, mMIME) ||
         !strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX4, mMIME) ||
         !strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX311, mMIME)) {
@@ -897,16 +901,16 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
         } else {
             paramDivX.eFormat = QOMX_VIDEO_DIVXFormatUnused;
         }
-        paramDivX.eProfile = (QOMX_VIDEO_DIVXPROFILETYPE)0; //Not used for now.
+        paramDivX.eProfile = (QOMX_VIDEO_DIVXPROFILETYPE)0;    //Not used for now.
 
         status_t err =  mOMX->setParameter(mNode,
                          (OMX_INDEXTYPE)OMX_QcomIndexParamVideoDivx,
                          &paramDivX, sizeof(paramDivX));
         if (err!=OK) {
             return err;
+#endif
         }
     }
-#endif
 
     int32_t bitRate = 0;
     if (mIsEncoder) {
@@ -1394,6 +1398,7 @@ void OMXCodec::setVideoInputFormat(
             stride > 0? stride: -stride, sliceHeight);
 #endif
 
+
     CHECK_EQ((int)def.eDomain, (int)OMX_PortDomainVideo);
 
     video_def->nFrameWidth = width;
@@ -1870,14 +1875,11 @@ status_t OMXCodec::setVideoOutputFormat(
                     break;
             }
         } else
-
+#endif
         format.nIndex = 0;
 
         CODEC_LOGV("Video O/P format.nIndex 0x%x",format.nIndex);
         CODEC_LOGE("Video O/P format.eColorFormat 0x%x",format.eColorFormat);
-#else
-        format.nIndex = 0;
-#endif
 
         status_t err = mOMX->getParameter(
                 mNode, OMX_IndexParamVideoPortFormat,
@@ -1932,6 +1934,9 @@ status_t OMXCodec::setVideoOutputFormat(
     const size_t X = 64 * 8 * 1024;  // const size_t X = 64 * 1024;
 #else
     const size_t X = 64 * 1024;
+    if (def.nBufferSize < X) {
+        def.nBufferSize = X;
+    }
 #endif
 
     CHECK_EQ((int)def.eDomain, (int)OMX_PortDomainVideo);
@@ -2393,7 +2398,29 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
         return err;
     }
 
-#ifdef SAMSUNG_CODEC_SUPPORT
+#ifdef QCOM_HARDWARE
+    int format = (def.format.video.eColorFormat ==
+                  QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka)?
+                 HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED : def.format.video.eColorFormat;
+    if(def.format.video.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar)
+        format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
+
+    format ^= (mInterlaceFormatDetected ? HAL_PIXEL_FORMAT_INTERLACE : 0);
+#endif
+
+#ifndef SAMSUNG_CODEC_SUPPORT
+    err = native_window_set_buffers_geometry(
+            mNativeWindow.get(),
+#ifdef QCOM_HARDWARE
+            def.format.video.nStride,
+            def.format.video.nSliceHeight,
+            format);
+#else
+            def.format.video.nFrameWidth,
+            def.format.video.nFrameHeight,
+            def.format.video.eColorFormat);
+#endif
+#else
     OMX_COLOR_FORMATTYPE eColorFormat;
 
     switch (def.format.video.eColorFormat) {
@@ -2414,29 +2441,7 @@ status_t OMXCodec::allocateOutputBuffersFromNativeWindow() {
             def.format.video.nFrameWidth,
             def.format.video.nFrameHeight,
             eColorFormat);
-#elif defined(QCOM_HARDWARE)
-    int format = (def.format.video.eColorFormat ==
-                  QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka)?
-                 HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED : def.format.video.eColorFormat;
-
-    if(def.format.video.eColorFormat == OMX_QCOM_COLOR_FormatYVU420SemiPlanar)
-        format = HAL_PIXEL_FORMAT_YCrCb_420_SP;
-
-    format ^= (mInterlaceFormatDetected ? HAL_PIXEL_FORMAT_INTERLACE : 0);
-
-    err = native_window_set_buffers_geometry(
-            mNativeWindow.get(),
-            def.format.video.nStride,
-            def.format.video.nSliceHeight,
-            format);
-#else
-    err = native_window_set_buffers_geometry(
-            mNativeWindow.get(),
-            def.format.video.nFrameWidth,
-            def.format.video.nFrameHeight,
-            def.format.video.eColorFormat);
-#endif // SAMSUNG_CODEC_SUPPORT
-
+#endif
     if (err != 0) {
         LOGE("native_window_set_buffers_geometry failed: %s (%d)",
                 strerror(-err), -err);
@@ -3262,7 +3267,6 @@ void OMXCodec::onEvent(OMX_EVENTTYPE event, OMX_U32 data1, OMX_U32 data2) {
             break;
         }
 #endif
-
 #if 0
         case OMX_EventBufferFlag:
         {
@@ -3365,18 +3369,14 @@ void OMXCodec::onCmdComplete(OMX_COMMANDTYPE cmd, OMX_U32 data) {
                 CHECK_EQ((int)mPortStatus[kPortIndexOutput], (int)SHUTTING_DOWN);
                 mPortStatus[kPortIndexOutput] = ENABLED;
             } else {
+#endif
             CHECK_EQ((int)mPortStatus[portIndex], (int)SHUTTING_DOWN);
             mPortStatus[portIndex] = ENABLED;
 
             CHECK_EQ(countBuffersWeOwn(mPortBuffers[portIndex]),
                      mPortBuffers[portIndex].size());
+#ifdef QCOM_HARDWARE
             }
-#else
-            CHECK_EQ((int)mPortStatus[portIndex], (int)SHUTTING_DOWN);
-            mPortStatus[portIndex] = ENABLED;
-
-            CHECK_EQ(countBuffersWeOwn(mPortBuffers[portIndex]),
-                     mPortBuffers[portIndex].size());
 #endif
 
             if (mState == RECONFIGURING) {
@@ -3675,39 +3675,25 @@ bool OMXCodec::flushPortAsync(OMX_U32 portIndex) {
         mPortStatus[kPortIndexInput] = SHUTTING_DOWN;
         mPortStatus[kPortIndexOutput] = SHUTTING_DOWN;
     } else {
-    CODEC_LOGV("flushPortAsync(%ld): we own %d out of %d buffers already.",
-         portIndex, countBuffersWeOwn(mPortBuffers[portIndex]),
-         mPortBuffers[portIndex].size());
-
-    CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLED);
-    mPortStatus[portIndex] = SHUTTING_DOWN;
-
-    if ((mQuirks & kRequiresFlushCompleteEmulation)
-        && countBuffersWeOwn(mPortBuffers[portIndex])
-                == mPortBuffers[portIndex].size()) {
-        // No flush is necessary and this component fails to send a
-        // flush-complete event in this case.
-
-        return false;
-        }
-    }
-#else
-    CODEC_LOGV("flushPortAsync(%ld): we own %d out of %d buffers already.",
-         portIndex, countBuffersWeOwn(mPortBuffers[portIndex]),
-         mPortBuffers[portIndex].size());
-
-    CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLED);
-    mPortStatus[portIndex] = SHUTTING_DOWN;
-
-    if ((mQuirks & kRequiresFlushCompleteEmulation)
-        && countBuffersWeOwn(mPortBuffers[portIndex])
-                == mPortBuffers[portIndex].size()) {
-        // No flush is necessary and this component fails to send a
-        // flush-complete event in this case.
-
-        return false;
-    }
 #endif
+    CODEC_LOGV("flushPortAsync(%ld): we own %d out of %d buffers already.",
+         portIndex, countBuffersWeOwn(mPortBuffers[portIndex]),
+         mPortBuffers[portIndex].size());
+
+    CHECK_EQ((int)mPortStatus[portIndex], (int)ENABLED);
+    mPortStatus[portIndex] = SHUTTING_DOWN;
+
+    if ((mQuirks & kRequiresFlushCompleteEmulation)
+        && countBuffersWeOwn(mPortBuffers[portIndex])
+                == mPortBuffers[portIndex].size()) {
+        // No flush is necessary and this component fails to send a
+        // flush-complete event in this case.
+
+        return false;
+#ifdef QCOM_HARDWARE
+        }
+#endif
+    }
 
     status_t err =
         mOMX->sendCommand(mNode, OMX_CommandFlush, portIndex);
@@ -3751,6 +3737,7 @@ void OMXCodec::fillOutputBuffers() {
     // end-of-output-stream. If we own all input buffers and also own
     // all output buffers and we already signalled end-of-input-stream,
     // the end-of-output-stream is implied.
+
 #ifdef QCOM_HARDWARE
     // NOTE: Thumbnail mode needs a call to fillOutputBuffer in order
     // to get the decoded frame from the component. Currently,
@@ -3758,6 +3745,7 @@ void OMXCodec::fillOutputBuffers() {
     // frame and sets mSignalledEOS to true, so without the check for
     // !mThumbnailMode, fillOutputBuffer will never be called.
     if (!mThumbnailMode) {
+#endif
         if (mSignalledEOS
             && countBuffersWeOwn(mPortBuffers[kPortIndexInput])
                 == mPortBuffers[kPortIndexInput].size()
@@ -3767,17 +3755,7 @@ void OMXCodec::fillOutputBuffers() {
             mBufferFilled.signal();
             return;
         }
-    }
-#else
-    if (mSignalledEOS
-            && countBuffersWeOwn(mPortBuffers[kPortIndexInput])
-                == mPortBuffers[kPortIndexInput].size()
-            && countBuffersWeOwn(mPortBuffers[kPortIndexOutput])
-                == mPortBuffers[kPortIndexOutput].size()) {
-        mNoMoreOutputData = true;
-        mBufferFilled.signal();
-
-        return;
+#ifdef QCOM_HARDWARE
     }
 #endif
 
@@ -4017,10 +3995,8 @@ bool OMXCodec::drainInputBuffer(BufferInfo *info) {
             OMX_BUFFERHEADERTYPE *header =
                 (OMX_BUFFERHEADERTYPE *)info->mBuffer;
 
-#ifdef QCOM_HARDWARE
             //not commenting this one for now. XXX - remove when memcopy can be avoided
             //for encoder
-#endif
             CHECK(header->pBuffer == info->mData);
 
             header->pBuffer =
@@ -4951,6 +4927,7 @@ status_t OMXCodec::stop() {
                   }
                 }
                 else {
+#endif
                 bool emulateInputFlushCompletion =
                     !flushPortAsync(kPortIndexInput);
 
@@ -4964,21 +4941,8 @@ status_t OMXCodec::stop() {
                 if (emulateOutputFlushCompletion) {
                     onCmdComplete(OMX_CommandFlush, kPortIndexOutput);
                 }
+#ifdef QCOM_HARDWARE
                }
-#else
-                bool emulateInputFlushCompletion =
-                    !flushPortAsync(kPortIndexInput);
-
-                bool emulateOutputFlushCompletion =
-                    !flushPortAsync(kPortIndexOutput);
-
-                if (emulateInputFlushCompletion) {
-                    onCmdComplete(OMX_CommandFlush, kPortIndexInput);
-                }
-
-                if (emulateOutputFlushCompletion) {
-                    onCmdComplete(OMX_CommandFlush, kPortIndexOutput);
-                }
 #endif
             } else {
                 mPortStatus[kPortIndexInput] = SHUTTING_DOWN;
@@ -5100,6 +5064,7 @@ status_t OMXCodec::read(
               onCmdComplete(OMX_CommandFlush, kPortIndexBoth);
           }
         } else {
+#endif
 
         bool emulateInputFlushCompletion = !flushPortAsync(kPortIndexInput);
         bool emulateOutputFlushCompletion = !flushPortAsync(kPortIndexOutput);
@@ -5111,17 +5076,7 @@ status_t OMXCodec::read(
         if (emulateOutputFlushCompletion) {
             onCmdComplete(OMX_CommandFlush, kPortIndexOutput);
         }
-        }
-#else
-        bool emulateInputFlushCompletion = !flushPortAsync(kPortIndexInput);
-        bool emulateOutputFlushCompletion = !flushPortAsync(kPortIndexOutput);
-
-        if (emulateInputFlushCompletion) {
-            onCmdComplete(OMX_CommandFlush, kPortIndexInput);
-        }
-
-        if (emulateOutputFlushCompletion) {
-            onCmdComplete(OMX_CommandFlush, kPortIndexOutput);
+#ifdef QCOM_HARDWARE
         }
 #endif
 
@@ -5313,12 +5268,14 @@ static const char *colorFormatString(OMX_COLOR_FORMATTYPE type) {
         return "QOMX_COLOR_FormatYVU420PackedSemiPlanar32m4ka";
     } else if (type == QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka) {
         return "QOMX_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka";
-    /*
-    } else if (type ==  OMX_QCOM_COLOR_FormatYVU420SemiPlanarInterlace) {
+    }
+    /*else if (type ==  OMX_QCOM_COLOR_FormatYVU420SemiPlanarInterlace) {
         return "OMX_QCOM_COLOR_FormatYVU420SemiPlanarInterlace";
-    */
-#endif
+    } */
+    else if (type < 0 || (size_t)type >= numNames) {
+#else
     } else if (type < 0 || (size_t)type >= numNames) {
+#endif
         return "UNKNOWN";
     } else {
         return kNames[type];

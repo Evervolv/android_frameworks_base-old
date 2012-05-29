@@ -127,7 +127,7 @@ typedef int (* ConvertFn)(ColorConvertParams src,
 
 int convert(ColorConvertParams src, ColorConvertParams dst,
             uint8_t *adjustedClip);
-#endif // QCOM_HARDWARE
+#endif
 
 }  // namespace android
 

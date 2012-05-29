@@ -50,7 +50,7 @@ enum {
     kKeyESDS              = 'esds',  // raw data
 #ifdef QCOM_HARDWARE
     kKeyAacCodecSpecificData = 'nacc' , // for native aac files
-#endif // QCOM_HARDWARE
+#endif
     kKeyAVCC              = 'avcc',  // raw data
     kKeyD263              = 'd263',  // raw data
     kKeyVorbisInfo        = 'vinf',  // raw data
@@ -130,7 +130,7 @@ enum {
     kKeyWMABitspersample  = 'bsps',  // int64_t
     kKeyWMAVirPktSize     = 'vpks',  // int64_t
     kKeyWMVProfile        = 'wmvp',   //int32_t
-#endif // QCOM_HARDWARE
+#endif
 
     // An indication that a video buffer has been rendered.
     kKeyRendered          = 'rend',  // bool (int32_t)
@@ -143,7 +143,7 @@ enum {
 #ifdef QCOM_HARDWARE
     kkeyAacFormatAdif     = 'adif', // bool (int32_t)
     kkeyAacFormatLtp      = 'ltp',
-#endif // QCOM_HARDWARE
+#endif
 
     kKeyRequiresSecureBuffers = 'secu',  // bool (int32_t)
 
@@ -162,7 +162,6 @@ enum {
     kTypeAVCC        = 'avcc',
     kTypeD263        = 'd263',
 };
-
 #ifdef QCOM_HARDWARE
 enum {
     kTypeDivXVer_3_11,
@@ -175,7 +174,7 @@ enum {
     kTypeWMAPro,
     kTypeWMALossLess,
 };
-#endif // QCOM_HARDWARE
+#endif
 
 class MetaData : public RefBase {
 public:
