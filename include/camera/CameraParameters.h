@@ -36,6 +36,7 @@ struct Size {
         height = h;
     }
 };
+#ifdef QCOM_HARDWARE
 struct FPSRange{
     int minFPS;
     int maxFPS;
@@ -49,6 +50,7 @@ struct FPSRange{
         maxFPS=max;
    };
 };
+#endif
 class CameraParameters
 {
 public:
@@ -103,8 +105,10 @@ public:
     void setPreviewFrameRate(int fps);
     int getPreviewFrameRate() const;
     void getPreviewFpsRange(int *min_fps, int *max_fps) const;
+#ifdef QCOM_HARDWARE
     void setPreviewFrameRateMode(const char *mode);
     const char *getPreviewFrameRateMode() const;
+#endif
     void setPreviewFormat(const char *format);
     const char *getPreviewFormat() const;
     void setPictureSize(int width, int height);
@@ -112,10 +116,12 @@ public:
     void getSupportedPictureSizes(Vector<Size> &sizes) const;
     void setPictureFormat(const char *format);
     const char *getPictureFormat() const;
+#ifdef QCOM_HARDWARE
     void setTouchIndexAec(int x, int y);
     void getTouchIndexAec(int *x, int *y) const;
     void setTouchIndexAf(int x, int y);
     void getTouchIndexAf(int *x, int *y) const;
+#endif
 
     void getMeteringAreaCenter(int * x, int *y) const;
 
@@ -132,9 +138,11 @@ public:
     // Supported preview frame sizes in pixels.
     // Example value: "800x600,480x320". Read only.
     static const char KEY_SUPPORTED_PREVIEW_SIZES[];
+#ifdef QCOM_HARDWARE
     // Supported PREVIEW/RECORDING SIZES IN HIGH FRAME RATE recording, sizes in pixels.
     // Example value: "800x480,432x320". Read only.
     static const char KEY_SUPPORTED_HFR_SIZES[];
+#endif
     // The current minimum and maximum preview fps. This controls the rate of
     // preview frames received (CAMERA_MSG_PREVIEW_FRAME). The minimum and
     // maximum fps must be one of the elements from
@@ -150,7 +158,7 @@ public:
     // Example value: "(10500,26623),(15000,26623),(30000,30000)"
     static const char KEY_SUPPORTED_PREVIEW_FPS_RANGE[];
     // The image format for preview frames. See CAMERA_MSG_PREVIEW_FRAME in
-    // frameworks/base/include/camera/Camera.h.
+    // system/core/include/system/camera.h.
     // Example value: "yuv420sp" or PIXEL_FORMAT_XXX constants. Read/write.
     static const char KEY_PREVIEW_FORMAT[];
     // Supported image formats for preview frames.
@@ -163,6 +171,7 @@ public:
     // Supported number of preview frames per second.
     // Example value: "24,15,10". Read.
     static const char KEY_SUPPORTED_PREVIEW_FRAME_RATES[];
+#ifdef QCOM_HARDWARE
     // The mode of preview frame rate.
     // Example value: "frame-rate-auto, frame-rate-fixed".
     static const char KEY_PREVIEW_FRAME_RATE_MODE[];
@@ -178,7 +187,7 @@ public:
     static const char CAPTURE_MODE_HDR[];
     static const char CAPTURE_MODE_HJR[];
     static const char CAPTURE_MODE_PANORAMA[];
-
+#endif
     // The dimensions for captured pictures in pixels (width x height).
     // Example value: "1024x768". Read/write.
     static const char KEY_PICTURE_SIZE[];
@@ -186,7 +195,7 @@ public:
     // Example value: "2048x1536,1024x768". Read only.
     static const char KEY_SUPPORTED_PICTURE_SIZES[];
     // The image format for captured pictures. See CAMERA_MSG_COMPRESSED_IMAGE
-    // in frameworks/base/include/camera/Camera.h.
+    // in system/core/include/system/camera.h.
     // Example value: "jpeg" or PIXEL_FORMAT_XXX constants. Read/write.
     static const char KEY_PICTURE_FORMAT[];
     // Supported image formats for captured pictures.
@@ -242,8 +251,10 @@ public:
     // Example value: "21.0" or "-5". Write only.
     static const char KEY_GPS_ALTITUDE[];
 
+#ifdef QCOM_HARDWARE
     static const char KEY_SKIN_TONE_ENHANCEMENT[] ;
     static const char KEY_SUPPORTED_SKIN_TONE_ENHANCEMENT_MODES[] ;
+#endif
 
     // GPS timestamp (UTC in seconds since January 1, 1970). This should be
     // stored in JPEG EXIF header.
@@ -264,6 +275,7 @@ public:
     // Supported color effect settings.
     // Example value: "none,mono,sepia". Read only.
     static const char KEY_SUPPORTED_EFFECTS[];
+#ifdef QCOM_HARDWARE
     //Touch Af/AEC settings.
     static const char KEY_TOUCH_AF_AEC[];
     static const char KEY_SUPPORTED_TOUCH_AF_AEC[];
@@ -271,6 +283,7 @@ public:
     static const char KEY_TOUCH_INDEX_AEC[];
     //Touch Index for AF.
     static const char KEY_TOUCH_INDEX_AF[];
+#endif
     // Current antibanding setting.
     // Example value: "auto" or ANTIBANDING_XXX constants. Read/write.
     static const char KEY_ANTIBANDING[];
@@ -283,12 +296,14 @@ public:
     // Supported scene mode settings.
     // Example value: "auto,night,fireworks". Read only.
     static const char KEY_SUPPORTED_SCENE_MODES[];
+#ifdef QCOM_HARDWARE
     // Current auto scene detection mode.
     // Example value: "off" or SCENE_DETECT_XXX constants. Read/write.
     static const char KEY_SCENE_DETECT[];
     // Supported auto scene detection settings.
     // Example value: "off,backlight,snow/cloudy". Read only.
     static const char KEY_SUPPORTED_SCENE_DETECT[];
+#endif
     // Current flash mode.
     // Example value: "auto" or FLASH_MODE_XXX constants. Read/write.
     static const char KEY_FLASH_MODE[];
@@ -464,7 +479,7 @@ public:
     // value is "true". It is not supported if the value is not "true" or the
     // key does not exist.
     // See CAMERA_CMD_START_SMOOTH_ZOOM, CAMERA_CMD_STOP_SMOOTH_ZOOM, and
-    // CAMERA_MSG_ZOOM in frameworks/base/include/camera/Camera.h.
+    // CAMERA_MSG_ZOOM in system/core/include/system/camera.h.
     // Example value: "true". Read only.
     static const char KEY_SMOOTH_ZOOM_SUPPORTED[];
 
@@ -498,7 +513,7 @@ public:
     static const char KEY_VIDEO_SIZE[];
     // A list of the supported dimensions in pixels (width x height)
     // for video frames. See CAMERA_MSG_VIDEO_FRAME for details in
-    // frameworks/base/include/camera/Camera.h.
+    // system/core/include/system/camera.h.
     // Example: "176x144,1280x720". Read only.
     static const char KEY_SUPPORTED_VIDEO_SIZES[];
 
@@ -527,7 +542,7 @@ public:
     static const char KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO[];
 
     // The image format for video frames. See CAMERA_MSG_VIDEO_FRAME in
-    // frameworks/base/include/camera/Camera.h.
+    // system/core/include/system/camera.h.
     // Example value: "yuv420sp" or PIXEL_FORMAT_XXX constants. Read only.
     static const char KEY_VIDEO_FRAME_FORMAT[];
 
@@ -542,7 +557,7 @@ public:
     // Example value: "true" or "false". Read/write.
     static const char KEY_RECORDING_HINT[];
 
-	   // Returns true if video snapshot is supported. That is, applications
+    // Returns true if video snapshot is supported. That is, applications
     // can call Camera.takePicture during recording. Applications do not need to
     // call Camera.startPreview after taking a picture. The preview will be
     // still active. Other than that, taking a picture during recording is
@@ -562,6 +577,7 @@ public:
     static const char KEY_VIDEO_SNAPSHOT_SUPPORTED[];
     static const char KEY_FULL_VIDEO_SNAP_SUPPORTED[];
 
+#ifdef QCOM_HARDWARE
     static const char KEY_ISO_MODE[];
     static const char KEY_SUPPORTED_ISO_MODES[];
     static const char KEY_LENSSHADE[] ;
@@ -575,6 +591,7 @@ public:
     static const char KEY_GPS_ALTITUDE_REF[];
     static const char KEY_GPS_STATUS[];
     static const char KEY_EXIF_DATETIME[];
+#endif
 
     // The state of the video stabilization. If set to true, both the
     // preview stream and the recorded video stream are stabilized by
@@ -590,6 +607,7 @@ public:
     // has no effect on still image capture.
     static const char KEY_VIDEO_STABILIZATION[];
 
+#ifdef QCOM_HARDWARE
     static const char KEY_MEMORY_COLOR_ENHANCEMENT[];
     static const char KEY_SUPPORTED_MEM_COLOR_ENHANCE_MODES[];
 
@@ -602,6 +620,7 @@ public:
     static const char KEY_SUPPORTED_VIDEO_HIGH_FRAME_RATE_MODES[];
     static const char KEY_HIGH_DYNAMIC_RANGE_IMAGING[];
     static const char KEY_SUPPORTED_HDR_IMAGING_MODES[];
+#endif
     // Returns true if video stabilization is supported. That is, applications
     // can set KEY_VIDEO_STABILIZATION to true and have a stabilized preview
     // stream and record stabilized videos.
@@ -616,6 +635,7 @@ public:
     // Value for KEY_FOCUS_DISTANCES.
     static const char FOCUS_DISTANCE_INFINITY[];
 
+#ifdef QCOM_HARDWARE
     // DENOISE
     static const char KEY_DENOISE[];
     static const char KEY_SUPPORTED_DENOISE[];
@@ -631,6 +651,7 @@ public:
     //Redeye Reduction
     static const char KEY_REDEYE_REDUCTION[];
     static const char KEY_SUPPORTED_REDEYE_REDUCTION[];
+#endif
 
     // Values for white balance settings.
     static const char WHITE_BALANCE_AUTO[];
@@ -652,6 +673,7 @@ public:
     static const char EFFECT_WHITEBOARD[];
     static const char EFFECT_BLACKBOARD[];
     static const char EFFECT_AQUA[];
+#ifdef QCOM_HARDWARE
     static const char EFFECT_EMBOSS[];
     static const char EFFECT_SKETCH[];
     static const char EFFECT_NEON[];
@@ -659,6 +681,7 @@ public:
     // Values for Touch AF/AEC
     static const char TOUCH_AF_AEC_OFF[] ;
     static const char TOUCH_AF_AEC_ON[] ;
+#endif
 
     // Values for antibanding settings.
     static const char ANTIBANDING_AUTO[];
@@ -698,22 +721,27 @@ public:
     static const char SCENE_MODE_SPORTS[];
     static const char SCENE_MODE_PARTY[];
     static const char SCENE_MODE_CANDLELIGHT[];
+#ifdef QCOM_HARDWARE
     static const char SCENE_MODE_BACKLIGHT[];
     static const char SCENE_MODE_FLOWERS[];
     static const char SCENE_MODE_AR[];
     static const char SCENE_MODE_OFF[];
-
+#endif
     // Applications are looking for a barcode. Camera driver will be optimized
     // for barcode reading.
     static const char SCENE_MODE_BARCODE[];
 
     // Pixel color formats for KEY_PREVIEW_FORMAT, KEY_PICTURE_FORMAT,
     // and KEY_VIDEO_FRAME_FORMAT
-   static const char SCENE_DETECT_OFF[];
+#ifdef QCOM_HARDWARE
+    static const char SCENE_DETECT_OFF[];
     static const char SCENE_DETECT_ON[];
+#endif
     static const char PIXEL_FORMAT_YUV422SP[];
     static const char PIXEL_FORMAT_YUV420SP[]; // NV21
+#ifdef QCOM_HARDWARE
     static const char PIXEL_FORMAT_YUV420SP_ADRENO[]; // ADRENO
+#endif
     static const char PIXEL_FORMAT_YUV422I[]; // YUY2
     static const char PIXEL_FORMAT_YUV420P[]; // YV12
     static const char PIXEL_FORMAT_RGB565[];
@@ -722,9 +750,11 @@ public:
     // Raw bayer format used for images, which is 10 bit precision samples
     // stored in 16 bit words. The filter pattern is RGGB.
     static const char PIXEL_FORMAT_BAYER_RGGB[];
-   static const char PIXEL_FORMAT_RAW[];
+#ifdef QCOM_HARDWARE
+    static const char PIXEL_FORMAT_RAW[];
     static const char PIXEL_FORMAT_YV12[]; // NV21
     static const char PIXEL_FORMAT_NV12[]; //NV12
+#endif
 
     // Values for focus mode settings.
     // Auto-focus mode. Applications should call
@@ -777,6 +807,7 @@ public:
     // other modes.
     static const char FOCUS_MODE_CONTINUOUS_PICTURE[];
 
+#ifdef QCOM_HARDWARE
     static const char FOCUS_MODE_CONTINUOUS_CAMERA[];
 
     // Values for Continuous AF
@@ -880,6 +911,7 @@ public:
     void setPreviewFpsRange(int minFPS,int maxFPS);
     void setPostviewSize(int x,int y);
     void getSupportedHfrSizes(Vector<Size> &sizes) const;
+#endif
 
 private:
     DefaultKeyedVector<String8,String8>    mMap;
