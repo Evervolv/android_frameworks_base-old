@@ -169,6 +169,16 @@ public:
     static const char KEY_SUPPORTED_PREVIEW_FRAME_RATE_MODES[];
     static const char KEY_PREVIEW_FRAME_RATE_AUTO_MODE[];
     static const char KEY_PREVIEW_FRAME_RATE_FIXED_MODE[];
+    static const char KEY_CAPTURE_MODE[];
+    static const char KEY_PICTURE_COUNT[];
+    static const char KEY_MAX_BURST_PICTURE_COUNT[];
+    static const char KEY_SUPPORTED_CONTINUOUS_AF[];
+    static const char CAPTURE_MODE_NORMAL[];
+    static const char CAPTURE_MODE_BURST[];
+    static const char CAPTURE_MODE_HDR[];
+    static const char CAPTURE_MODE_HJR[];
+    static const char CAPTURE_MODE_PANORAMA[];
+
     // The dimensions for captured pictures in pixels (width x height).
     // Example value: "1024x768". Read/write.
     static const char KEY_PICTURE_SIZE[];
@@ -691,6 +701,8 @@ public:
     static const char SCENE_MODE_BACKLIGHT[];
     static const char SCENE_MODE_FLOWERS[];
     static const char SCENE_MODE_AR[];
+    static const char SCENE_MODE_OFF[];
+
     // Applications are looking for a barcode. Camera driver will be optimized
     // for barcode reading.
     static const char SCENE_MODE_BARCODE[];
@@ -764,6 +776,16 @@ public:
     // To stop continuous focus, applications should change the focus mode to
     // other modes.
     static const char FOCUS_MODE_CONTINUOUS_PICTURE[];
+
+    static const char FOCUS_MODE_CONTINUOUS_CAMERA[];
+
+    // Values for Continuous AF
+    static const char CAF_OFF[] ;
+    static const char CAF_ON[] ;
+    // Proprietaries from CodeAurora use these...
+    static const char CONTINUOUS_AF_OFF[] ;
+    static const char CONTINUOUS_AF_ON[] ;
+    static const char KEY_CONTINUOUS_AF[] ;
 
     // Normal focus mode. Applications should call
     // CameraHardwareInterface.autoFocus to start the focus in this mode.
@@ -856,6 +878,7 @@ public:
     int getOrientation() const;
     void setOrientation(int orientation);
     void setPreviewFpsRange(int minFPS,int maxFPS);
+    void setPostviewSize(int x,int y);
     void getSupportedHfrSizes(Vector<Size> &sizes) const;
 
 private:
