@@ -524,6 +524,7 @@ status_t SurfaceTexture::dequeueBuffer(int *outBuf, uint32_t w, uint32_t h,
             if (updateFormat) {
                 mPixelFormat = format;
             }
+
             mSlots[buf].mGraphicBuffer = graphicBuffer;
             mSlots[buf].mRequestBufferCalled = false;
             mSlots[buf].mFence = EGL_NO_SYNC_KHR;
@@ -810,9 +811,9 @@ status_t SurfaceTexture::disconnect(int api) {
 #ifdef QCOM_HARDWARE
 status_t SurfaceTexture::performQcomOperation(int operation, int arg1, int arg2, int arg3)
 {
-     ST_LOGV("SurfaceTexture::performQcomOperation operation=%d", operation);
+    ST_LOGV("SurfaceTexture::performQcomOperation operation=%d", operation);
 
-     switch(operation) {
+    switch(operation) {
         case NATIVE_WINDOW_SET_BUFFERS_SIZE: {
             int size = arg1;
             mGraphicBufferAlloc->setGraphicBufferSize(size);
@@ -848,11 +849,7 @@ status_t SurfaceTexture::setScalingMode(int mode) {
     return OK;
 }
 
-#ifdef QCOM_HARDWARE
 status_t SurfaceTexture::updateTexImage(bool isComposition) {
-#else
-status_t SurfaceTexture::updateTexImage() {
-#endif
     ST_LOGV("updateTexImage");
     Mutex::Autolock lock(mMutex);
 
@@ -881,15 +878,18 @@ status_t SurfaceTexture::updateTexImage() {
             image = createImage(dpy, mSlots[buf].mGraphicBuffer);
             mSlots[buf].mEglImage = image;
             mSlots[buf].mEglDisplay = dpy;
-#ifdef QCOM_HARDWARE
+
+#ifdef DECIDE_TEXTURE_TARGET
             // GPU is not efficient in handling GL_TEXTURE_EXTERNAL_OES
             // texture target. Depending on the image format, decide,
-            // the texture target to be used.
+            // the texture target to be used
+
             if (isComposition) {
                 mTexTarget =
                    decideTextureTarget (mSlots[buf].mGraphicBuffer->format);
             }
 #endif
+
             if (image == EGL_NO_IMAGE_KHR) {
                 // NOTE: if dpy was invalid, createImage() is guaranteed to
                 // fail. so we'd end up here.
