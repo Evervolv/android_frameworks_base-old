@@ -849,7 +849,7 @@ status_t SurfaceTexture::setScalingMode(int mode) {
     return OK;
 }
 
-status_t SurfaceTexture::updateTexImage(bool isComposition) {
+status_t SurfaceTexture::updateTexImage(bool avoidBindTexture, bool isComposition) {
     ST_LOGV("updateTexImage");
     Mutex::Autolock lock(mMutex);
 
@@ -868,7 +868,12 @@ status_t SurfaceTexture::updateTexImage(bool isComposition) {
         EGLImageKHR image = mSlots[buf].mEglImage;
         EGLDisplay dpy = eglGetCurrentDisplay();
 #ifdef QCOM_HARDWARE
-        if (isGPUSupportedFormat(mSlots[buf].mGraphicBuffer->format)) {
+        if (isGPUSupportedFormat(mSlots[buf].mGraphicBuffer->format)
+#ifdef CHECK_FOR_EXTERNAL_FORMAT
+            && ((avoidBindTexture == false) ||
+            (isGPUSupportedFormatInHW(mSlots[buf].mGraphicBuffer->format)))
+#endif
+            ) {
 #endif
         if (image == EGL_NO_IMAGE_KHR) {
             if (mSlots[buf].mGraphicBuffer == 0) {
