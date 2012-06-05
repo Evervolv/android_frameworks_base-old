@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 
 import junit.framework.Assert;
+import org.codeaurora.Performance;
 
 /**
  * @hide
@@ -671,6 +673,8 @@ public final class WebViewCore {
         private static final int INITIALIZE = 0;
         private static final int REDUCE_PRIORITY = 1;
         private static final int RESUME_PRIORITY = 2;
+        private static Performance mPerf = new Performance();
+        private static final int MIN_FREQ_DURING_SCROLLING = 10;
 
         public void run() {
             Looper.prepare();
@@ -690,11 +694,20 @@ public final class WebViewCore {
                                 Process.setThreadPriority(
                                         Process.THREAD_PRIORITY_DEFAULT + 3 *
                                         Process.THREAD_PRIORITY_LESS_FAVORABLE);
+                                /* Disable power collapse and setup the min frequency */
+                                /* 0 means disabling power collapse */
+                                mPerf.cpuSetOptions(Performance.CPUOPT_CPU0_PWRCLSP,0);
+                                mPerf.cpuSetOptions(Performance.CPUOPT_CPU0_FREQMIN,MIN_FREQ_DURING_SCROLLING);
                                 break;
 
                             case RESUME_PRIORITY:
                                 Process.setThreadPriority(
                                         Process.THREAD_PRIORITY_DEFAULT);
+                                /* Enable power collapse and reset the min frequency */
+                                /* 1 means enabling power collapse */
+                                mPerf.cpuSetOptions(Performance.CPUOPT_CPU0_PWRCLSP,1);
+                                mPerf.cpuSetOptions(Performance.CPUOPT_CPU0_FREQMIN,0);
+  
                                 break;
 
                             case EventHub.ADD_PACKAGE_NAME:
