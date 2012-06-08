@@ -153,7 +153,7 @@ public:
     //
     // This method will fail if the operation is invalid or the arguments
     // specified in the operation are invalid.
-    virtual status_t performQcomOperation(int operation, int arg1, int arg2, int arg3) {}
+    virtual status_t performQcomOperation(int operation, int arg1, int arg2, int arg3) {return OK;}
 #endif
 
     // connect attempts to connect a client API to the SurfaceMediaSource.  This
