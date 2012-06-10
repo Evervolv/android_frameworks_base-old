@@ -1964,21 +1964,6 @@ public final class Settings {
           public static final String STATUSBAR_ICON_FLAGS = "statusbar_icon_flags";
 
         /**
-         * Toggle between multiwaveview 2way and 3way lockscreen style.
-         * @hide
-         */
-        public static final String LOCKSCREEN_STYLE_MULITWAVEVIEW_3WAY =
-                    "lockscreen_style_multiwaveview_3way";
-
-        /**
-         * Toggle to force multiwaveview lockscreen silent mode toggle
-         * even if we have a camera.
-         * @hide
-         */
-        public static final String LOCKSCREEN_STYLE_MULTIWAVEVIEW_SILENTMODE =
-                    "lockscreen_style_multiwaveview_silentmode";
-
-        /**
         * Lockscreen custom app array
         *
         * 1 [0] - Left

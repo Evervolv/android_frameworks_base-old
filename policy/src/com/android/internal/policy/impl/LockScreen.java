@@ -84,7 +84,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private SlidingTab mTabSelector;
     private RotarySelector mRotarySelector;
 
-    private static final int LOCK_STYLE_ICS = 1;
+    private static final int LOCK_STYLE_ICS = 0;
+    private static final int LOCK_STYLE_ICS_3WAY = 1;
     private static final int LOCK_STYLE_GB = 2;
     private static final int LOCK_STYLE_ECLAIR = 3;
 
@@ -93,11 +94,9 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_ICS));
 
     private boolean mUseIcsLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS);
+    private boolean mUseIcs3WayLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS_3WAY);
     private boolean mUseGbLockscreen = (mLockscreenStyle == LOCK_STYLE_GB);
     private boolean mUseEclairLockscreen = (mLockscreenStyle == LOCK_STYLE_ECLAIR);
-
-    private boolean mLockStyleIcs3way = (Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.LOCKSCREEN_STYLE_MULITWAVEVIEW_3WAY, 1) == 1);
 
     private Drawable[] lockDrawables;
 
@@ -297,7 +296,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 
             for (int i = 0; i < count; i++) {
                 if (!isLandscape) {
-                    if (!mLockStyleIcs3way) {
+                    if (!mUseIcs3WayLockscreen) {
                         if (i == 1 || i == 3) {
                             lockDrawables[i] = null;
                         } else {
@@ -307,7 +306,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
                         if (i != 3) { lockDrawables[i] = getDrawable(getMappingUri(i)); }
                     }
                 } else {
-                    if (!mLockStyleIcs3way) {
+                    if (!mUseIcs3WayLockscreen) {
                         if (i == 0 || i == 2) {
                             lockDrawables[i] = null;
                         } else {
@@ -529,7 +528,7 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 
         mWaveViewSelector = (MultiWaveView) findViewById(R.id.unlock_widget);
 
-        if (mUseIcsLockscreen) {
+        if (mUseIcsLockscreen || mUseIcs3WayLockscreen) {
             mUnlockWidget = findViewById(R.id.unlock_widget);
             mRotarySelector.setVisibility(View.GONE);
             mTabSelector.setVisibility(View.GONE);
