@@ -83,20 +83,23 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private MultiWaveView mWaveViewSelector;
     private SlidingTab mTabSelector;
     private RotarySelector mRotarySelector;
+    private WaveView mHoneycombSelector;
 
     private static final int LOCK_STYLE_ICS = 0;
     private static final int LOCK_STYLE_ICS_3WAY = 1;
     private static final int LOCK_STYLE_GB = 2;
     private static final int LOCK_STYLE_ECLAIR = 3;
+    private static final int LOCK_STYLE_HC = 4;
 
     // Get the style from settings
-    private int mLockscreenStyle = (Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_ICS));
+    private int mLockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
+            Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_ICS);
 
     private boolean mUseIcsLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS);
     private boolean mUseIcs3WayLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS_3WAY);
     private boolean mUseGbLockscreen = (mLockscreenStyle == LOCK_STYLE_GB);
     private boolean mUseEclairLockscreen = (mLockscreenStyle == LOCK_STYLE_ECLAIR);
+    private boolean mUseHcLockscreen = (mLockscreenStyle == LOCK_STYLE_HC);
 
     private Drawable[] lockDrawables;
 
@@ -527,22 +530,32 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mRotarySelector = (RotarySelector) findViewById(R.id.rotary_selector);
 
         mWaveViewSelector = (MultiWaveView) findViewById(R.id.unlock_widget);
+        mHoneycombSelector = (WaveView) findViewById(R.id.honeycomb_selector);
 
         if (mUseIcsLockscreen || mUseIcs3WayLockscreen) {
             mUnlockWidget = findViewById(R.id.unlock_widget);
             mRotarySelector.setVisibility(View.GONE);
             mTabSelector.setVisibility(View.GONE);
             mWaveViewSelector.setVisibility(View.VISIBLE);
+            mHoneycombSelector.setVisibility(View.GONE);
         } else if (mUseGbLockscreen) {
             mUnlockWidget = findViewById(R.id.tab_selector);
             mRotarySelector.setVisibility(View.GONE);
             mTabSelector.setVisibility(View.VISIBLE);
             mWaveViewSelector.setVisibility(View.GONE);
+            mHoneycombSelector.setVisibility(View.GONE);
         } else if (mUseEclairLockscreen) {
             mUnlockWidget = findViewById(R.id.rotary_selector);
             mRotarySelector.setVisibility(View.VISIBLE);
             mTabSelector.setVisibility(View.GONE);
             mWaveViewSelector.setVisibility(View.GONE);
+            mHoneycombSelector.setVisibility(View.GONE);
+        } else if (mUseHcLockscreen) {
+            mUnlockWidget = findViewById(R.id.honeycomb_selector);
+            mRotarySelector.setVisibility(View.GONE);
+            mTabSelector.setVisibility(View.GONE);
+            mWaveViewSelector.setVisibility(View.GONE);
+            mHoneycombSelector.setVisibility(View.VISIBLE);
         }
 
         // I don't see how this helps us when adding more lockscreen styles,

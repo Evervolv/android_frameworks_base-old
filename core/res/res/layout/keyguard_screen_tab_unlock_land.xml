@@ -166,6 +166,13 @@
         android:layout_alignParentRight="true"
         />
 
+    <com.android.internal.widget.WaveView
+        android:id="@+id/unlock_widget"
+        android:layout_width="312dip"
+        android:layout_height="match_parent"
+        android:layout_rowSpan="9"
+        />
+
     <!-- Music transport control -->
     <include android:id="@+id/transport"
         layout="@layout/keyguard_transport_control"
