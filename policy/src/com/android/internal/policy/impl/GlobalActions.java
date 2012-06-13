@@ -90,6 +90,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mShowSound;
     private boolean mShowAirplaneMode;
     private boolean mShowRebootMenu;
+    private int mScreenshotDelay;
 
     /**
      * @param context everything needs a context :(
@@ -155,6 +156,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 Settings.System.POWER_MENU_SHOW_AIRPLANE_MODE, 1) == 1);
         mShowRebootMenu = (Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.POWER_MENU_SHOW_REBOOT_MENU, 1) == 1);
+        mScreenshotDelay = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_SCREENSHOT_DELAY, 1);
 
         mSilentModeAction = new SilentModeAction(mAudioManager, mHandler);
 
@@ -338,9 +341,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                             msg.arg2 = 1;
                          */
 
-                        /* wait for the dislog box to close */
+                        /* User definable delay, mScreenshotDelay = 1 by default */
                         try {
-                            Thread.sleep(1000); 
+                            Thread.sleep(mScreenshotDelay * 1000); 
                         } catch (InterruptedException ie) {
                         }
 

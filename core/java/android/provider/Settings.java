@@ -2054,6 +2054,7 @@ public final class Settings {
          * in the power menu.
          * @hide
          */
+
         public static final String POWER_MENU_SHOW_AIRPLANE_MODE = "power_menu_show_airplane_mode";
 
         /**
@@ -2062,6 +2063,13 @@ public final class Settings {
          * @hide
          */
         public static final String POWER_MENU_SHOW_REBOOT_MENU = "power_menu_show_reboot_menu";
+
+        /**
+         * Change the screenshot delay from the power menu
+         * Default: 1 (1 second, 1000ms)
+         * @hide
+         */
+        public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
 
         /* END Constants for Evervolv Toolbox */
 
