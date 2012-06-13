@@ -69,8 +69,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private static final String TAG = "GlobalActions";
 
-    private static final boolean SHOW_SILENT_TOGGLE = true;
-
     private final Context mContext;
     private Context mUiContext;
     private final AudioManager mAudioManager;
@@ -87,6 +85,11 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mDeviceProvisioned = false;
     private ToggleAction.State mAirplaneState = ToggleAction.State.Off;
     private boolean mIsWaitingForEcmExit = false;
+
+    private boolean mShowScreenshot;
+    private boolean mShowSound;
+    private boolean mShowAirplaneMode;
+    private boolean mShowRebootMenu;
 
     /**
      * @param context everything needs a context :(
@@ -117,15 +120,16 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     public void showDialog(boolean keyguardShowing, boolean isDeviceProvisioned) {
         mKeyguardShowing = keyguardShowing;
         mDeviceProvisioned = isDeviceProvisioned;
-        if (mDialog != null && mUiContext == null) {
+
+
+        //Create the dialog everytime, just in case the user changes settings.
+        if (mDialog != null) {
             mDialog.dismiss();
             mDialog = null;
         }
-        if (mDialog == null) {
-            mDialog = createDialog();
-        }
-        prepareDialog();
+        mDialog = createDialog();
 
+        prepareDialog();
         mDialog.show();
         mDialog.getWindow().getDecorView().setSystemUiVisibility(View.STATUS_BAR_DISABLE_EXPAND);
     }
@@ -142,6 +146,16 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
      * @return A new dialog.
      */
     private AlertDialog createDialog() {
+
+        mShowSound = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_SHOW_SOUND, 1) == 1);
+        mShowScreenshot = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_SHOW_SCREENSHOT, 1) == 1);
+        mShowAirplaneMode = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_SHOW_AIRPLANE_MODE, 1) == 1);
+        mShowRebootMenu = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_SHOW_REBOOT_MENU, 1) == 1);
+
         mSilentModeAction = new SilentModeAction(mAudioManager, mHandler);
 
         mAirplaneModeOn = new ToggleAction(
@@ -206,40 +220,46 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 }
             });
         // next: reboot
-        mItems.add(
-            new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
-                public void onPress() {
-                    ShutdownThread.reboot(getUiContext(), "null", true);
-                }
+        if (mShowRebootMenu) {
+            mItems.add(
+                    new SinglePressAction(com.android.internal.R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
+                        public void onPress() {
+                            ShutdownThread.reboot(getUiContext(), "null", true);
+                        }
 
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
+                        public boolean showDuringKeyguard() {
+                            return true;
+                        }
 
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+                        public boolean showBeforeProvisioning() {
+                            return true;
+                        }
+                    });
+        }
         // next: screenshot
-        mItems.add(
-            new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
-                public void onPress() {
-                    takeScreenshot();
-                }
+        if (mShowScreenshot) {
+            mItems.add(
+                new SinglePressAction(com.android.internal.R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
+                    public void onPress() {
+                        takeScreenshot();
+                    }
 
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
+                    public boolean showDuringKeyguard() {
+                        return true;
+                    }
 
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+                    public boolean showBeforeProvisioning() {
+                        return true;
+                    }
+                });
+        }
         // next: airplane mode
-        mItems.add(mAirplaneModeOn);
+        if (mShowAirplaneMode) {
+            mItems.add(mAirplaneModeOn);     
+        }
 
         // last: silent mode
-        if (SHOW_SILENT_TOGGLE) {
+        if (mShowSound) {
             mItems.add(mSilentModeAction);
         }
 
@@ -351,7 +371,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         } else {
             mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
         }
-        if (SHOW_SILENT_TOGGLE) {
+        if (mShowSound) {
             IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
             mContext.registerReceiver(mRingerModeReceiver, filter);
         }
@@ -360,8 +380,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     /** {@inheritDoc} */
     public void onDismiss(DialogInterface dialog) {
-        if (SHOW_SILENT_TOGGLE) {
-            mContext.unregisterReceiver(mRingerModeReceiver);
+        if (mShowSound) {
+            try {
+                mContext.unregisterReceiver(mRingerModeReceiver);
+            } catch (IllegalArgumentException e) {
+                Log.d(TAG, "mRingerModeReceiver not registered. Cancelling unregister.");
+            }
         }
     }
 

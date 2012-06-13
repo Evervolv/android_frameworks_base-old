@@ -2035,6 +2035,34 @@ public final class Settings {
           */
           public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
 
+        /**
+         * Toggle to show or hide the screenshot shortcut in
+         * the power menu.
+         * @hide
+         */
+        public static final String POWER_MENU_SHOW_SCREENSHOT = "power_menu_show_screenshot";
+
+        /**
+         * Toggle to show or hide the sound shortcuts in the
+         * power menu.
+         * @hide
+         */
+        public static final String POWER_MENU_SHOW_SOUND = "power_menu_show_sound";
+
+        /**
+         * Toggle to show or hide the airplane mode toggle
+         * in the power menu.
+         * @hide
+         */
+        public static final String POWER_MENU_SHOW_AIRPLANE_MODE = "power_menu_show_airplane_mode";
+
+        /**
+         * Toggle to show or hide the airplane mode toggle
+         * in the power menu.
+         * @hide
+         */
+        public static final String POWER_MENU_SHOW_REBOOT_MENU = "power_menu_show_reboot_menu";
+
         /* END Constants for Evervolv Toolbox */
 
         /* START Constants for Theme compatibility */
