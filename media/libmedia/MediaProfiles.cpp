@@ -616,7 +616,7 @@ void MediaProfiles::checkAndAddRequiredProfilesIfNecessary() {
 /*static*/ MediaProfiles*
 MediaProfiles::getInstance()
 {
-    LOGE("getInstance");
+    LOGV("getInstance");
     Mutex::Autolock lock(sLock);
     if (!sIsInitialized) {
         char value[PROPERTY_VALUE_MAX];
@@ -627,19 +627,19 @@ MediaProfiles::getInstance()
                 LOGE("could not find media config xml file");
                 sInstance = createDefaultInstance();
             } else {
-                LOGE("Guru :Else 1");
+                LOGV("Guru :Else 1");
                 fclose(fp);  // close the file first.
                 sInstance = createInstanceFromXmlFile(defaultXmlFile);
             }
         } else {
-            LOGE("Guru : Else 2");
+            LOGV("Guru : Else 2");
             sInstance = createInstanceFromXmlFile(value);
         }
         CHECK(sInstance != NULL);
         sInstance->checkAndAddRequiredProfilesIfNecessary();
         sIsInitialized = true;
     }
-    LOGE("getInstance %x",sInstance);
+    LOGV("getInstance %x",sInstance);
     return sInstance;
 }
 
@@ -1128,7 +1128,7 @@ int MediaProfiles::getCamcorderProfileIndex(int cameraId, camcorder_quality qual
             break;
         }
     }
-    LOGE("Guru : quality = %d, index = %d",quality,index);
+    LOGV("Guru : quality = %d, index = %d",quality,index);
     return index;
 }
 
