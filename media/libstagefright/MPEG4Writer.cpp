@@ -1997,6 +1997,10 @@ status_t MPEG4Writer::Track::threadEntry() {
             mResumed = false;
         }
 
+        // Work around for passion to avoid failing the CHECK
+        if (timestampUs < previousPausedDurationUs)
+            previousPausedDurationUs = mStartTimestampUs;
+
         timestampUs -= previousPausedDurationUs;
         CHECK(timestampUs >= 0);
         if (!mIsAudio && hasBFrames) {
