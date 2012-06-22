@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "MediaProfilesJNI"
 #include <utils/Log.h>
 
@@ -175,7 +175,7 @@ static bool isCamcorderQualityKnown(int quality)
 static jobject
 android_media_MediaProfiles_native_get_camcorder_profile(JNIEnv *env, jobject thiz, jint id, jint quality)
 {
-    LOGE("native_get_camcorder_profile: %d %d", id, quality);
+    LOGV("native_get_camcorder_profile: %d %d", id, quality);
     if (!isCamcorderQualityKnown(quality)) {
         jniThrowException(env, "java/lang/RuntimeException", "Unknown camcorder profile quality");
         return NULL;
@@ -224,7 +224,7 @@ android_media_MediaProfiles_native_get_camcorder_profile(JNIEnv *env, jobject th
 static jboolean
 android_media_MediaProfiles_native_has_camcorder_profile(JNIEnv *env, jobject thiz, jint id, jint quality)
 {
-    LOGE("native_has_camcorder_profile: %d %d", id, quality);
+    LOGV("native_has_camcorder_profile: %d %d", id, quality);
     if (!isCamcorderQualityKnown(quality)) {
         return false;
     }

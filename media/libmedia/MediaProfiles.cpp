@@ -1136,7 +1136,7 @@ int MediaProfiles::getCamcorderProfileParamByName(const char *name,
                                                   int cameraId,
                                                   camcorder_quality quality) const
 {
-    LOGE("getCamcorderProfileParamByName: %s for camera %d, quality %d",
+    LOGV("getCamcorderProfileParamByName: %s for camera %d, quality %d",
          name, cameraId, quality);
 
     int index = getCamcorderProfileIndex(cameraId, quality);
