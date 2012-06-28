@@ -1,4 +1,4 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import android.util.Log;
 import android.view.View;
@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import com.android.systemui.R;
 
-public abstract class ToggleWithSlider extends ToolboxWidget implements SeekBar.OnSeekBarChangeListener {
+public abstract class ToggleWithSlider extends QwikWidget implements SeekBar.OnSeekBarChangeListener {
 
     protected RelativeLayout mToggleFrame;
     protected TextView mToggleLabel;

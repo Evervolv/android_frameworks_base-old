@@ -1,4 +1,4 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 
-public abstract class ToolboxWidget {
+public abstract class QwikWidget {
 
     public static final String TAG = "ToolboxWidget";
 
@@ -45,7 +45,7 @@ public abstract class ToolboxWidget {
     public static final int STYLE_TOGGLE = 1;
     public static final int STYLE_TOGGLE_SLIDER = 2;
 
-    private static final HashMap<String, Class<? extends ToolboxWidget>> WIDGETS = new HashMap<String, Class<? extends ToolboxWidget>>();
+    private static final HashMap<String, Class<? extends QwikWidget>> WIDGETS = new HashMap<String, Class<? extends QwikWidget>>();
     static {
         WIDGETS.put(WIDGET_WIFI, WifiWidget.class);
         WIDGETS.put(WIDGET_WIFIAP, WifiApWidget.class);
@@ -61,7 +61,7 @@ public abstract class ToolboxWidget {
         WIDGETS.put(WIDGET_NOTIFICATIONS, NotificationsWidget.class);
     }
 
-    protected static final HashMap<String, ToolboxWidget> WIDGETS_LOADED = new HashMap<String, ToolboxWidget>();
+    protected static final HashMap<String, QwikWidget> WIDGETS_LOADED = new HashMap<String, QwikWidget>();
 
     protected View mWidgetView;
 
@@ -80,7 +80,7 @@ public abstract class ToolboxWidget {
 
     public static void updateAllWidgets() {
         synchronized (WIDGETS_LOADED) {
-            for(ToolboxWidget widget : WIDGETS_LOADED.values()) {
+            for(QwikWidget widget : WIDGETS_LOADED.values()) {
                 widget.update();
             }
         }
@@ -119,7 +119,7 @@ public abstract class ToolboxWidget {
                     WIDGETS_LOADED.get(key).setupWidget(view);
                 } else {
                     try {
-                        ToolboxWidget widget = WIDGETS.get(key).newInstance();
+                        QwikWidget widget = WIDGETS.get(key).newInstance();
                         widget.setupWidget(view);
                         WIDGETS_LOADED.put(key, widget);
                     } catch(Exception e) {
@@ -145,7 +145,7 @@ public abstract class ToolboxWidget {
         IntentFilter filter = new IntentFilter();
 
         synchronized(WIDGETS_LOADED) {
-            for(ToolboxWidget widget : WIDGETS_LOADED.values()) {
+            for(QwikWidget widget : WIDGETS_LOADED.values()) {
                 IntentFilter tmp = widget.getBroadcastIntentFilter();
                 int num = tmp.countActions();
                 for(int i = 0; i < num; i++) {
@@ -162,7 +162,7 @@ public abstract class ToolboxWidget {
     public static List<Uri> getAllObservedUris() {
         List<Uri> uris = new ArrayList<Uri>();
         synchronized(WIDGETS_LOADED) {
-            for(ToolboxWidget widget : WIDGETS_LOADED.values()) {
+            for(QwikWidget widget : WIDGETS_LOADED.values()) {
                 List<Uri> tmp = widget.getObservedUris();
                 for(Uri uri : tmp) {
                     if(!uris.contains(uri)) {
@@ -185,7 +185,7 @@ public abstract class ToolboxWidget {
 
     public static void unloadAllWidgets() {
         synchronized (WIDGETS_LOADED) {
-            for(ToolboxWidget widget : WIDGETS_LOADED.values()) {
+            for(QwikWidget widget : WIDGETS_LOADED.values()) {
                 widget.setupWidget(null);
             }
             WIDGETS_LOADED.clear();
@@ -195,7 +195,7 @@ public abstract class ToolboxWidget {
     public static void handleOnReceive(Context context, Intent intent) {
         String action = intent.getAction();
         synchronized(WIDGETS_LOADED) {
-            for(ToolboxWidget widget : WIDGETS_LOADED.values()) {
+            for(QwikWidget widget : WIDGETS_LOADED.values()) {
                 if(widget.getBroadcastIntentFilter().hasAction(action)) {
                     widget.onReceive(context, intent);
                 }
@@ -205,7 +205,7 @@ public abstract class ToolboxWidget {
 
     public static void handleOnChangeUri(Uri uri) {
         synchronized(WIDGETS_LOADED) {
-            for(ToolboxWidget widget : WIDGETS_LOADED.values()) {
+            for(QwikWidget widget : WIDGETS_LOADED.values()) {
                 if(widget.getObservedUris().contains(uri)) {
                     widget.onChangeUri(uri);
                 }
@@ -216,7 +216,7 @@ public abstract class ToolboxWidget {
     protected View.OnClickListener mClickListener = new View.OnClickListener() {
         public void onClick(View v) {
             String type = (String)v.getTag();
-            for(Map.Entry<String, ToolboxWidget> entry : WIDGETS_LOADED.entrySet()) {
+            for(Map.Entry<String, QwikWidget> entry : WIDGETS_LOADED.entrySet()) {
                 if(entry.getKey().equals(type)) {
 
                     entry.getValue().toggleState();
@@ -230,7 +230,7 @@ public abstract class ToolboxWidget {
         public boolean onLongClick(View v) {
             boolean result = false;
             String type = (String)v.getTag();
-            for (Map.Entry<String, ToolboxWidget> entry : WIDGETS_LOADED.entrySet()) {
+            for (Map.Entry<String, QwikWidget> entry : WIDGETS_LOADED.entrySet()) {
                 if(entry.getKey().endsWith(type)) {
                     result = entry.getValue().handleLongClick();
                     break;

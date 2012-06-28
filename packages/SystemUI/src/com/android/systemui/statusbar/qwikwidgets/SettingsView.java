@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
@@ -71,7 +71,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
         public WidgetLayout(Context context) {
             super(context);
             setOrientation(LinearLayout.HORIZONTAL);
-            if (ToolboxHelper.isTablet(mContext)) {
+            if (QwikWidgetsHelper.isTablet(mContext)) {
                 setLayoutParams(new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, 64));
             } else {
@@ -93,13 +93,13 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
         }
     }
 
-    public void setupToolbox() {
+    public void setupQwikWidgets() {
         removeAllViews();
 
         String defaults = getResources().getString(R.string
-                .default_toolbox_widgets);
+                .default_qwik_widgets);
         String widgets = Settings.System.getString(mContext.getContentResolver(),
-                Settings.System.SELECTED_TOOLBOX_WIDGETS);
+                Settings.System.SELECTED_QWIK_WIDGETS);
         int lineMax =  Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.MAX_WIDGETS_PER_LINE, 3);
 
@@ -122,11 +122,11 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
 
             if (widgetArray[i].equals("toggleBrightness")) {
                 widgetView = mInflater.inflate(R.
-                        layout.toolbox_slider_with_toggle, null, false);
+                        layout.qwik_widgets_slider_with_toggle, null, false);
                 oneLine = true;
             } else {
                 widgetView = mInflater.inflate(R.
-                        layout.toolbox_toggle_only, null, false);
+                        layout.qwik_widgets_toggle_only, null, false);
                 oneLine = false;
             }
 
@@ -144,7 +144,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
 
                 ll = new WidgetLayout(mContext);
 
-                if(ToolboxWidget.loadWidget(widgetArray[i], widgetView)) {
+                if(QwikWidget.loadWidget(widgetArray[i], widgetView)) {
                     ll.addView(widgetView, WIDGET_LAYOUT_PARAMS);
                     addView(ll);
                     addView(new Divider(mContext), DIVIDER_HORIZ_PARAMS); // add a bottom divider
@@ -156,7 +156,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
             } else {
                 if (lineCount == 0) { ll = new WidgetLayout(mContext); }
 
-                if(ToolboxWidget.loadWidget(widgetArray[i], widgetView)) {
+                if(QwikWidget.loadWidget(widgetArray[i], widgetView)) {
                     ll.addView(widgetView, WIDGET_LAYOUT_PARAMS);
                     lineCount++;
                     if (lineCount < lineMax) {
@@ -185,7 +185,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
 
         setupBroadcastReceiver();
         setupSettingsObserver(mHandler);
-        IntentFilter filter = ToolboxWidget.getAllBroadcastIntentFilters();
+        IntentFilter filter = QwikWidget.getAllBroadcastIntentFilters();
         mContext.registerReceiver(mBroadcastReceiver, filter);
     }
 
@@ -204,8 +204,8 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
 
     private class WidgetBroadcastReceiver extends BroadcastReceiver {
         public void onReceive(Context context, Intent intent) {
-            ToolboxWidget.handleOnReceive(context, intent);
-            ToolboxWidget.updateAllWidgets();
+            QwikWidget.handleOnReceive(context, intent);
+            QwikWidget.updateAllWidgets();
         }
     };
 
@@ -219,12 +219,12 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
 
             //Register for changes to our widget list
             resolver.registerContentObserver(Settings.System.getUriFor(Settings
-                    .System.SELECTED_TOOLBOX_WIDGETS), false, this);
+                    .System.SELECTED_QWIK_WIDGETS), false, this);
             //Register for changes to our widget max per line
             resolver.registerContentObserver(Settings.System.getUriFor(Settings
                     .System.MAX_WIDGETS_PER_LINE), false, this);
 
-            for(Uri uri : ToolboxWidget.getAllObservedUris()) {
+            for(Uri uri : QwikWidget.getAllObservedUris()) {
                 resolver.registerContentObserver(uri, false, this);
             }
         }
@@ -238,14 +238,14 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
         public void onChangeUri(Uri uri, boolean selfChange) {
 
             if(uri.equals(Settings.System.getUriFor(Settings.System
-                    .SELECTED_TOOLBOX_WIDGETS))) {
-                setupToolbox();
+                    .SELECTED_QWIK_WIDGETS))) {
+                setupQwikWidgets();
             } else if (uri.equals(Settings.System.getUriFor(Settings.System
                     .MAX_WIDGETS_PER_LINE))) {
-                setupToolbox();
+                setupQwikWidgets();
             }
-            ToolboxWidget.handleOnChangeUri(uri);
-            ToolboxWidget.updateAllWidgets();
+            QwikWidget.handleOnChangeUri(uri);
+            QwikWidget.updateAllWidgets();
         }
     }
 
@@ -256,7 +256,7 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
         mInflater = (LayoutInflater)mContext.getSystemService(Context
                 .LAYOUT_INFLATER_SERVICE);
 
-        setupToolbox();
+        setupQwikWidgets();
     }
 
     @Override

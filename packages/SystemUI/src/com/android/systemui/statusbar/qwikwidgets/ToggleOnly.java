@@ -1,4 +1,4 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import android.provider.Settings;
 import android.util.Log;
@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import com.android.systemui.R;
 
-public abstract class ToggleOnly extends ToolboxWidget {
+public abstract class ToggleOnly extends QwikWidget {
 
     protected TextView mWidgetLabel;
     protected ImageView mWidgetIcon;
@@ -29,7 +29,7 @@ public abstract class ToggleOnly extends ToolboxWidget {
         int lineMax =  Settings.System.getInt(mWidgetView.getContext().getContentResolver(),
                 Settings.System.MAX_WIDGETS_PER_LINE, 3);
         
-        if ((ToolboxHelper.isTablet(mWidgetView.getContext()) && lineMax < 4)  || mIconId == 0) {
+        if ((QwikWidgetsHelper.isTablet(mWidgetView.getContext()) && lineMax < 4)  || mIconId == 0) {
             mWidgetLabel.setText(mLabelId);
         } else {
             mWidgetIcon.setVisibility(View.VISIBLE);

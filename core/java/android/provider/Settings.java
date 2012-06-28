@@ -1984,7 +1984,7 @@ public final class Settings {
          * @hide
          */
 
-        public static final String SELECTED_TOOLBOX_WIDGETS = "selected_toolbox_widgets";
+        public static final String SELECTED_QWIK_WIDGETS = "selected_qwik_widgets";
 
         /**
          * Integer that sets the max widgets per line (does not apply to one-line widgets).
@@ -1994,17 +1994,11 @@ public final class Settings {
         public static final String MAX_WIDGETS_PER_LINE = "max_widgets_per_line";
 
         /**
-         * Boolean to toggle whether or not to use the notification toolbox.
+         * Boolean to toggle whether or not to use the Qwik Widgets.
          * @hide
          */
 
-        public static final String USE_NOTIFICATION_TOOLBOX = "use_notification_toolbox";
-
-        /**
-         * Enable/Disable lockscreen volume button music controls to change media tracks.
-         * @hide
-         */
-        public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
+        public static final String USE_QWIK_WIDGETS = "use_qwik_widgets";
 
         /**
          * Toggle to set notification dropdown view
@@ -2012,6 +2006,12 @@ public final class Settings {
          * @hide
          */
           public static final String NOTIFICATION_DROPDOWN_VIEW = "notification_dropdown_view";
+
+        /**
+         * Enable/Disable lockscreen volume button music controls to change media tracks.
+         * @hide
+         */
+        public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
 
         /**
           * Statusbar toggle for 6 bar signal strength.

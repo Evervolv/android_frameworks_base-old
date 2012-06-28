@@ -1,4 +1,4 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import android.content.Context;
 import android.content.SharedPreferences;

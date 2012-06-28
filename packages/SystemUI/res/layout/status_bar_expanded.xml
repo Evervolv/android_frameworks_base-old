@@ -85,7 +85,7 @@
         android:background="@drawable/status_bar_hr"
         />
 
-    <ViewFlipper android:id="@+id/toolbox_flipper"
+    <ViewFlipper android:id="@+id/qwik_widgets_flipper"
 	         android:layout_width="match_parent"
 	         android:layout_height="match_parent">
 

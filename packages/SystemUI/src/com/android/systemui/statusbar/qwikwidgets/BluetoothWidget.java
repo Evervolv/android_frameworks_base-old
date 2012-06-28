@@ -1,6 +1,6 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
-import com.android.systemui.statusbar.toolbox.StateTracker;
+import com.android.systemui.statusbar.qwikwidgets.StateTracker;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;

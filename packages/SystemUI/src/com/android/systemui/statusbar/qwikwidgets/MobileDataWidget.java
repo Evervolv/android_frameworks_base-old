@@ -1,4 +1,4 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.systemui.R;

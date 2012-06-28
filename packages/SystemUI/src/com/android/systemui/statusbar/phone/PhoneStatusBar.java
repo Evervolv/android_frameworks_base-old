@@ -208,9 +208,9 @@ public class PhoneStatusBar extends StatusBar {
     int mTrackingPosition; // the position of the top of the tracking view.
     private boolean mPanelSlightlyVisible;
 
-    //notification toolbox
-    private ToolboxSettingsObserver mToolboxSettingsObserver = null;
-    ViewFlipper mToolboxFlipper;
+    //Qwik Widgets
+    private QwikWidgetsObserver mQwikWidgetsObserver = null;
+    ViewFlipper mQwikWidgetsFlipper;
     private GestureDetector gestureDetector;
 
     // ticker
@@ -346,10 +346,10 @@ public class PhoneStatusBar extends StatusBar {
         mIcons = (LinearLayout)sb.findViewById(R.id.icons);
         mTickerView = sb.findViewById(R.id.ticker);
 
-        // Notification toolbox start
+        // Qwik Widgets start
         gestureDetector = new GestureDetector(new MyGestureDetector());
-        mToolboxFlipper = (ViewFlipper) expanded.findViewById(R.id.toolbox_flipper);
-        mToolboxFlipper.setOnTouchListener(new View.OnTouchListener() {
+        mQwikWidgetsFlipper = (ViewFlipper) expanded.findViewById(R.id.qwik_widgets_flipper);
+        mQwikWidgetsFlipper.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 if (gestureDetector.onTouchEvent(event)) {
                     return true;
@@ -357,10 +357,10 @@ public class PhoneStatusBar extends StatusBar {
                 return false;
             }
         });
-        useDefaultToolboxView();
-        mToolboxSettingsObserver = new ToolboxSettingsObserver(new Handler());
-        mToolboxSettingsObserver.observe();
-        // Notification toolbox end
+        useDefaultQwikWidgetsView();
+        mQwikWidgetsObserver = new QwikWidgetsObserver(new Handler());
+        mQwikWidgetsObserver.observe();
+        // Qwik Widgets end
 
         mExpandedDialog = new ExpandedDialog(context);
         mExpandedView = expanded;
@@ -430,9 +430,9 @@ public class PhoneStatusBar extends StatusBar {
                 if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
                     return false;
                 if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                    if (useToolbox()) prevToolboxView();
+                    if (useQwikWidgets()) prevQwikWidgetsView();
                 }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-                    if (useToolbox()) nextToolboxView();
+                    if (useQwikWidgets()) nextQwikWidgetsView();
                 }
             } catch (Exception e) {
                 // nothing
@@ -1081,7 +1081,7 @@ public class PhoneStatusBar extends StatusBar {
         }
 
         // Turn the button off when the notification view is not displayed.
-        if (mToolboxFlipper.getDisplayedChild() == 0) {
+        if (mQwikWidgetsFlipper.getDisplayedChild() == 0) {
             if (mClearButton.isShown()) {
                 if (clearable != (mClearButton.getAlpha() == 1.0f)) {
                     ObjectAnimator.ofFloat(mClearButton, "alpha",
@@ -1364,8 +1364,8 @@ public class PhoneStatusBar extends StatusBar {
             mPostCollapseCleanup = null;
         }
 
-        //ensure default toolbox view is shown on next pulldown
-        useDefaultToolboxView();
+        //ensure default Qwik Widgets view is shown on next pulldown
+        useDefaultQwikWidgetsView();
     }
 
     void doAnimation() {
@@ -2094,8 +2094,8 @@ public class PhoneStatusBar extends StatusBar {
                 mExpandedParams.y = -disph;
             }
 
-            // Temporary workaround for toolbox view reveal behavior
-            if (mToolboxFlipper.getDisplayedChild() != 0) {
+            // Temporary workaround for Qwik Widgets view reveal behavior
+            if (mQwikWidgetsFlipper.getDisplayedChild() != 0) {
                 mExpandedParams.y = mTrackingPosition;
             }
 
@@ -2311,7 +2311,7 @@ public class PhoneStatusBar extends StatusBar {
             }
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.setClassName("com.evervolv.toolbox", "com.evervolv.toolbox" +
-            		".Settings$NotificationToolboxActivity");
+            		".Settings$QwikWidgetsActivity");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             v.getContext().startActivity(intent);
             animateCollapse();
@@ -2483,39 +2483,39 @@ public class PhoneStatusBar extends StatusBar {
     }
 
     //
-    // Notification Toolbox
+    // QwikWidgets
     //
 
-    private void useDefaultToolboxView() {
-        boolean ToolboxOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
+    private void useDefaultQwikWidgetsView() {
+        boolean QwikWidgetsOnDropdown = (Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.NOTIFICATION_DROPDOWN_VIEW, 0) == 1);
-        int whichView = ((ToolboxOnDropdown && useToolbox()) ? 1 : 0);
-        if (mToolboxFlipper.getDisplayedChild() != whichView) {
-            mToolboxFlipper.setDisplayedChild(whichView);
+        int whichView = ((QwikWidgetsOnDropdown && useQwikWidgets()) ? 1 : 0);
+        if (mQwikWidgetsFlipper.getDisplayedChild() != whichView) {
+            mQwikWidgetsFlipper.setDisplayedChild(whichView);
         }
     }
 
-    private void nextToolboxView() {
-        mToolboxFlipper.setInAnimation(mContext, R.anim.in_animation);
-        mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation);
-        mToolboxFlipper.showNext();
+    private void nextQwikWidgetsView() {
+        mQwikWidgetsFlipper.setInAnimation(mContext, R.anim.in_animation);
+        mQwikWidgetsFlipper.setOutAnimation(mContext, R.anim.out_animation);
+        mQwikWidgetsFlipper.showNext();
         setAreThereNotifications();
     }
 
-    private void prevToolboxView() {
-        mToolboxFlipper.setInAnimation(mContext, R.anim.in_animation1);
-        mToolboxFlipper.setOutAnimation(mContext, R.anim.out_animation1);
-        mToolboxFlipper.showPrevious();
+    private void prevQwikWidgetsView() {
+        mQwikWidgetsFlipper.setInAnimation(mContext, R.anim.in_animation1);
+        mQwikWidgetsFlipper.setOutAnimation(mContext, R.anim.out_animation1);
+        mQwikWidgetsFlipper.showPrevious();
         setAreThereNotifications();
     }
 
-    private boolean useToolbox() {
+    private boolean useQwikWidgets() {
         return (Settings.System.getInt(mContext.getContentResolver(), Settings
-                .System.USE_NOTIFICATION_TOOLBOX, 1) == 1);
+                .System.USE_QWIK_WIDGETS, 1) == 1);
     }
 
-    private class ToolboxSettingsObserver extends ContentObserver {
-        public ToolboxSettingsObserver(Handler handler) {
+    private class QwikWidgetsObserver extends ContentObserver {
+        public QwikWidgetsObserver(Handler handler) {
             super(handler);
         }
 
@@ -2526,15 +2526,14 @@ public class PhoneStatusBar extends StatusBar {
             resolver.registerContentObserver(Settings.System.getUriFor(Settings
                     .System.NOTIFICATION_DROPDOWN_VIEW), false, this);
 
-            // toolbox on/off setting
+            // Qwik Widgets on/off setting
             resolver.registerContentObserver(Settings.System.getUriFor(Settings
-                    .System.USE_NOTIFICATION_TOOLBOX), false, this);
+                    .System.USE_QWIK_WIDGETS), false, this);
         }
 
         @Override
         public void onChangeUri(Uri uri, boolean selfChange) {
-            Log.d("ToolboxSettingsObserver", "onChangeUri");
-            useDefaultToolboxView();
+            useDefaultQwikWidgetsView();
         }
     }
 

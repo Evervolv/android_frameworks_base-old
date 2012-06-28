@@ -379,32 +379,7 @@
     <string name="accessibility_clear_all">Clear all notifications.</string>
 
 
-    <!-- Strings for Notification toolbox -->
-    <string name="title_notif">Notifications</string>
-    <string name="title_widgets">Power Widgets</string>
-    <string name="title_media">Sound \u0026 Media</string>
-    <string name="title_power">Power Management</string>
-    <string name="prev_butt_text">\u003c\u003c</string>
-    <string name="next_butt_text">\u003e\u003e</string>
-    <string name="text_media">Media</string>
-    <string name="text_volume_control">Volume Control</string>
-    <string name="text_ringtone">Ringtone</string>
-    <string name="text_media_control">Media Control</string>
-
-    <string name="battery_info_status_label">Battery status:</string>
-    <string name="battery_info_power_label">Power plug:</string>
-    <string name="battery_info_scale_label">Battery scale:</string>
-    <string name="battery_info_level_label">Battery level:</string>
-    <string name="battery_info_health_label">Battery health:</string>
-    <string name="battery_info_technology_label">Battery technology:</string>
-    <string name="battery_info_voltage_label">Battery voltage:</string>
-    <string name="battery_info_voltage_units">mV</string>
-    <string name="battery_info_temperature_label">Battery temperature:</string>
-    <string name="battery_info_temperature_units">\u00B0 C</string>
-    <string name="battery_profile">Battery Profile</string>
-
-    <string name="default_toolbox_widgets">toggleWifi|toggleBluetooth|toggleAutoRotate</string>
-
+    <!-- Strings for QwikWidgets -->
     <string name="widget_wifi_title">Wi-Fi</string>
     <string name="widget_wimax_title">Wimax</string>
     <string name="widget_wifiap_title">Hot Spot</string>
@@ -416,9 +391,8 @@
     <string name="widget_auto_rotate_title">Auto Rotate</string>
     <string name="widget_airplane_title">Airplane Mode</string>
     <string name="widget_notifications_title">DnD</string>
-
     <string name="widget_brightness_title">Brightness</string>
-
+    <string name="default_qwik_widgets">toggleWifi|toggleBluetooth|toggleAutoRotate</string>
 
     <!-- Battery Info screen. Value for a status item.  Used for diagnostic info screens, precise translation isn't needed -->
     <string name="battery_info_status_unknown">Unknown</string>

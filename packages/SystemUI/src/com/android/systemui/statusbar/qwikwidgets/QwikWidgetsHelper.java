@@ -1,10 +1,10 @@
-package com.android.systemui.statusbar.toolbox;
+package com.android.systemui.statusbar.qwikwidgets;
 
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-public class ToolboxHelper {
+public class QwikWidgetsHelper {
 
     private static final String TAG = "ToolboxHelper";
 
