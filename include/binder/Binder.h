@@ -69,10 +69,7 @@ private:
 
     class Extras;
 
-            union {
-                Extras*     mExtras;
-                volatile int32_t mExtrasInt;
-            };
+            Extras*     mExtras;
             void*       mReserved0;
 };
 

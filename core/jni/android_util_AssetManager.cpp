@@ -439,7 +439,7 @@ static jint android_content_AssetManager_addAssetPath(JNIEnv* env, jobject clazz
 {
     ScopedUtfChars path8(env, path);
     if (path8.c_str() == NULL) {
-        return JNI_FALSE;
+        return NULL;
     }
 
     AssetManager* am = assetManagerForJavaObject(env, clazz);
@@ -568,22 +568,22 @@ static jint android_content_AssetManager_getResourceIdentifier(JNIEnv* env, jobj
     }
 
     const char16_t* defType16 = defType
-        ? (char16_t*)env->GetStringChars(defType, NULL) : NULL;
+        ? env->GetStringChars(defType, NULL) : NULL;
     jsize defTypeLen = defType
         ? env->GetStringLength(defType) : 0;
     const char16_t* defPackage16 = defPackage
-        ? (char16_t*)env->GetStringChars(defPackage, NULL) : NULL;
+        ? env->GetStringChars(defPackage, NULL) : NULL;
     jsize defPackageLen = defPackage
         ? env->GetStringLength(defPackage) : 0;
 
     jint ident = am->getResources().identifierForName(
-        (const char16_t*)name16.get(), name16.size(), defType16, defTypeLen, defPackage16, defPackageLen);
+        name16.get(), name16.size(), defType16, defTypeLen, defPackage16, defPackageLen);
 
     if (defPackage16) {
-        env->ReleaseStringChars(defPackage, (jchar*)defPackage16);
+        env->ReleaseStringChars(defPackage, defPackage16);
     }
     if (defType16) {
-        env->ReleaseStringChars(defType, (jchar*)defType16);
+        env->ReleaseStringChars(defType, defType16);
     }
 
     return ident;
@@ -1570,7 +1570,7 @@ static jobjectArray android_content_AssetManager_getArrayStringResource(JNIEnv* 
                 str = env->NewStringUTF(str8);
             } else {
                 const char16_t* str16 = pool->stringAt(value.data, &strLen);
-                str = env->NewString((jchar*)str16, strLen);
+                str = env->NewString(str16, strLen);
             }
 
             // If one of our NewString{UTF} calls failed due to memory, an

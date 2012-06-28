@@ -4,10 +4,6 @@
 
 #include <media/stagefright/MediaSource.h>
 
-#if __cplusplus < 201103L && !defined(__GXX_EXPERIMENTAL_CXX0X__) && !defined(constexpr)
-#define constexpr const
-#endif
-
 namespace android {
 
 struct MediaBufferGroup;
@@ -28,7 +24,7 @@ protected:
 
 private:
     enum { kBufferSize = 8192 };
-    static constexpr double kFrequency = 500.0;
+    static const double kFrequency = 500.0;
 
     bool mStarted;
     int32_t mSampleRate;

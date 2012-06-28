@@ -254,35 +254,35 @@ static jboolean setUpEventLoop(native_data_t *nat) {
             return JNI_FALSE;
         }
         dbus_bus_add_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Adapter'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Adapter'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
             return JNI_FALSE;
         }
         dbus_bus_add_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Device'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Device'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
             return JNI_FALSE;
         }
         dbus_bus_add_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Input'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Input'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
             return JNI_FALSE;
         }
         dbus_bus_add_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Network'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Network'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
             return JNI_FALSE;
         }
         dbus_bus_add_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".NetworkServer'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".NetworkServer'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
@@ -290,7 +290,7 @@ static jboolean setUpEventLoop(native_data_t *nat) {
         }
 
         dbus_bus_add_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".HealthDevice'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".HealthDevice'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
@@ -449,37 +449,37 @@ static void tearDownEventLoop(native_data_t *nat) {
         dbus_connection_unregister_object_path(nat->conn, agent_path);
 
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".AudioSink'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".AudioSink'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
         }
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Device'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Device'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
         }
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Input'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Input'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
         }
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Network'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Network'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
         }
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".NetworkServer'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".NetworkServer'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
         }
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".HealthDevice'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".HealthDevice'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);
@@ -491,7 +491,7 @@ static void tearDownEventLoop(native_data_t *nat) {
             LOG_AND_FREE_DBUS_ERROR(&err);
         }
         dbus_bus_remove_match(nat->conn,
-                "type='signal',interface='" BLUEZ_DBUS_BASE_IFC ".Adapter'",
+                "type='signal',interface='"BLUEZ_DBUS_BASE_IFC".Adapter'",
                 &err);
         if (dbus_error_is_set(&err)) {
             LOG_AND_FREE_DBUS_ERROR(&err);

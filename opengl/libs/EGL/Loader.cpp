@@ -311,18 +311,16 @@ void *Loader::load_driver(const char* kind, const char *tag,
     }
     
     if (mask & GLESv1_CM) {
-        void *gl=&cnx->hooks[GLESv1_INDEX]->gl;
         init_api(dso, gl_names,
             (__eglMustCastToProperFunctionPointerType*)
-                gl,
+                &cnx->hooks[GLESv1_INDEX]->gl,
             getProcAddress);
     }
 
     if (mask & GLESv2) {
-      void *gl=&cnx->hooks[GLESv2_INDEX]->gl;
       init_api(dso, gl_names,
             (__eglMustCastToProperFunctionPointerType*)
-                gl,
+                &cnx->hooks[GLESv2_INDEX]->gl,
             getProcAddress);
     }
     

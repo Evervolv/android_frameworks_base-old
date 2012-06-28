@@ -16,8 +16,6 @@ ifneq ($(findstring -O0, $(TARGET_GLOBAL_CFLAGS)),)
 LOCAL_CFLAGS += -O2
 endif
 
-LOCAL_CFLAGS+= -fno-strict-aliasing
-
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \
 	libdl

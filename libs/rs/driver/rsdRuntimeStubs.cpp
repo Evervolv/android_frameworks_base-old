@@ -439,9 +439,7 @@ unsigned int SC_umodsi3(unsigned int a, unsigned int b) {
 }
 
 static void SC_debugF(const char *s, float f) {
-    int d;
-    memcpy(&d, &f, sizeof(d));
-    LOGD("%s %f, 0x%08x", s, f, d);
+    LOGD("%s %f, 0x%08x", s, f, *((int *) (&f)));
 }
 static void SC_debugFv2(const char *s, float f1, float f2) {
     LOGD("%s {%f, %f}", s, f1, f2);
@@ -453,9 +451,7 @@ static void SC_debugFv4(const char *s, float f1, float f2, float f3, float f4) {
     LOGD("%s {%f, %f, %f, %f}", s, f1, f2, f3, f4);
 }
 static void SC_debugD(const char *s, double d) {
-    long long l;
-    memcpy(&l, &d, sizeof(d));
-    LOGD("%s %f, 0x%08llx", s, d, l);
+    LOGD("%s %f, 0x%08llx", s, d, *((long long *) (&d)));
 }
 static void SC_debugFM4v4(const char *s, const float *f) {
     LOGD("%s {%f, %f, %f, %f", s, f[0], f[4], f[8], f[12]);
