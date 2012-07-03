@@ -55,6 +55,8 @@ class CpuGovernorService {
         new SamplingRateChangeProcessor();
     private IOBusyVoteProcessor mIOBusyVoteChangeProcessor =
         new IOBusyVoteProcessor();
+    private ScalingGovChangeProcessor mScalingGovChangeProcessor =
+        new ScalingGovChangeProcessor();
 
     public CpuGovernorService(Context context) {
         mContext = context;
@@ -64,8 +66,11 @@ class CpuGovernorService {
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(IOBusyVoteProcessor.ACTION_IOBUSY_VOTE);
         intentFilter.addAction(IOBusyVoteProcessor.ACTION_IOBUSY_UNVOTE);
+        intentFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
         new Thread(mSamplingRateChangeProcessor).start();
         new Thread(mIOBusyVoteChangeProcessor).start();
+        new Thread(mScalingGovChangeProcessor).start();
         mContext.registerReceiver(mReceiver, intentFilter);
     }
 
@@ -155,6 +160,40 @@ class CpuGovernorService {
                 synchronized (mIOBusyVoteChangeProcessor.getSynchObject()) {
                     mIOBusyVoteChangeProcessor.getSynchObject().notify();
                     mIOBusyVoteChangeProcessor.setNotificationPending(true);
+                }
+            } else if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)) {
+                if (SystemProperties.getInt("dev.pm.dyn_governor", 0) != 0) {
+                    while (!changeAdded) {
+                        try {
+                            mScalingGovChangeProcessor.getScalingGovChangeRequests().
+                                add(ScalingGovChangeProcessor.SCALING_GOV_SET);
+                            changeAdded = true;
+                        } catch (ConcurrentModificationException concurrentModificationException) {
+                            // Ignore and try again.
+                        }
+                    }
+
+                    synchronized (mScalingGovChangeProcessor.getSynchObject()) {
+                        mScalingGovChangeProcessor.getSynchObject().notify();
+                        mScalingGovChangeProcessor.setNotificationPending(true);
+                    }
+                }
+            } else if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)) {
+                if (SystemProperties.getInt("dev.pm.dyn_governor", 0) != 0) {
+                    while (!changeAdded) {
+                        try {
+                            mScalingGovChangeProcessor.getScalingGovChangeRequests().
+                                add(ScalingGovChangeProcessor.SCALING_GOV_RESTORE);
+                            changeAdded = true;
+                        } catch (ConcurrentModificationException concurrentModificationException) {
+                            // Ignore and try again.
+                        }
+                    }
+
+                    synchronized (mScalingGovChangeProcessor.getSynchObject()) {
+                        mScalingGovChangeProcessor.getSynchObject().notify();
+                        mScalingGovChangeProcessor.setNotificationPending(true);
+                    }
                 }
             }
         }
@@ -470,4 +509,104 @@ class SamplingRateChangeProcessor implements Runnable {
     }
 }
 
+class ScalingGovChangeProcessor implements Runnable {
+    private final String TAG = "ScalingGovChangeProcessor";
+    private static final String CPU0_SCALING_GOV_FILE_PATH =
+        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor";
+    private static final String NEW_SCALING_GOV = "performance";
+    private boolean mNotificationPending = false;
+    private Vector<Integer> mScalingGovChanges = new Vector<Integer>();
+    private Object mSynchScalingGovChanges = new Object();
+    private String mSavedScalingGov = "0";
+    private int MAX_SCALING_GOV_LENGTH = 16;
 
+    public static final int SCALING_GOV_SET = 1;
+    public static final int SCALING_GOV_RESTORE = 2;
+
+    public void setNotificationPending(boolean notificationPending) {
+        mNotificationPending = notificationPending;
+    }
+
+    public boolean getNotificationPending() {
+        return mNotificationPending;
+    }
+
+    public Vector<Integer> getScalingGovChangeRequests() {
+        return mScalingGovChanges;
+    }
+
+    public Object getSynchObject() {
+        return mSynchScalingGovChanges;
+    }
+
+    public void run() {
+        while (true) {
+            try {
+                synchronized (mSynchScalingGovChanges) {
+                    if (!mNotificationPending) {
+                        mSynchScalingGovChanges.wait();
+                    }
+
+                    mNotificationPending = false;
+                }
+            } catch (InterruptedException interruptedException) {
+            }
+
+            while (!mScalingGovChanges.isEmpty()) {
+                try{
+                    int scalingGovChangeRequestType = mScalingGovChanges.remove(0);
+
+                    if (scalingGovChangeRequestType == SCALING_GOV_SET) {
+                        setScalingGov();
+                    } else if (scalingGovChangeRequestType == SCALING_GOV_RESTORE) {
+                        restoreScalingGov();
+                    }
+                } catch (ConcurrentModificationException concurrentModificationException) {
+                    // Ignore and make the thread try again.
+                }
+            }
+        }
+    }
+
+    private void setScalingGov() {
+        File fileScalingGov = new File(CPU0_SCALING_GOV_FILE_PATH);
+
+        if (fileScalingGov.canRead() && fileScalingGov.canWrite()) {
+            try {
+                BufferedReader scalingGovReader = new BufferedReader(
+                        new FileReader(fileScalingGov));
+                char[] scalingGov = new char[MAX_SCALING_GOV_LENGTH];
+
+                scalingGovReader.read(scalingGov, 0,
+                        MAX_SCALING_GOV_LENGTH - 1);
+                scalingGovReader.close();
+
+                mSavedScalingGov = new String(scalingGov);
+                PrintWriter scalingGovWriter = new PrintWriter(fileScalingGov);
+
+                scalingGovWriter.print(NEW_SCALING_GOV);
+                scalingGovWriter.close();
+                Log.i(TAG, "Set scaling governor: " + NEW_SCALING_GOV);
+            } catch (Exception exception) {
+                mSavedScalingGov = "0";
+                Log.e(TAG, "Error occurred while setting scaling governor: " + exception.getMessage());
+            }
+        }
+    }
+
+    private void restoreScalingGov() {
+        File fileScalingGov = new File(CPU0_SCALING_GOV_FILE_PATH);
+
+        if (mSavedScalingGov.equals("0") == false && fileScalingGov.canWrite()) {
+            try {
+                PrintWriter scalingGovWriter = new PrintWriter(fileScalingGov);
+
+                scalingGovWriter.print(mSavedScalingGov);
+                scalingGovWriter.close();
+                Log.i(TAG, "Restored scaling governor");
+            } catch (Exception exception) {
+                Log.e(TAG, "Error occurred while restoring scaling governor: " + exception.getMessage());
+            }
+        }
+    }
+}
