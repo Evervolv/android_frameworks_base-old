@@ -62,7 +62,7 @@ public class WaveView extends View implements ValueAnimator.AnimatorUpdateListen
     private static final long FINAL_DELAY = 200; // delay for unlock success animation
     private static final long SHORT_DELAY = 200; // for starting one animation after another.
     private static final long WAVE_DURATION = 2000; // amount of time for wave to expand/decay
-    private static final long RESET_TIMEOUT = 2000; // elapsed time of inactivity before we reset
+    private static final long RESET_TIMEOUT = 0; // elapsed time of inactivity before we reset
     private static final long DELAY_INCREMENT = 30; // increment per wave while tracking motion
     private static final long DELAY_INCREMENT2 = 20; // increment per wave while not tracking
     private static final long WAVE_DELAY = WAVE_DURATION / WAVE_COUNT; // initial propagation delay
@@ -263,20 +263,6 @@ public class WaveView extends View implements ValueAnimator.AnimatorUpdateListen
 
             case STATE_START_ATTEMPT:
                 if (DBG) Log.v(TAG, "State START_ATTEMPT");
-                mUnlockDefault.removeAnimationFor("x");
-                mUnlockDefault.removeAnimationFor("y");
-                mUnlockDefault.removeAnimationFor("scaleX");
-                mUnlockDefault.removeAnimationFor("scaleY");
-                mUnlockDefault.removeAnimationFor("alpha");
-                mUnlockDefault.setX(mLockCenterX + 182);
-                mUnlockDefault.setY(mLockCenterY);
-                mUnlockDefault.setScaleX(0.1f);
-                mUnlockDefault.setScaleY(0.1f);
-                mUnlockDefault.setAlpha(0.0f);
-
-                mUnlockDefault.addAnimTo(DURATION, SHORT_DELAY, "scaleX", 1.0f, false);
-                mUnlockDefault.addAnimTo(DURATION, SHORT_DELAY, "scaleY", 1.0f, false);
-                mUnlockDefault.addAnimTo(DURATION, SHORT_DELAY, "alpha", 1.0f, false);
 
                 mUnlockRing.addAnimTo(DURATION, 0, "scaleX", 1.0f, true);
                 mUnlockRing.addAnimTo(DURATION, 0, "scaleY", 1.0f, true);
