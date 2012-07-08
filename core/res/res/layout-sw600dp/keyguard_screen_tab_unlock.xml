@@ -123,6 +123,14 @@
             android:layout_marginBottom="60dip"
             />
 
+        <com.android.internal.widget.WaveView
+            android:id="@+id/honeycomb_selector"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            />
+
         <TextView
             android:id="@+id/carrier"
             android:layout_width="fill_parent"

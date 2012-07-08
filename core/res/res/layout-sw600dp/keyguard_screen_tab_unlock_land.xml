@@ -121,6 +121,13 @@
         android:layout_alignParentRight="true"
         />
 
+    <com.android.internal.widget.WaveView
+        android:id="@+id/honeycomb_selector"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_rowSpan="9"
+        />
+
         <!-- emergency call button shown when sim is PUKd and tab_selector is hidden -->
         <Button
             android:id="@+id/emergencyCallButton"
