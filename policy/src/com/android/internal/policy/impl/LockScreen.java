@@ -500,7 +500,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
 
         final LayoutInflater inflater = LayoutInflater.from(context);
         if (DBG) Log.v(TAG, "Creation orientation = " + mCreationOrientation);
-        if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE) {
+        if (mCreationOrientation != Configuration.ORIENTATION_LANDSCAPE
+                || mUseEclairLockscreen) {
             inflater.inflate(R.layout.keyguard_screen_tab_unlock, this, true);
         } else {
             inflater.inflate(R.layout.keyguard_screen_tab_unlock_land, this, true);
