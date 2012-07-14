@@ -42,6 +42,10 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_C_INCLUDES := \
     external/skia/include/core
 
+ifeq ($(BOARD_USE_LEGACY_TRACKPAD),true)
+LOCAL_CFLAGS += -DLEGACY_TRACKPAD
+endif
+
 LOCAL_MODULE:= libinputservice
 
 LOCAL_MODULE_TAGS := optional
