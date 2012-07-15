@@ -3264,10 +3264,10 @@ public final class Settings {
         /* START Constants for Evervolv Toolbox */
 
         /**
-        * Disable all toolbox options. Allows user to achieve a more "stock"
-        * look and feel of android.
-        * @hide
-        */
+         * Disable all toolbox options. Allows user to achieve a more "stock"
+         * look and feel of android.
+         * @hide
+         */
         public static final String DISABLE_TOOLBOX = "disable_toolbox";
 
         /**
@@ -3278,6 +3278,23 @@ public final class Settings {
          * @hide
          */
         public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
+
+        /**
+         * Show or hide power menu options
+         * 1 = hide reboot menu
+         * 2 = hide screenshot option
+         * 4 = hide sound toggle
+         * 8 = hide airplane mode toggle
+         * @hide
+         */
+        public static final String HIDDEN_POWER_MENU_OPTIONS = "hidden_power_menu_options";
+
+        /**
+         * Change the screenshot delay from the power menu
+         * Default: 1 (1 second, 1000ms)
+         * @hide
+         */
+        public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
 
         /* END Constants for Evervolv Toolbox */
 
@@ -3336,7 +3353,9 @@ public final class Settings {
             NOTIFICATION_SOUND,
             WIFI_AUTO_CONNECT_TYPE,
             DISABLE_TOOLBOX,
-            STATUSBAR_CLOCK_AM_PM_STYLE
+            STATUSBAR_CLOCK_AM_PM_STYLE,
+            HIDDEN_POWER_MENU_OPTIONS,
+            POWER_MENU_SCREENSHOT_DELAY
         };
 
         /**
