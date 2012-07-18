@@ -6033,6 +6033,7 @@ void MultiTouchInputMapper::applyBadTouchReleaseFilter() {
 #endif
         }
     }
+}
 
 /* Special hack for devices that have bad screen data: drop points where
  * the coordinate value for one axis has jumped to the other pointer's location.
