@@ -3656,6 +3656,7 @@
      Resources added in version 10 of CyanogenMod
      =============================================================== -->
   <java-symbol type="string" name="config_legacyUmsLunFile" />
+  <java-symbol type="bool" name="config_autoBrightnessButtonKeyboard" />
 
 <!-- ==============================================================
      Resources added by The Evervolv Project v3.x.x
