@@ -443,6 +443,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Behavior of ENDCALL Button.  (See Settings.System.END_BUTTON_BEHAVIOR.)
     int mEndcallBehavior;
 
+    // Behavior of VOLUME Buttons for music control
+    boolean mVolBtnMusicControls;
+    // keep track of long-press state
+    boolean mIsLongPress;
+    // Behavior of volume wake
+    boolean mVolumeWakeScreen;
+
     // Behavior of POWER button while in-call and screen on.
     // (See Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR.)
     int mIncallPowerBehavior;
@@ -542,6 +549,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     "fancy_rotation_anim"), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.VOLUME_WAKE_SCREEN), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
         }
@@ -760,6 +773,42 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean isDeviceProvisioned() {
         return Settings.Global.getInt(
                 mContext.getContentResolver(), Settings.Global.DEVICE_PROVISIONED, 0) != 0;
+    }
+
+    /**
+     * When a volumeup-key longpress expires, skip songs based on key press
+     * If there is no media playing, start it
+     */
+    Runnable mVolumeUpLongPress = new Runnable() {
+        public void run() {
+            // set the long press flag to true
+            mIsLongPress = true;
+            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_NEXT);
+        };
+    };
+
+    /**
+     * When a volumedown-key longpress expires, skip songs based on key press
+     */
+    Runnable mVolumeDownLongPress = new Runnable() {
+        public void run() {
+            // set the long press flag to true
+            mIsLongPress = true;
+            sendMediaButtonEvent(KeyEvent.KEYCODE_MEDIA_PREVIOUS);
+        };
+    };
+
+    private void sendMediaButtonEvent(int code) {
+
+        long eventtime = SystemClock.uptimeMillis();
+        Intent keyIntent = new Intent(Intent.ACTION_MEDIA_BUTTON, null);
+        KeyEvent keyEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, code, 0);
+        keyIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+        mContext.sendOrderedBroadcast(keyIntent, null);
+        keyEvent = KeyEvent.changeAction(keyEvent, KeyEvent.ACTION_UP);
+        keyIntent.putExtra(Intent.EXTRA_KEY_EVENT, keyEvent);
+        mContext.sendOrderedBroadcast(keyIntent, null);
+
     }
 
     private void handleLongPressOnHome() {
@@ -1070,6 +1119,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT,
                     UserHandle.USER_CURRENT);
+            mVolBtnMusicControls = (Settings.System.getIntForUser(resolver,
+                    Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN, 1,
+                    UserHandle.USER_CURRENT) == 1);
+            mVolumeWakeScreen = (Settings.System.getIntForUser(resolver,
+                    Settings.System.VOLUME_WAKE_SCREEN, 0,
+                    UserHandle.USER_CURRENT) == 1);
 
             // Configure rotation lock.
             int userRotation = Settings.System.getIntForUser(resolver,
@@ -3330,6 +3385,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    void handleVolumeLongPress(int keycode) {
+        Runnable btnHandler;
+
+        if (keycode == KeyEvent.KEYCODE_VOLUME_UP)
+            btnHandler = mVolumeUpLongPress;
+        else
+            btnHandler = mVolumeDownLongPress;
+
+        mHandler.postDelayed(btnHandler, ViewConfiguration.getLongPressTimeout());
+    }
+
+    void handleVolumeLongPressAbort() {
+            mHandler.removeCallbacks(mVolumeUpLongPress);
+            mHandler.removeCallbacks(mVolumeDownLongPress);
+    }
+
     /** {@inheritDoc} */
     @Override
     public int interceptKeyBeforeQueueing(KeyEvent event, int policyFlags, boolean isScreenOn) {
@@ -3340,7 +3411,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         final boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         final boolean canceled = event.isCanceled();
-        final int keyCode = event.getKeyCode();
+        int keyCode = event.getKeyCode();
 
         final boolean isInjected = (policyFlags & WindowManagerPolicy.FLAG_INJECTED) != 0;
 
@@ -3391,7 +3462,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 if (keyguardActive) {
                     // If the keyguard is showing, let it wake the device when ready.
                     mKeyguardMediator.onWakeKeyWhenKeyguardShowingTq(keyCode);
-                } else {
+                } else if ((keyCode != KeyEvent.KEYCODE_VOLUME_UP) && (keyCode != KeyEvent.KEYCODE_VOLUME_DOWN)) {
                     // Otherwise, wake the device ourselves.
                     result |= ACTION_WAKE_UP;
                 }
@@ -3400,6 +3471,36 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         // Handle special keys.
         switch (keyCode) {
+            case KeyEvent.KEYCODE_ENDCALL: {
+                result &= ~ACTION_PASS_TO_USER;
+                if (down) {
+                    ITelephony telephonyService = getTelephonyService();
+                    boolean hungUp = false;
+                    if (telephonyService != null) {
+                        try {
+                            hungUp = telephonyService.endCall();
+                        } catch (RemoteException ex) {
+                            Log.w(TAG, "ITelephony threw RemoteException", ex);
+                        }
+                    }
+                    interceptPowerKeyDown(!isScreenOn || hungUp);
+                } else {
+                    if (interceptPowerKeyUp(canceled)) {
+                        if ((mEndcallBehavior
+                                & Settings.System.END_BUTTON_BEHAVIOR_HOME) != 0) {
+                            if (goHome()) {
+                                break;
+                            }
+                        }
+                        if ((mEndcallBehavior
+                                & Settings.System.END_BUTTON_BEHAVIOR_SLEEP) != 0) {
+                            result = (result & ~ACTION_WAKE_UP) | ACTION_GO_TO_SLEEP;
+                        }
+                    }
+                }
+                break;
+            }
+
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_MUTE: {
@@ -3430,6 +3531,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         cancelPendingScreenshotChordAction();
                     }
                 }
+
                 if (down) {
                     ITelephony telephonyService = getTelephonyService();
                     if (telephonyService != null) {
@@ -3464,45 +3566,34 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             Log.w(TAG, "ITelephony threw RemoteException", ex);
                         }
                     }
-
-                    if (isMusicActive() && (result & ACTION_PASS_TO_USER) == 0) {
-                        // If music is playing but we decided not to pass the key to the
-                        // application, handle the volume change here.
-                        handleVolumeKey(AudioManager.STREAM_MUSIC, keyCode);
-                        break;
-                    }
                 }
-                break;
-            }
 
-            case KeyEvent.KEYCODE_ENDCALL: {
-                result &= ~ACTION_PASS_TO_USER;
-                if (down) {
-                    ITelephony telephonyService = getTelephonyService();
-                    boolean hungUp = false;
-                    if (telephonyService != null) {
-                        try {
-                            hungUp = telephonyService.endCall();
-                        } catch (RemoteException ex) {
-                            Log.w(TAG, "ITelephony threw RemoteException", ex);
-                        }
-                    }
-                    interceptPowerKeyDown(!isScreenOn || hungUp);
-                } else {
-                    if (interceptPowerKeyUp(canceled)) {
-                        if ((mEndcallBehavior
-                                & Settings.System.END_BUTTON_BEHAVIOR_HOME) != 0) {
-                            if (goHome()) {
+                if (isMusicActive() && (result & ACTION_PASS_TO_USER) == 0) {
+                    if (mVolBtnMusicControls && down && (keyCode != KeyEvent.KEYCODE_VOLUME_MUTE)) {
+                        mIsLongPress = false;
+                        handleVolumeLongPress(keyCode);
+                        break;
+                    } else {
+                        if (mVolBtnMusicControls && !down) {
+                            handleVolumeLongPressAbort();
+                            if (mIsLongPress) {
                                 break;
                             }
                         }
-                        if ((mEndcallBehavior
-                                & Settings.System.END_BUTTON_BEHAVIOR_SLEEP) != 0) {
-                            result = (result & ~ACTION_WAKE_UP) | ACTION_GO_TO_SLEEP;
+                        if (!isScreenOn && !mVolumeWakeScreen) {
+                            handleVolumeKey(AudioManager.STREAM_MUSIC, keyCode);
                         }
                     }
                 }
-                break;
+                if (isScreenOn || !mVolumeWakeScreen) {
+                    break;
+                } else if (keyguardActive) {
+                    keyCode = KeyEvent.KEYCODE_POWER;
+                    mKeyguardMediator.onWakeKeyWhenKeyguardShowingTq(keyCode);
+                } else {
+                    result |= ACTION_WAKE_UP;
+                    break;
+                }
             }
 
             case KeyEvent.KEYCODE_POWER: {
