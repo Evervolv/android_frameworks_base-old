@@ -3577,6 +3577,17 @@ public final class Settings {
          * the setting value. See an example above.
          */
 
+        /* START Constants for Evervolv Toolbox */
+
+        /**
+         * Disable all toolbox options. Allows user to achieve a more "stock"
+         * look and feel of android.
+         * @hide
+         */
+        public static final String DISABLE_TOOLBOX = "disable_toolbox";
+
+        /* END Constants for Evervolv Toolbox */
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
@@ -3631,7 +3642,8 @@ public final class Settings {
             RINGTONE,
             LOCK_TO_APP_ENABLED,
             NOTIFICATION_SOUND,
-            ACCELEROMETER_ROTATION
+            ACCELEROMETER_ROTATION,
+            DISABLE_TOOLBOX
         };
 
         /**
