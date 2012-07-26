@@ -2415,6 +2415,24 @@ public final class Settings {
         */
         public static final String DISABLE_TOOLBOX = "disable_toolbox";
 
+        /**
+         * Toggle lockscreen volume button music controls to change media tracks.
+         * @hide
+         */
+        public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
+
+        /**
+         * Toggle to let volume button wake the screen.
+         * @hide
+         */
+        public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
+
+        /**
+         * Toggle to let trackball wake the screen.
+         * @hide
+         */
+        public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
