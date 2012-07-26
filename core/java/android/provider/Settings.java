@@ -3248,6 +3248,16 @@ public final class Settings {
          */
         public static final String WIFI_AUTO_CONNECT_TYPE = "wifi_auto_connect_type";
 
+        /* START Constants for Evervolv Toolbox */
+
+        /**
+        * Disable all toolbox options. Allows user to achieve a more "stock"
+        * look and feel of android.
+        * @hide
+        */
+        public static final String DISABLE_TOOLBOX = "disable_toolbox";
+
+        /* END Constants for Evervolv Toolbox */
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -3302,7 +3312,8 @@ public final class Settings {
             RINGTONE,
             LOCK_TO_APP_ENABLED,
             NOTIFICATION_SOUND,
-            WIFI_AUTO_CONNECT_TYPE
+            WIFI_AUTO_CONNECT_TYPE,
+            DISABLE_TOOLBOX
         };
 
         /**
