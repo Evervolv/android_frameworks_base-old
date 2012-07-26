@@ -2618,6 +2618,17 @@ public final class Settings {
          */
         public static final String POINTER_SPEED = "pointer_speed";
 
+        /* START Constants for Evervolv Toolbox */
+
+        /**
+        * Disable all toolbox options. Allows user to achieve a more "stock"
+        * look and feel of android.
+        * @hide
+        */
+        public static final String DISABLE_TOOLBOX = "disable_toolbox";
+
+        /* END Constants for Evervolv Toolbox */
+
         /**
          * Whether lock-to-app will be triggered by long-press on recents.
          * @hide
