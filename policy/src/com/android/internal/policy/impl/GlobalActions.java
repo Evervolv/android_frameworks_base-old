@@ -235,17 +235,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         // first: power off
         mItems.add(
             new SinglePressAction(
-                    R.drawable.ic_lock_power_off,
+                    com.android.internal.R.drawable.ic_lock_power_off,
                     R.string.global_action_power_off) {
 
                 public void onPress() {
                     // shutdown by making sure radio and power are handled accordingly.
                     mWindowManagerFuncs.shutdown(true);
-                }
-
-                public boolean onLongPress() {
-                    mWindowManagerFuncs.rebootSafeMode(true);
-                    return true;
                 }
 
                 public boolean showDuringKeyguard() {
@@ -258,9 +253,16 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
             });
         // next: reboot
         mItems.add(
-            new SinglePressAction(R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
+            new SinglePressAction(
+                    com.android.internal.R.drawable.ic_lock_reboot,
+                    R.string.global_action_reboot) {
                 public void onPress() {
                     mWindowManagerFuncs.reboot("null");
+                }
+
+                public boolean onLongPress() {
+                    mWindowManagerFuncs.rebootSafeMode(true);
+                    return true;
                 }
 
                 public boolean showDuringKeyguard() {
