@@ -127,9 +127,10 @@ public final class ShutdownThread extends Thread {
         Log.d(TAG, "Notifying thread to start shutdown longPressBehavior=" + longPressBehavior);
 
         if (confirm) {
+            final CloseDialogReceiver closer = new CloseDialogReceiver(context);
             final AlertDialog dialog;
             // Set different dialog message based on whether or not we're rebooting
-            if (mReboot) {
+            if (mReboot && !mRebootSafeMode) {
                 dialog = new AlertDialog.Builder(context)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle(com.android.internal.R.string.reboot_system)
@@ -175,9 +176,9 @@ public final class ShutdownThread extends Thread {
             } else {
                 dialog = new AlertDialog.Builder(context)
                         .setIcon(android.R.drawable.ic_dialog_alert)
-		                .setTitle(mRebootSafeMode
-		                        ? com.android.internal.R.string.reboot_safemode_title
-		                        : com.android.internal.R.string.power_off)
+                        .setTitle(mRebootSafeMode
+                                ? com.android.internal.R.string.reboot_safemode_title
+                                : com.android.internal.R.string.power_off)
                         .setMessage(resourceId)
                         .setPositiveButton(com.android.internal.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -187,6 +188,8 @@ public final class ShutdownThread extends Thread {
                         .setNegativeButton(com.android.internal.R.string.no, null)
                         .create();
             }
+            closer.dialog = dialog;
+            dialog.setOnDismissListener(closer);
             dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
             dialog.show();
         } else {
@@ -339,13 +342,13 @@ public final class ShutdownThread extends Thread {
                 SystemProperties.set(SHUTDOWN_ACTION_PROPERTY, reason);
             }
 
-        /*
-         * If we are rebooting into safe mode, write a system property
-         * indicating so.
-         */
-        if (mRebootSafeMode) {
-            SystemProperties.set(REBOOT_SAFEMODE_PROPERTY, "1");
-        }
+            /*
+             * If we are rebooting into safe mode, write a system property
+             * indicating so.
+             */
+            if (mRebootSafeMode) {
+                SystemProperties.set(REBOOT_SAFEMODE_PROPERTY, "1");
+            }
 
             // First send the high-level shut down broadcast.
             mActionDone = false;
