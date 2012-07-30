@@ -482,13 +482,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Behavior of ENDCALL Button.  (See Settings.System.END_BUTTON_BEHAVIOR.)
     int mEndcallBehavior;
 
+    // Whether we want Evervolv customizations
+    boolean mDisableToolbox;
     // Behavior of VOLUME Buttons for music control
     boolean mVolBtnMusicControls;
     // keep track of long-press state
     boolean mIsLongPress;
     // Behavior of volume wake
     boolean mVolumeWakeScreen;
-
     // Behavior of trackball wake
     boolean mTrackballWakeScreen;
 
@@ -586,6 +587,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 resolver.registerContentObserver(Settings.Secure.getUriFor(
                         "screensaver_timeout"), false, this);
             } // otherwise SCREEN_OFF_TIMEOUT will do nicely
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
@@ -1146,11 +1149,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mIncallPowerBehavior = Settings.Secure.getInt(resolver,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT);
-            mVolBtnMusicControls = (Settings.System.getInt(resolver,
+            mDisableToolbox = (Settings.System.getInt(resolver,
+                    Settings.System.DISABLE_TOOLBOX, 0) == 1);
+            mVolBtnMusicControls = mDisableToolbox ? false : (Settings.System.getInt(resolver,
                     Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN, 1) == 1);
-            mVolumeWakeScreen = (Settings.System.getInt(resolver,
+            mVolumeWakeScreen = mDisableToolbox ? false : (Settings.System.getInt(resolver,
                     Settings.System.VOLUME_WAKE_SCREEN, 0) == 1);
-            mTrackballWakeScreen = (Settings.System.getInt(resolver,
+            mTrackballWakeScreen = mDisableToolbox ? false : (Settings.System.getInt(resolver,
                     Settings.System.TRACKBALL_WAKE_SCREEN, 1) == 1);
 
             // Configure rotation lock.
