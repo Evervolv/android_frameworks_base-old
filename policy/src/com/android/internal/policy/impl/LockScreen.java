@@ -180,6 +180,19 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             } else if (whichHandle == RotarySelector.OnDialTriggerListener.RIGHT_HANDLE) {
                 toggleRingMode();
                 updateResources();
+
+                String message = mSilentMode ? getContext().getString(
+                        R.string.global_action_silent_mode_on_status) : getContext().getString(
+                        R.string.global_action_silent_mode_off_status);
+
+                final int toastIcon = mSilentMode ? R.drawable.ic_lock_ringer_off
+                        : R.drawable.ic_lock_ringer_on;
+
+                final int toastColor = mSilentMode ? getContext().getResources().getColor(
+                        R.color.keyguard_text_color_soundoff) : getContext().getResources().getColor(
+                        R.color.keyguard_text_color_soundon);
+                toastMessage(mCarrier, message, toastColor, toastIcon);
+
                 mCallback.pokeWakelock();
             }
         }
@@ -248,6 +261,20 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
             } else if (whichHandle == SlidingTab.OnTriggerListener.RIGHT_HANDLE) {
                 toggleRingMode();
                 updateResources();
+
+                String message = mSilentMode ?
+                        getContext().getString(R.string.global_action_silent_mode_on_status) :
+                        getContext().getString(R.string.global_action_silent_mode_off_status);
+
+                final int toastIcon = mSilentMode
+                    ? R.drawable.ic_lock_ringer_off
+                    : R.drawable.ic_lock_ringer_on;
+
+                final int toastColor = mSilentMode
+                    ? getContext().getResources().getColor(R.color.keyguard_text_color_soundoff)
+                    : getContext().getResources().getColor(R.color.keyguard_text_color_soundon);
+                toastMessage(mCarrier, message, toastColor, toastIcon);
+
                 mCallback.pokeWakelock();
             }
         }
@@ -838,4 +865,49 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mUpdateMonitor = null;
         mCallback = null;
     }
+
+    /**
+    * Displays a message in a text view and then restores the previous text.
+    * @param textView The text view.
+    * @param text The text.
+    * @param color The color to apply to the text, or 0 if the existing color should be used.
+    * @param iconResourceId The left hand icon.
+    */
+    private void toastMessage(final TextView textView, final String text, final int color, final int iconResourceId) {
+        if (mPendingR1 != null) {
+            textView.removeCallbacks(mPendingR1);
+            mPendingR1 = null;
+        }
+        if (mPendingR2 != null) {
+            mPendingR2.run(); // fire immediately, restoring non-toasted appearance
+            textView.removeCallbacks(mPendingR2);
+            mPendingR2 = null;
+        }
+
+        final String oldText = textView.getText().toString();
+        final ColorStateList oldColors = textView.getTextColors();
+
+        mPendingR1 = new Runnable() {
+            public void run() {
+                textView.setText(text);
+                if (color != 0) {
+                    textView.setTextColor(color);
+                }
+                textView.setCompoundDrawablesWithIntrinsicBounds(0, iconResourceId, 0, 0);
+            }
+        };
+
+        textView.postDelayed(mPendingR1, 0);
+        mPendingR2 = new Runnable() {
+            public void run() {
+                textView.setText(oldText);
+                textView.setTextColor(oldColors);
+                textView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+            }
+        };
+        textView.postDelayed(mPendingR2, 3500);
+    }
+    private Runnable mPendingR1;
+    private Runnable mPendingR2;
+
 }
