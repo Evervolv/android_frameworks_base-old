@@ -443,13 +443,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Behavior of ENDCALL Button.  (See Settings.System.END_BUTTON_BEHAVIOR.)
     int mEndcallBehavior;
 
+    // Whether we want Evervolv customizations
+    boolean mDisableToolbox;
     // Behavior of VOLUME Buttons for music control
     boolean mVolBtnMusicControls;
     // keep track of long-press state
     boolean mIsLongPress;
     // Behavior of volume wake
     boolean mVolumeWakeScreen;
-
     // Behavior of trackball wake
     boolean mTrackballWakeScreen;
 
@@ -552,6 +553,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     "fancy_rotation_anim"), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN), false, this,
@@ -1125,13 +1129,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT,
                     UserHandle.USER_CURRENT);
-            mVolBtnMusicControls = (Settings.System.getIntForUser(resolver,
+            mDisableToolbox = (Settings.System.getIntForUser(resolver,
+                    Settings.System.DISABLE_TOOLBOX, 0,
+                    UserHandle.USER_CURRENT) == 1);
+            mVolBtnMusicControls = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN, 1,
                     UserHandle.USER_CURRENT) == 1);
-            mVolumeWakeScreen = (Settings.System.getIntForUser(resolver,
+            mVolumeWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.VOLUME_WAKE_SCREEN, 0,
                     UserHandle.USER_CURRENT) == 1);
-            mTrackballWakeScreen = (Settings.System.getIntForUser(resolver,
+            mTrackballWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.TRACKBALL_WAKE_SCREEN, 1,
                     UserHandle.USER_CURRENT) == 1);
 
