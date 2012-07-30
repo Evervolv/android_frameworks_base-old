@@ -5453,6 +5453,9 @@
         <!-- Outer radius of target circle. Icons will be drawn on this circle. -->
         <attr name="outerRadius" format="dimension" />
 
+        <!-- Size of target radius. Points within this distance of target center is a "hit". -->
+        <attr name="hitRadius" format="dimension" />
+
         <!-- Tactile feedback duration for actions. Set to '0' for no vibration. -->
         <attr name="vibrationDuration" format="integer"/>
 
@@ -5464,6 +5467,12 @@
 
         <!-- Used when the handle shouldn't wait to be hit before following the finger -->
         <attr name="alwaysTrackFinger" format="boolean" />
+
+        <!-- Used to shift center of pattern vertically. -->
+        <attr name="verticalOffset" format="dimension" />
+
+        <!-- Used to shift center of pattern horizontally. -->
+        <attr name="horizontalOffset" format="dimension" />
     </declare-styleable>
 
     <!-- =============================== -->

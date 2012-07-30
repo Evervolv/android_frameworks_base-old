@@ -151,6 +151,40 @@
         android:pointDrawable="@drawable/ic_lockscreen_glowdot"
         />
 
+    <com.android.internal.widget.multiwaveview.MultiWaveView
+        android:id="@+id/multiwave_widget"
+        android:layout_width="200dip"
+        android:layout_height="match_parent"
+        android:layout_rowSpan="7"
+
+        android:targetDrawables="@array/lockscreen_targets_with_camera"
+        android:targetDescriptions="@array/lockscreen_target_descriptions_with_camera"
+        android:directionDescriptions="@array/lockscreen_direction_descriptions"
+        android:handleDrawable="@drawable/ic_lockscreen_handle"
+        android:waveDrawable="@drawable/ic_lockscreen_outerring"
+        android:outerRadius="@dimen/multiwaveview_target_placement_radius"
+        android:snapMargin="@dimen/multiwaveview_snap_margin"
+        android:feedbackCount="3"
+        android:verticalOffset="0dip"
+        />
+
+     <com.android.internal.widget.SlidingTab
+        android:id="@+id/tab_widget"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="80dip"
+        />
+
+    <com.android.internal.widget.RotarySelector
+        android:id="@+id/rotary_widget"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        />
+
     <!-- Music transport control -->
     <include android:id="@+id/transport"
         layout="@layout/keyguard_transport_control"

@@ -3669,4 +3669,11 @@
   <java-symbol type="bool" name="config_autoBrightnessButtonKeyboard" />
   <java-symbol type="string" name="config_legacyUmsLunFile" />
 
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_up" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_down" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_left" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_right" />
+  <java-symbol type="id" name="multiwave_widget" />
+  <java-symbol type="id" name="tab_widget" />
+  <java-symbol type="id" name="rotary_widget" />
 </resources>
