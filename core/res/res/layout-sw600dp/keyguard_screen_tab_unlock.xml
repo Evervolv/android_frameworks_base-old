@@ -105,6 +105,43 @@
             android:pointDrawable="@drawable/ic_lockscreen_glowdot"
             />
 
+        <com.android.internal.widget.multiwaveview.MultiWaveView
+            android:id="@+id/multiwave_widget"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="center"
+
+            android:targetDrawables="@array/lockscreen_targets_with_camera"
+            android:targetDescriptions="@array/lockscreen_target_descriptions_with_camera"
+            android:directionDescriptions="@array/lockscreen_direction_descriptions"
+            android:handleDrawable="@drawable/ic_lockscreen_handle"
+            android:waveDrawable="@drawable/ic_lockscreen_outerring"
+            android:outerRadius="@dimen/multiwaveview_target_placement_radius"
+            android:snapMargin="@dimen/multiwaveview_snap_margin"
+            android:feedbackCount="3"
+            android:vibrationDuration="20"
+            />
+
+        <com.android.internal.widget.SlidingTab
+            android:id="@+id/tab_widget"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="80dip"
+            />
+
+        <com.android.internal.widget.RotarySelector
+            android:id="@+id/rotary_widget"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="60dip"
+            />
+
         <!-- emergency call button shown when sim is PUKd and tab_selector is hidden -->
         <Button
             android:id="@+id/emergencyCallButton"
