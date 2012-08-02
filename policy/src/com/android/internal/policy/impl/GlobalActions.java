@@ -98,6 +98,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mHasTelephony;
     private boolean mHasVibrator;
 
+    private boolean mDisableToolbox;
+
     private IWindowManager mIWindowManager;
 
     /**
@@ -127,6 +129,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 mAirplaneModeObserver);
         Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mHasVibrator = vibrator != null && vibrator.hasVibrator();
+
+        checkToolboxState();
     }
 
     /**
@@ -147,6 +151,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     }
 
     private void handleShow() {
+        checkToolboxState();
+
         mDialog = createDialog();
         prepareDialog();
 
@@ -221,21 +227,6 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     mWindowManagerFuncs.shutdown();
                 }
 
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
-
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
-        // next: reboot
-        mItems.add(
-            new SinglePressAction(R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
-                public void onPress() {
-                    mWindowManagerFuncs.reboot("null");
-                }
-
                 public boolean onLongPress() {
                     mWindowManagerFuncs.rebootSafeMode();
                     return true;
@@ -249,22 +240,44 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     return true;
                 }
             });
+        if (!mDisableToolbox) {
+            // next: reboot
+            mItems.add(
+                new SinglePressAction(R.drawable.ic_lock_reboot, R.string.global_action_reboot) {
+                    public void onPress() {
+                        mWindowManagerFuncs.reboot("null");
+                    }
 
-        // next: screenshot
-        mItems.add(
-            new SinglePressAction(R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
-                public void onPress() {
-                    takeScreenshot();
-                }
+                    public boolean onLongPress() {
+                        mWindowManagerFuncs.rebootSafeMode();
+                        return true;
+                    }
 
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
+                    public boolean showDuringKeyguard() {
+                        return true;
+                    }
 
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+                    public boolean showBeforeProvisioning() {
+                        return true;
+                    }
+                });
+
+            // next: screenshot
+            mItems.add(
+                new SinglePressAction(R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
+                    public void onPress() {
+                        takeScreenshot();
+                    }
+
+                    public boolean showDuringKeyguard() {
+                        return true;
+                    }
+
+                    public boolean showBeforeProvisioning() {
+                        return true;
+                    }
+                });
+        }
 
         // next: airplane mode
         mItems.add(mAirplaneModeOn);
@@ -931,6 +944,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         if (!mHasTelephony) {
             mAirplaneState = on ? ToggleAction.State.On : ToggleAction.State.Off;
         }
+    }
+
+    private void checkToolboxState() {
+        mDisableToolbox = Settings.System.getInt(
+                mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX,
+                0) == 1;
     }
 
     private IWindowManager getWindowManager() {
