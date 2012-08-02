@@ -113,6 +113,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mIsWaitingForEcmExit = false;
     private boolean mHasTelephony;
     private boolean mHasVibrator;
+    private boolean mDisableToolbox;
 
     /**
      * @param context everything needs a context :(
@@ -143,6 +144,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 mAirplaneModeObserver);
         Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mHasVibrator = vibrator != null && vibrator.hasVibrator();
+
+        checkToolboxState();
     }
 
     /**
@@ -176,6 +179,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private void handleShow() {
         awakenIfNecessary();
+        checkToolboxState();
         mDialog = createDialog();
         prepareDialog();
 
@@ -261,44 +265,48 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     return true;
                 }
             });
-        // next: reboot
-        mItems.add(
-            new SinglePressAction(
-                    com.android.internal.R.drawable.ic_lock_reboot,
-                    R.string.global_action_reboot) {
-                public void onPress() {
-                    mWindowManagerFuncs.reboot("null");
-                }
+        if (!mDisableToolbox) {
+            // next: reboot
+            mItems.add(
+                new SinglePressAction(
+                        com.android.internal.R.drawable.ic_lock_reboot,
+                        R.string.global_action_reboot) {
+                    public void onPress() {
+                        mWindowManagerFuncs.reboot("null");
+                    }
 
-                public boolean onLongPress() {
-                    mWindowManagerFuncs.rebootSafeMode(true);
-                    return true;
-                }
+                    public boolean onLongPress() {
+                        mWindowManagerFuncs.rebootSafeMode(true);
+                        return true;
+                    }
 
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
+                    public boolean showDuringKeyguard() {
+                        return true;
+                    }
 
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+                    public boolean showBeforeProvisioning() {
+                        return true;
+                    }
+                });
 
-        // next: screenshot
-        mItems.add(
-            new SinglePressAction(R.drawable.ic_lock_screenshot, R.string.global_action_screenshot) {
-                public void onPress() {
-                    takeScreenshot();
-                }
+            // next: screenshot
+            mItems.add(
+                new SinglePressAction(
+                        com.android.internal.R.drawable.ic_lock_screenshot,
+                        R.string.global_action_screenshot) {
+                    public void onPress() {
+                        takeScreenshot();
+                    }
 
-                public boolean showDuringKeyguard() {
-                    return true;
-                }
+                    public boolean showDuringKeyguard() {
+                        return true;
+                    }
 
-                public boolean showBeforeProvisioning() {
-                    return true;
-                }
-            });
+                    public boolean showBeforeProvisioning() {
+                        return true;
+                    }
+                });
+        }
 
         // next: airplane mode
         mItems.add(mAirplaneModeOn);
@@ -1036,6 +1044,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         if (!mHasTelephony) {
             mAirplaneState = on ? ToggleAction.State.On : ToggleAction.State.Off;
         }
+    }
+
+    private void checkToolboxState() {
+        mDisableToolbox = Settings.System.getInt(
+                mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX,
+                0) == 1;
     }
 
     private static final class GlobalActionsDialog extends Dialog implements DialogInterface {
