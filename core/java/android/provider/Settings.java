@@ -2342,6 +2342,15 @@ public final class Settings {
          */
         public static final String TRACKBALL_WAKE_SCREEN = "trackball_wake_screen";
 
+        /**
+         * Statusbar battery icon style options.
+         * 0 - Stock
+         * 1 - Stock w/ percentages
+         * 2 - Hidden
+         * @hide
+         */
+        public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
