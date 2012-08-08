@@ -2482,6 +2482,12 @@ public final class Settings {
          */
         public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
 
+        /**
+          * Statusbar toggle for 6 bar signal strength.
+          * @hide
+          */
+          public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
