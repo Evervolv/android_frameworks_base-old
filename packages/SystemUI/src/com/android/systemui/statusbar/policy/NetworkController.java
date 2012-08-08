@@ -17,10 +17,12 @@
 package com.android.systemui.statusbar.policy;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
@@ -139,6 +141,7 @@ public class NetworkController extends BroadcastReceiver {
 
     // our ui
     Context mContext;
+    ContentResolver mCr;
     ArrayList<ImageView> mPhoneSignalIconViews = new ArrayList<ImageView>();
     ArrayList<ImageView> mDataDirectionIconViews = new ArrayList<ImageView>();
     ArrayList<ImageView> mDataDirectionOverlayIconViews = new ArrayList<ImageView>();
@@ -163,6 +166,9 @@ public class NetworkController extends BroadcastReceiver {
     String mLastCombinedLabel = "";
 
     private boolean mHasMobileDataFeature;
+
+    private ToolboxObserver mObserver = null;
+    private boolean mUseSixBar;
 
     boolean mDataAndWifiStacked = false;
 
@@ -191,6 +197,7 @@ public class NetworkController extends BroadcastReceiver {
      */
     public NetworkController(Context context) {
         mContext = context;
+        mCr = context.getContentResolver();
         final Resources res = context.getResources();
 
         ConnectivityManager cm = (ConnectivityManager)mContext.getSystemService(
@@ -252,6 +259,11 @@ public class NetworkController extends BroadcastReceiver {
 
         // AIRPLANE_MODE_CHANGED is sent at boot; we've probably already missed it
         updateAirplaneMode();
+
+        // 6-bar data icons
+        updateSixBar();
+        mObserver = new ToolboxObserver(new Handler());
+        mObserver.observe();
 
         // yuck
         mBatteryStats = BatteryStatsService.getService();
@@ -540,49 +552,76 @@ public class NetworkController extends BroadcastReceiver {
     private final void updateTelephonySignalStrength() {
         if (!hasService()) {
             if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: !hasService()");
-            mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
-            mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal;
-            mDataSignalIconId = R.drawable.stat_sys_signal_null;
-        } else {
-            if (mSignalStrength == null) {
-                if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: mSignalStrength == null");
+
+            if (mUseSixBar) {
+                mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
+                mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal_6bar;
+                mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
+            } else {
                 mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
                 mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal;
                 mDataSignalIconId = R.drawable.stat_sys_signal_null;
+            }
+
+        } else {
+            if (mSignalStrength == null) {
+                if (CHATTY) Slog.d(TAG, "updateTelephonySignalStrength: mSignalStrength == null");
+
+                if (mUseSixBar) {
+                    mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
+                    mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal_6bar;
+                    mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
+                } else {
+                    mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
+                    mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal;
+                    mDataSignalIconId = R.drawable.stat_sys_signal_null;
+                }
+
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[0]);
+
             } else {
                 int iconLevel;
                 int[] iconList;
                 if (isCdma() && mAlwaysShowCdmaRssi) {
-                    mLastSignalLevel = iconLevel = mSignalStrength.getCdmaLevel();
+                    mLastSignalLevel = iconLevel = (mUseSixBar) ?
+                            mSignalStrength.getSixBarCdmaLevel() : mSignalStrength.getCdmaLevel();
                     if(DEBUG) Slog.d(TAG, "mAlwaysShowCdmaRssi=" + mAlwaysShowCdmaRssi
                             + " set to cdmaLevel=" + mSignalStrength.getCdmaLevel()
                             + " instead of level=" + mSignalStrength.getLevel());
                 } else {
-                    mLastSignalLevel = iconLevel = mSignalStrength.getLevel();
+                    mLastSignalLevel = iconLevel = (mUseSixBar) ?
+                            mSignalStrength.getSixBarLevel() : mSignalStrength.getLevel();
                 }
 
-                if (isCdma()) {
-                    if (isCdmaEri()) {
-                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
-                    } else {
-                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH[mInetCondition];
-                    }
+                if (mUseSixBar) {
+                    iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
+                    mDataSignalIconId = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition][iconLevel];
+                    mQSPhoneSignalIconId =
+                            TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition][iconLevel];
                 } else {
-                    // Though mPhone is a Manager, this call is not an IPC
-                    if (mPhone.isNetworkRoaming()) {
-                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
+                    if (isCdma()) {
+                        if (isCdmaEri()) {
+                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
+                        } else {
+                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH[mInetCondition];
+                        }
                     } else {
-                        iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH[mInetCondition];
+                        // Though mPhone is a Manager, this call is not an IPC
+                        if (mPhone.isNetworkRoaming()) {
+                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_ROAMING[mInetCondition];
+                        } else {
+                            iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH[mInetCondition];
+                        }
                     }
+                    mDataSignalIconId = TelephonyIcons.DATA_SIGNAL_STRENGTH[mInetCondition][iconLevel];
+                    mQSPhoneSignalIconId =
+                            TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH[mInetCondition][iconLevel];
                 }
                 mPhoneSignalIconId = iconList[iconLevel];
-                mQSPhoneSignalIconId =
-                        TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH[mInetCondition][iconLevel];
+
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[iconLevel]);
-                mDataSignalIconId = TelephonyIcons.DATA_SIGNAL_STRENGTH[mInetCondition][iconLevel];
             }
         }
     }
@@ -1525,6 +1564,34 @@ public class NetworkController extends BroadcastReceiver {
         } else {
             return "(null)";
         }
+    }
+
+    private class ToolboxObserver extends ContentObserver {
+        public ToolboxObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUSBAR_6BAR_SIGNAL), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updateSixBar();
+            updateTelephonySignalStrength();
+            refreshViews();
+        }
+    }
+
+    private void updateSixBar() {
+        boolean toolboxEnabled = (Settings.System.getInt(mCr,
+            Settings.System.DISABLE_TOOLBOX, 0) == 0);
+        boolean sixBarEnabled = (Settings.System.getInt(mCr,
+            Settings.System.STATUSBAR_6BAR_SIGNAL, 1) == 1);
+        mUseSixBar = toolboxEnabled && sixBarEnabled;
     }
 
 }
