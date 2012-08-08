@@ -48,6 +48,21 @@ public class SignalStrength implements Parcelable {
     };
 
     /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN = 0;
+    /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_ONE = 1;
+    /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_TWO = 2;
+    /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_THREE = 3;
+    /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_FOUR = 4;
+    /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_FIVE = 5;
+    /** @hide */
+    public static final int SIXBAR_SIGNAL_STRENGTH_SIX = 6;
+
+    /** @hide */
     public static final int INVALID_SNR = 0x7FFFFFFF;
 
     private int mGsmSignalStrength; // Valid values are (0-31, 99) as defined in TS 27.007 8.5
@@ -322,6 +337,42 @@ public class SignalStrength implements Parcelable {
     }
 
     /**
+     * Get signal level for sixbar as an int from 0..6
+     *
+     * @hide
+     */
+    public int getSixBarLevel() {
+        int level;
+
+        if (isGsm) {
+            if ((mLteSignalStrength == -1)
+                    && (mLteRsrp == -1)
+                    && (mLteRsrq == -1)
+                    && (mLteRssnr == -1)
+                    && (mLteCqi == -1)) {
+                level = getSixBarGsmLevel();
+            } else {
+                level = getSixBarLteLevel();
+            }
+        } else {
+            int cdmaLevel = getSixBarCdmaLevel();
+            int evdoLevel = getSixBarEvdoLevel();
+            if (evdoLevel == SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
+                /* We don't know evdo, use cdma */
+                level = getSixBarCdmaLevel();
+            } else if (cdmaLevel == SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
+                /* We don't know cdma, use evdo */
+                level = getSixBarEvdoLevel();
+            } else {
+                /* We know both, use the lowest level */
+                level = cdmaLevel < evdoLevel ? cdmaLevel : evdoLevel;
+            }
+        }
+        if (DBG) log("getSixBarLevel=" + level);
+        return level;
+    }
+
+    /**
      * Get the signal level as an asu value between 0..31, 99 is unknown
      *
      * @hide
@@ -421,6 +472,32 @@ public class SignalStrength implements Parcelable {
     }
 
     /**
+     * Get gsm sixbar as level 0..4
+     *
+     * @hide
+     */
+    public int getSixBarGsmLevel() {
+        int level;
+
+        // ASU ranges from 0 to 31 - TS 27.007 Sec 8.5
+        // asu = 0 (-113dB or less) is very weak
+        // signal, its better to show 0 bars to the user in such cases.
+        // asu = 99 is a special case, where the signal strength is unknown.
+        int asu = getGsmSignalStrength();
+
+        if (asu <= 2 || asu == 99) level = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else if (asu >= 12) level = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (asu >= 10) level = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (asu >= 8)  level = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (asu >= 6)  level = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (asu >= 4)  level = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else level = SIXBAR_SIGNAL_STRENGTH_ONE;
+
+        if (DBG) log("getGsmLevel(SixBar)=" + level);
+        return level;
+    }
+
+    /**
      * Get the gsm signal level as an asu value between 0..31, 99 is unknown
      *
      * @hide
@@ -461,6 +538,62 @@ public class SignalStrength implements Parcelable {
 
         int level = (levelDbm < levelEcio) ? levelDbm : levelEcio;
         if (DBG) log("getCdmaLevel=" + level);
+        return level;
+    }
+
+    /**
+     * Get cdma sixbar as level 0..6
+     *
+     * @hide
+     */
+    public int getSixBarCdmaLevel() {
+        final int cdmaDbm = getCdmaDbm();
+        final int cdmaEcio = getCdmaEcio();
+        int levelDbm;
+        int levelEcio;
+
+        /*
+         * HTC's signal to icon
+
+        0 -> anything worse than -110
+        1 -> -110
+        2 -> -105
+        3 -> -100
+        4 -> -95
+        5 -> -85
+        6 -> -75
+         */
+
+        if (cdmaDbm >= -75) levelDbm = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (cdmaDbm >= -85) levelDbm = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (cdmaDbm >= -95) levelDbm = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (cdmaDbm >= -100) levelDbm = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (cdmaDbm >= -105) levelDbm = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (cdmaDbm >= -110) levelDbm = SIXBAR_SIGNAL_STRENGTH_ONE;
+        else levelDbm = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+
+        /*
+         * HTC's signal to icon
+
+        0 -> anything worse than -150
+        1 -> -150
+        2 -> -140
+        3 -> -130
+        4 -> -120
+        5 -> -110
+        6 -> -90
+         */
+
+        if (cdmaEcio >= -90) levelEcio = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (cdmaEcio >= -110) levelEcio = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (cdmaEcio >= -120) levelEcio = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (cdmaEcio >= -130) levelEcio = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (cdmaEcio >= -140) levelEcio = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (cdmaEcio >= -150) levelEcio = SIXBAR_SIGNAL_STRENGTH_ONE;
+        else levelEcio = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+
+        int level = (levelDbm < levelEcio) ? levelDbm : levelEcio;
+        if (DBG) log("getCdmaLevel(SixBar)=" + level);
         return level;
     }
 
@@ -524,6 +657,39 @@ public class SignalStrength implements Parcelable {
     }
 
     /**
+     * Get Evdo sixbar as level 0..6
+     *
+     * @hide
+     */
+    public int getSixBarEvdoLevel() {
+        int evdoDbm = getEvdoDbm();
+        int evdoSnr = getEvdoSnr();
+        int levelEvdoDbm;
+        int levelEvdoSnr;
+
+        if (evdoDbm >= -65) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (evdoDbm >= -75) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (evdoDbm >= -85) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (evdoDbm >= -95) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (evdoDbm >= -100) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (evdoDbm >= -105) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_ONE;
+        else levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+
+        if (evdoSnr >= 8) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (evdoSnr >= 6) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (evdoSnr >= 5) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (evdoSnr >= 4) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (evdoSnr >= 3) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (evdoSnr >= 1) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_ONE;
+        else levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+
+
+        int level = (levelEvdoDbm < levelEvdoSnr) ? levelEvdoDbm : levelEvdoSnr;
+        if (DBG) log("getEvdoLevel(SixBar)=" + level);
+        return level;
+    }
+
+    /**
      * Get the evdo signal level as an asu value between 0..31, 99 is unknown
      *
      * @hide
@@ -571,17 +737,55 @@ public class SignalStrength implements Parcelable {
         int levelLteRsrp = 0;
         int levelLteRssnr = 0;
 
-        if (mLteRsrp == -1) levelLteRsrp = 0;
+        if (mLteRsrp == -1) levelLteRsrp = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
         else if (mLteRsrp >= -95) levelLteRsrp = SIGNAL_STRENGTH_GREAT;
         else if (mLteRsrp >= -105) levelLteRsrp = SIGNAL_STRENGTH_GOOD;
         else if (mLteRsrp >= -115) levelLteRsrp = SIGNAL_STRENGTH_MODERATE;
         else levelLteRsrp = SIGNAL_STRENGTH_POOR;
 
-        if (mLteRssnr == INVALID_SNR) levelLteRssnr = 0;
+        if (mLteRssnr == INVALID_SNR) levelLteRssnr = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
         else if (mLteRssnr >= 45) levelLteRssnr = SIGNAL_STRENGTH_GREAT;
         else if (mLteRssnr >= 10) levelLteRssnr = SIGNAL_STRENGTH_GOOD;
         else if (mLteRssnr >= -30) levelLteRssnr = SIGNAL_STRENGTH_MODERATE;
         else levelLteRssnr = SIGNAL_STRENGTH_POOR;
+
+        int level;
+        if (mLteRsrp == -1)
+            level = levelLteRssnr;
+        else if (mLteRssnr == INVALID_SNR)
+            level = levelLteRsrp;
+        else
+            level = (levelLteRssnr < levelLteRsrp) ? levelLteRssnr : levelLteRsrp;
+
+        if (DBG) log("Lte rsrp level: "+levelLteRsrp
+                + " snr level: " + levelLteRssnr + " level: " + level);
+        return level;
+    }
+
+    /**
+     * Get LTE sixbar as level 0..6
+     *
+     * @hide
+     */
+    public int getSixBarLteLevel() {
+        int levelLteRsrp = 0;
+        int levelLteRssnr = 0;
+
+        if (mLteRsrp == -1) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else if (mLteRsrp >= -95) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (mLteRsrp >= -100) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (mLteRsrp >= -105) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (mLteRsrp >= -110) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (mLteRsrp >= -115) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_ONE;
+
+        if (mLteRssnr == INVALID_SNR) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else if (mLteRssnr >= 45) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (mLteRssnr >= 25) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (mLteRssnr >= 10) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (mLteRssnr >= -10) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (mLteRssnr >= -30) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_ONE;
 
         int level;
         if (mLteRsrp == -1)
