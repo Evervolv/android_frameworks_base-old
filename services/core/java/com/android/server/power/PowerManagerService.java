@@ -774,6 +774,8 @@ public final class PowerManagerService extends SystemService
     private SensorEventListener mProximityListener;
     private PowerManager.WakeLock mProximityWakeLock;
 
+    private boolean mForceNavbar;
+
     public PowerManagerService(Context context) {
         this(context, new Injector());
     }
@@ -960,6 +962,10 @@ public final class PowerManagerService extends SystemService
         resolver.registerContentObserver(EVSettings.System.getUriFor(
                 EVSettings.System.PROXIMITY_ON_WAKE),
                 false, mSettingsObserver, UserHandle.USER_ALL);
+        resolver.registerContentObserver(EVSettings.Secure.getUriFor(
+                EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR),
+                false, mSettingsObserver, UserHandle.USER_ALL);
+
         IVrManager vrManager = IVrManager.Stub.asInterface(getBinderService(Context.VR_SERVICE));
         if (vrManager != null) {
             try {
@@ -1093,6 +1099,10 @@ public final class PowerManagerService extends SystemService
         mProximityWakeEnabled = EVSettings.System.getIntForUser(resolver,
                 EVSettings.System.PROXIMITY_ON_WAKE, mProximityWakeDefault ? 1 : 0,
                 UserHandle.USER_CURRENT) == 1;
+
+        mForceNavbar = EVSettings.Secure.getIntForUser(resolver,
+                EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR,
+                0, UserHandle.USER_CURRENT) == 1;
 
         mDirty |= DIRTY_SETTINGS;
     }
@@ -2108,7 +2118,7 @@ public final class PowerManagerService extends SystemService
                     if (now < nextTimeout) {
                         mUserActivitySummary = USER_ACTIVITY_SCREEN_BRIGHT;
                         if (mWakefulness == WAKEFULNESS_AWAKE) {
-                            int buttonBrightness = mButtonManager.getButtonBrightness();
+                            int buttonBrightness = !mForceNavbar ? mButtonManager.getButtonBrightness() : 0;
                             if (mButtonBrightnessOverrideFromWindowManager >= 0) {
                                 buttonBrightness = mButtonBrightnessOverrideFromWindowManager;
                             }

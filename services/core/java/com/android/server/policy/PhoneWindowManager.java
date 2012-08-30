@@ -203,6 +203,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.autofill.AutofillManagerInternal;
 
+import evervolv.hardware.HardwareManager;
 import evervolv.provider.EVSettings;
 
 import com.android.internal.R;
@@ -559,6 +560,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private Action mAppSwitchPressAction;
     private Action mAppSwitchLongPressAction;
 
+
     // support for activating the lock screen while the screen is on
     private HashSet<Integer> mAllowLockscreenWhenOnDisplays = new HashSet<>();
     int mLockScreenTimeout;
@@ -576,6 +578,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     // Whether system navigation keys are enabled
     boolean mSystemNavigationKeysEnabled;
+    private int mForceNavigationKeys = -1;
 
     // TODO(b/111361251): Remove default when the dependencies are multi-display ready.
     Display mDefaultDisplay;
@@ -690,6 +693,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int MSG_RINGER_TOGGLE_CHORD = 27;
     private static final int MSG_MOVE_DISPLAY_TO_TOP = 28;
 
+    private HardwareManager mHardwareManager;
     private boolean mHasAlertSlider = false;
 
     private class PolicyHandler extends Handler {
@@ -877,6 +881,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(EVSettings.System.getUriFor(
                     EVSettings.System.VOLUME_WAKE_SCREEN), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(EVSettings.Secure.getUriFor(
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
         }
@@ -1924,7 +1931,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mHandler = new PolicyHandler();
         mWakeGestureListener = new MyWakeGestureListener(mContext, mHandler);
         mSettingsObserver = new SettingsObserver(mHandler);
-        mSettingsObserver.observe();
         mShortcutManager = new ShortcutManager(context);
         mUiMode = context.getResources().getInteger(
                 com.android.internal.R.integer.config_defaultUiModeType);
@@ -2263,6 +2269,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mWakeGestureEnabledSetting != wakeGestureEnabledSetting) {
                 mWakeGestureEnabledSetting = wakeGestureEnabledSetting;
                 updateWakeGestureListenerLp();
+            }
+
+            int forceNavigationKeys = EVSettings.Secure.getIntForUser(resolver,
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0,
+                    UserHandle.USER_CURRENT);
+            if (forceNavigationKeys != mForceNavigationKeys) {
+                mForceNavigationKeys = forceNavigationKeys;
+                if (mHardwareManager.isSupported(HardwareManager.FEATURE_KEY_DISABLE)) {
+                    mHardwareManager.set(HardwareManager.FEATURE_KEY_DISABLE,
+                            mForceNavigationKeys == 1);
+                }
             }
 
             readConfigurationDependentBehaviors();
@@ -5297,6 +5314,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (mVrManagerInternal != null) {
             mVrManagerInternal.addPersistentVrModeStateListener(mPersistentVrModeListener);
         }
+
+        mHardwareManager = HardwareManager.getInstance(mContext);
+        // Ensure observe happens in systemReady() since we need
+        // LineageHardwareService to be up and running
+        mSettingsObserver.observe();
 
         if (mHasAlertSlider) {
             mAlertSliderObserver = new AlertSliderObserver(mContext);
