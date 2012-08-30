@@ -684,6 +684,8 @@ public final class PowerManagerService extends SystemService
     private SensorEventListener mProximityListener;
     private PowerManager.WakeLock mProximityWakeLock;
 
+    private boolean mDevForceNavbar;
+
     public PowerManagerService(Context context) {
         super(context);
         mContext = context;
@@ -885,6 +887,9 @@ public final class PowerManagerService extends SystemService
         resolver.registerContentObserver(EVSettings.System.getUriFor(
                 EVSettings.System.PROXIMITY_ON_WAKE),
                 false, mSettingsObserver, UserHandle.USER_ALL);
+        resolver.registerContentObserver(EVSettings.Secure.getUriFor(
+                EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR),
+                false, mSettingsObserver, UserHandle.USER_ALL);
         IVrManager vrManager = (IVrManager) getBinderService(Context.VR_SERVICE);
         if (vrManager != null) {
             try {
@@ -1022,6 +1027,9 @@ public final class PowerManagerService extends SystemService
         mProximityWakeEnabled = EVSettings.System.getIntForUser(resolver,
                 EVSettings.System.PROXIMITY_ON_WAKE, mProximityWakeDefault ? 1 : 0,
                 UserHandle.USER_CURRENT) == 1;
+
+        mDevForceNavbar = EVSettings.Secure.getInt(resolver,
+                EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0) == 1;
 
         mDirty |= DIRTY_SETTINGS;
     }
@@ -2042,7 +2050,11 @@ public final class PowerManagerService extends SystemService
                             if (mButtonBrightnessOverrideFromWindowManager >= 0) {
                                 buttonBrightness = mButtonBrightnessOverrideFromWindowManager;
                             } else {
-                                buttonBrightness = mButtonBrightness;
+                                if (!mDevForceNavbar) {
+                                    buttonBrightness = mButtonBrightness;
+                                } else {
+                                    buttonBrightness = 0;
+                                }
                             }
 
                             if (mButtonTimeout != 0
