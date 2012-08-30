@@ -259,6 +259,7 @@ public class CentralSurfacesImplTest extends SysuiTestCase {
     @Mock private PluginManager mPluginManager;
     @Mock private ViewMediatorCallback mViewMediatorCallback;
     @Mock private StatusBarTouchableRegionManager mStatusBarTouchableRegionManager;
+    @Mock private TunerService mTunerService;
     @Mock private ScreenPinningRequest mScreenPinningRequest;
     @Mock private PluginDependencyProvider mPluginDependencyProvider;
     @Mock private KeyguardDismissUtil mKeyguardDismissUtil;
@@ -288,6 +289,7 @@ public class CentralSurfacesImplTest extends SysuiTestCase {
     @Mock private DeviceStateManager mDeviceStateManager;
     @Mock private DreamOverlayStateController mDreamOverlayStateController;
     @Mock private WiredChargingRippleController mWiredChargingRippleController;
+    @Mock private TunerService mTunerService;
     private ShadeController mShadeController;
     private final FakeSystemClock mFakeSystemClock = new FakeSystemClock();
     private FakeExecutor mMainExecutor = new FakeExecutor(mFakeSystemClock);
@@ -478,7 +480,8 @@ public class CentralSurfacesImplTest extends SysuiTestCase {
                 mJankMonitor,
                 mDeviceStateManager,
                 mDreamOverlayStateController,
-                mWiredChargingRippleController, mDreamManager);
+                mWiredChargingRippleController, mDreamManager,
+                mTunerService);
         when(mKeyguardViewMediator.registerCentralSurfaces(
                 any(CentralSurfacesImpl.class),
                 any(NotificationPanelViewController.class),
