@@ -856,6 +856,12 @@ public class StatusBar extends SystemUI implements DemoMode,
                 mLockscreenSettingsObserver,
                 UserHandle.USER_ALL);
 
+        mContext.getContentResolver().registerContentObserver(
+                Settings.Global.getUriFor(Settings.Global.DEV_FORCE_SHOW_NAVBAR),
+                false,
+                mDevForceNavbarObserver,
+                UserHandle.USER_ALL);
+
         mBarService = IStatusBarService.Stub.asInterface(
                 ServiceManager.getService(Context.STATUS_BAR_SERVICE));
 
@@ -885,6 +891,7 @@ public class StatusBar extends SystemUI implements DemoMode,
         } catch (RemoteException ex) {
             // If the system process isn't there we're doomed anyway.
         }
+
 
         createAndAddWindows();
 
@@ -1069,6 +1076,12 @@ public class StatusBar extends SystemUI implements DemoMode,
             if (DEBUG) Log.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav) {
                 createNavigationBar();
+            }
+
+            // Developer options - Force Navigation bar
+            boolean needsNav = mWindowManagerService.needsNavigationBar();
+            if (!needsNav) {
+                mDevForceNavbarObserver.onChange(false); // set up
             }
         } catch (RemoteException ex) {
             // no window manager? good luck with that
@@ -1267,6 +1280,13 @@ public class StatusBar extends SystemUI implements DemoMode,
             }
             mNavigationBar.setCurrentSysuiVisibility(mSystemUiVisibility);
         });
+    }
+
+    private void removeNavigationBar() {
+        if (mNavigationBarView == null) return;
+
+        mWindowManager.removeViewImmediate(mNavigationBarView);
+        mNavigationBarView = null;
     }
 
     /**
@@ -5834,6 +5854,19 @@ public class StatusBar extends SystemUI implements DemoMode,
             // ... and refresh all the notifications
             updateLockscreenNotificationSetting();
             updateNotifications();
+        }
+    };
+
+    private final ContentObserver mDevForceNavbarObserver = new ContentObserver(mHandler) {
+        @Override
+        public void onChange(boolean selfChange) {
+            boolean visible = Settings.Global.getInt(mContext.getContentResolver(),
+                    Settings.Global.DEV_FORCE_SHOW_NAVBAR, 0) == 1;
+            if (visible) {
+                createNavigationBar();
+            } else {
+                removeNavigationBar();
+            }
         }
     };
 
