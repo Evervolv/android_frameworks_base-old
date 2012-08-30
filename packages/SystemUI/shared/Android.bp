@@ -54,6 +54,7 @@ android_library {
         "androidx.concurrent_concurrent-futures",
         "dagger2",
         "jsr330",
+        "com.evervolv.platform.internal",
     ],
     resource_dirs: [
         "res",

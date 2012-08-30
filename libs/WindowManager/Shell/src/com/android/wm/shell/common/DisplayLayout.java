@@ -39,6 +39,7 @@ import android.content.res.Resources;
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Size;
@@ -49,11 +50,15 @@ import android.view.Gravity;
 import android.view.InsetsSource;
 import android.view.InsetsState;
 import android.view.Surface;
+import android.view.WindowManager;
+import android.view.WindowManagerGlobal;
 
 import androidx.annotation.VisibleForTesting;
 
 import com.android.internal.R;
 import com.android.internal.policy.SystemBarUtils;
+
+import evervolv.provider.EVSettings;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -491,7 +496,14 @@ public class DisplayLayout {
     }
 
     static boolean hasNavigationBar(DisplayInfo info, Context context, int displayId) {
+        final ContentResolver resolver = context.getContentResolver();
         if (displayId == Display.DEFAULT_DISPLAY) {
+            final boolean forceShowNavBar = EVSettings.Secure.getIntForUser(resolver,
+                            EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0,
+                            UserHandle.USER_CURRENT) == 1;
+            if (forceShowNavBar) {
+                return true;
+            }
             // Allow a system property to override this. Used by the emulator.
             final String navBarOverride = SystemProperties.get("qemu.hw.mainkeys");
             if ("1".equals(navBarOverride)) {
@@ -503,7 +515,6 @@ public class DisplayLayout {
         } else {
             boolean isUntrustedVirtualDisplay = info.type == Display.TYPE_VIRTUAL
                     && info.ownerUid != SYSTEM_UID;
-            final ContentResolver resolver = context.getContentResolver();
             boolean forceDesktopOnExternal = Settings.Global.getInt(resolver,
                     DEVELOPMENT_FORCE_DESKTOP_MODE_ON_EXTERNAL_DISPLAYS, 0) != 0;
 

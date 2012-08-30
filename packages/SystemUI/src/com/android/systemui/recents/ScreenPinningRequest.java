@@ -34,10 +34,12 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Binder;
 import android.os.RemoteException;
+import android.os.UserHandle;
 import android.text.SpannableStringBuilder;
 import android.text.style.BulletSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +63,8 @@ import com.android.systemui.settings.UserTracker;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.statusbar.phone.CentralSurfaces;
 import com.android.systemui.util.leak.RotationUtils;
+
+import evervolv.provider.EVSettings;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -342,6 +346,12 @@ public class ScreenPinningRequest implements View.OnClickListener,
          * @return whether there is a soft nav bar on specific display.
          */
         private boolean hasSoftNavigationBar(int displayId) {
+            if (displayId == Display.DEFAULT_DISPLAY &&
+                    EVSettings.Secure.getIntForUser(mContext.getContentResolver(),
+                                EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0,
+                                UserHandle.USER_CURRENT) == 1) {
+                return true;
+            }
             try {
                 return WindowManagerGlobal.getWindowManagerService().hasNavigationBar(displayId);
             } catch (RemoteException e) {
