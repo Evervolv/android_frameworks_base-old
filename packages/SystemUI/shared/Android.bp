@@ -55,6 +55,7 @@ android_library {
         "gson-prebuilt-jar",
         "dagger2",
         "jsr330",
+        "com.evervolv.platform.internal",
     ],
     resource_dirs: [
         "res",
