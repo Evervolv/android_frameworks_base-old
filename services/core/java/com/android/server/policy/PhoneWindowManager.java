@@ -701,6 +701,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private boolean mPendingKeyguardOccluded;
     private boolean mKeyguardOccludedChanged;
 
+    boolean mDevForceNavbar = false;
+
     boolean mShowingDream;
     private boolean mLastShowingDream;
     boolean mDreamingLockscreen;
@@ -1000,6 +1002,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.VOLBTN_MUSIC_CONTROLS), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Global.getUriFor(
+                    Settings.Global.DEV_FORCE_SHOW_NAVBAR), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
         }
@@ -2279,7 +2284,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      *         navigation bar and touch exploration is not enabled
      */
     private boolean canHideNavigationBar() {
-        return mHasNavigationBar;
+        return hasNavigationBar();
     }
 
     @Override
@@ -2325,6 +2330,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mWakeGestureEnabledSetting != wakeGestureEnabledSetting) {
                 mWakeGestureEnabledSetting = wakeGestureEnabledSetting;
                 updateWakeGestureListenerLp();
+            }
+
+            boolean devForceNavbar = Settings.Global.getInt(resolver,
+                    Settings.Global.DEV_FORCE_SHOW_NAVBAR, 0) == 1;
+            if (devForceNavbar != mDevForceNavbar) {
+                mDevForceNavbar = devForceNavbar;
             }
 
             // Configure rotation lock.
@@ -2748,7 +2759,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public int getNonDecorDisplayWidth(int fullWidth, int fullHeight, int rotation, int uiMode,
             int displayId) {
         // TODO(multi-display): Support navigation bar on secondary displays.
-        if (displayId == Display.DEFAULT_DISPLAY && mHasNavigationBar) {
+        if (displayId == Display.DEFAULT_DISPLAY && hasNavigationBar()) {
             // For a basic navigation bar, when we are in landscape mode we place
             // the navigation bar to the side.
             if (mNavigationBarCanMove && fullWidth > fullHeight) {
@@ -2770,7 +2781,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     public int getNonDecorDisplayHeight(int fullWidth, int fullHeight, int rotation, int uiMode,
             int displayId) {
         // TODO(multi-display): Support navigation bar on secondary displays.
-        if (displayId == Display.DEFAULT_DISPLAY && mHasNavigationBar) {
+        if (displayId == Display.DEFAULT_DISPLAY && hasNavigationBar()) {
             // For a basic navigation bar, when we are in portrait mode we place
             // the navigation bar to the bottom.
             if (!mNavigationBarCanMove || fullWidth < fullHeight) {
@@ -5928,6 +5939,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         final boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
         final boolean canceled = event.isCanceled();
         final int keyCode = event.getKeyCode();
+        final int scanCode = event.getScanCode();
 
         final boolean isInjected = (policyFlags & WindowManagerPolicy.FLAG_INJECTED) != 0;
 
@@ -8232,7 +8244,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // overridden by qemu.hw.mainkeys in the emulator.
     @Override
     public boolean hasNavigationBar() {
-        return mHasNavigationBar;
+        return mHasNavigationBar || mDevForceNavbar;
     }
 
     @Override

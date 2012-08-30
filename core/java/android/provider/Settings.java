@@ -10026,6 +10026,12 @@ public final class Settings {
                 "location_settings_link_to_permissions_enabled";
 
         /**
+        * Developer options - Navigation Bar show switch
+        * @hide
+        */
+        public static final String DEV_FORCE_SHOW_NAVBAR = "dev_force_show_navbar";
+
+        /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
          *
