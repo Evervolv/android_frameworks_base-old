@@ -54,15 +54,19 @@ public class BatteryController extends BroadcastReceiver {
     private int mBatteryStyle;
     private int mLastBatteryLevel;
     private boolean mLastPluggedState;
-    private static final int BATT_STOCK = 0;
-    private static final int BATT_PERCENT = 1;
-    private static final int BATT_HIDDEN = 2;
+    private static final int BATTERY_STOCK = 0;
+    private static final int BATTERY_PERCENT = 1;
+    private static final int BATTERY_HIDDEN = 2;
+    private boolean mThemeCompat;
 
     public BatteryController(Context context) {
         mContext = context;
         mCr = mContext.getContentResolver();
 
-        mBatteryStyle = Settings.System.getInt(mCr, Settings.System.STATUSBAR_BATT_STYLE, BATT_PERCENT);
+        mBatteryStyle = Settings.System.getInt(mCr,
+                Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT);
+        mThemeCompat = Settings.System.getInt(mCr,
+                Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -95,7 +99,7 @@ public class BatteryController extends BroadcastReceiver {
             final boolean plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
             mLastPluggedState = plugged;
             mLastBatteryLevel = level;
-            if (mBatteryStyle == BATT_PERCENT) {
+            if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat) {
                 icon = plugged ? R.drawable.stat_sys_battery_charge
                                          : R.drawable.stat_sys_battery_mod;
             } else {
@@ -107,7 +111,7 @@ public class BatteryController extends BroadcastReceiver {
                 ImageView v = mIconViews.get(i);
                 v.setImageResource(icon);
                 v.setImageLevel(level);
-                if (mBatteryStyle == BATT_HIDDEN) {
+                if (mBatteryStyle == BATTERY_HIDDEN) {
                     v.setVisibility(View.GONE);
                 } else {
                     v.setVisibility(View.VISIBLE);
@@ -120,7 +124,7 @@ public class BatteryController extends BroadcastReceiver {
                 TextView v = mLabelViews.get(i);
                 v.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format,
                         level));
-                if (mBatteryStyle == BATT_HIDDEN) {
+                if (mBatteryStyle == BATTERY_HIDDEN) {
                     v.setVisibility(View.GONE);
                 } else {
                     v.setVisibility(View.VISIBLE);
@@ -135,7 +139,7 @@ public class BatteryController extends BroadcastReceiver {
 
     private void batteryChange() {
         final int icon;
-        if (mBatteryStyle == BATT_PERCENT) {
+        if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat) {
             icon = mLastPluggedState ? R.drawable.stat_sys_battery_charge
                                      : R.drawable.stat_sys_battery_mod;
         } else {
@@ -147,7 +151,7 @@ public class BatteryController extends BroadcastReceiver {
             ImageView v = mIconViews.get(i);
             v.setImageResource(icon);
             v.setImageLevel(mLastBatteryLevel);
-            if (mBatteryStyle == BATT_HIDDEN)
+            if (mBatteryStyle == BATTERY_HIDDEN)
                 v.setVisibility(View.GONE);
             else
                 v.setVisibility(View.VISIBLE);
@@ -159,7 +163,7 @@ public class BatteryController extends BroadcastReceiver {
             TextView v = mLabelViews.get(i);
             v.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format,
                     mLastBatteryLevel));
-            if (mBatteryStyle == BATT_HIDDEN)
+            if (mBatteryStyle == BATTERY_HIDDEN)
                 v.setVisibility(View.GONE);
             else
                 v.setVisibility(View.VISIBLE);
@@ -176,15 +180,23 @@ public class BatteryController extends BroadcastReceiver {
                     .System.STATUSBAR_BATT_STYLE), false, this);
             mCr.registerContentObserver(Settings.System.getUriFor(Settings
                     .System.DISABLE_TOOLBOX), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(Settings
+                    .System.THEME_COMPATIBILITY_BATTERY), false, this);
         }
 
         @Override
-        public void onChange(boolean selfChange) {
-            if (Settings.System.getInt(mCr, Settings.System.DISABLE_TOOLBOX, 0) == 1) {
-                mBatteryStyle = BATT_STOCK;
-            } else {
+        public void onChange(boolean selfChange, Uri uri) {
+            if (uri == Settings.System.getUriFor(Settings.System.DISABLE_TOOLBOX)) {
+                mBatteryStyle = (Settings.System.getInt(mCr,
+                        Settings.System.DISABLE_TOOLBOX, 0) == 1) ?
+                        BATTERY_STOCK : Settings.System.getInt(mCr,
+                        Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT) ;
+            } else if (uri == Settings.System.getUriFor(Settings.System.STATUSBAR_BATT_STYLE)) {
                 mBatteryStyle = Settings.System.getInt(mCr,
-                    Settings.System.STATUSBAR_BATT_STYLE, BATT_PERCENT);
+                        Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT);
+            } else if (uri == Settings.System.getUriFor(Settings.System.THEME_COMPATIBILITY_BATTERY)) {
+                mThemeCompat = Settings.System.getInt(mCr,
+                        Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
             }
             batteryChange();
         }

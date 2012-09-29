@@ -2333,6 +2333,22 @@ public final class Settings {
 
         /* END Constants for Evervolv Toolbox */
 
+        /* START Constants for Theme compatibility */
+
+		/**
+		* Theme compatibility mode: Battery
+		* @hide
+		*/
+		public static final String THEME_COMPATIBILITY_BATTERY = "theme_compatibility_battery";
+
+		/**
+		* Theme compatibility mode: Four bar signal
+		* @hide
+		*/
+		public static final String THEME_COMPATIBILITY_SIGNAL = "theme_compatibility_signal";
+
+		/* END Constants for Theme compatibility */
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
