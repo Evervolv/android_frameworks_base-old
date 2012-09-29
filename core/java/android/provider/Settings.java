@@ -2420,6 +2420,22 @@ public final class Settings {
 
         /* END Constants for Evervolv Toolbox */
 
+        /* START Constants for Theme compatibility */
+
+		/**
+		* Theme compatibility mode: Battery
+		* @hide
+		*/
+		public static final String THEME_COMPATIBILITY_BATTERY = "theme_compatibility_battery";
+
+		/**
+		* Theme compatibility mode: Four bar signal
+		* @hide
+		*/
+		public static final String THEME_COMPATIBILITY_SIGNAL = "theme_compatibility_signal";
+
+		/* END Constants for Theme compatibility */
+
         /**
          * toggle to "fix" the following: (found in NotificationManagerService)
          *  new in 4.2: if there was supposed to be a sound and we're in vibrate mode,

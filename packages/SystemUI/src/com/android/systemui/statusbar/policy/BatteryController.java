@@ -57,6 +57,7 @@ public class BatteryController extends BroadcastReceiver {
     private static final int BATTERY_STOCK = 0;
     private static final int BATTERY_PERCENT = 1;
     private static final int BATTERY_HIDDEN = 2;
+    private boolean mThemeCompat;
     private boolean mDisableToolbox;
 
     public BatteryController(Context context) {
@@ -92,18 +93,8 @@ public class BatteryController extends BroadcastReceiver {
         final String action = intent.getAction();
         if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
             final int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            final int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS,
-                    BatteryManager.BATTERY_STATUS_UNKNOWN);
-
-            boolean plugged = false;
-            switch (status) {
-                case BatteryManager.BATTERY_STATUS_CHARGING: 
-                case BatteryManager.BATTERY_STATUS_FULL:
-                    plugged = true;
-                    break;
-            }
-
             final int icon;
+            final boolean plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
             mLastPluggedState = plugged;
             mLastBatteryLevel = level;
 
@@ -147,7 +138,7 @@ public class BatteryController extends BroadcastReceiver {
 
     private void batteryChange() {
         final int icon;
-        if (mBatteryStyle == BATTERY_PERCENT && !mDisableToolbox) {
+        if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat && !mDisableToolbox) {
             icon = mLastPluggedState ? R.drawable.stat_sys_battery_charge
                                      : R.drawable.stat_sys_battery_mod;
         } else {
@@ -188,24 +179,27 @@ public class BatteryController extends BroadcastReceiver {
                     .System.STATUSBAR_BATT_STYLE), false, this);
             mCr.registerContentObserver(Settings.System.getUriFor(Settings
                     .System.DISABLE_TOOLBOX), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(Settings
+                    .System.THEME_COMPATIBILITY_BATTERY), false, this);
         }
 
         @Override
-        public void onChange(boolean selfChange) {
+        public void onChange(boolean selfChange, Uri uri) {
             updateSettings();
             batteryChange();
         }
     }
-
     private void updateSettings() {
         mDisableToolbox = Settings.System.getInt(mCr,
                 Settings.System.DISABLE_TOOLBOX, 0) == 1;
         mBatteryStyle = Settings.System.getInt(mCr,
                 Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT);
+        mThemeCompat = Settings.System.getInt(mCr,
+                Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
         //Override the battery style if
         //a) Disable toolbox is enabled
-        //b) Theme compatiblity is disabled. TODO
-        if (mDisableToolbox) {
+        //b) Theme compatiblity is disabled.
+        if (!mThemeCompat || mDisableToolbox) {
             mBatteryStyle = BATTERY_STOCK;
         }
     }
