@@ -2060,6 +2060,11 @@ public final class Settings {
 
 		/* END Constants for Theme compatibility */
 
+        /** Sprint MWI Quirk: Show message wait indicator notifications
+         * @hide
+         */
+        public static final String ENABLE_MWI_NOTIFICATION = "enable_mwi_notification";
+
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
          * keys and easy to update.
