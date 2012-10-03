@@ -299,8 +299,11 @@
     <!-- Spoken description for ringer normal option. [CHAR LIMIT=NONE] -->
     <string name="silent_mode_ring">Ringer on</string>
 
+    <!-- Button to reboot the tablet, within the Tablet Options dialog -->
+    <string name="reboot_system" product="tablet">Reboot tablet</string>
+
     <!-- Button to reboot the phone, within the Phone Options dialog -->
-    <string name="reboot_system">Reboot phone</string>
+    <string name="reboot_system" product="default">Reboot phone</string>
 
     <!-- label for item that screenshots in phone options dialog -->
     <string name="global_action_screenshot">Screenshot</string>
