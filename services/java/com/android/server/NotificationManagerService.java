@@ -137,6 +137,7 @@ public class NotificationManagerService extends INotificationManager.Stub
 
     // for enabling and disabling notification pulse behavior
     private boolean mScreenOn = true;
+    private boolean mWasScreenOn = false;
     private boolean mInCall = false;
     private boolean mNotificationPulseEnabled;
 
@@ -548,6 +549,8 @@ public class NotificationManagerService extends INotificationManager.Stub
                 mScreenOn = true;
             } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                 mScreenOn = false;
+                mWasScreenOn = true;
+                updateLightsLocked();
             } else if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
                 mInCall = (intent.getStringExtra(TelephonyManager.EXTRA_STATE).equals(
                         TelephonyManager.EXTRA_STATE_OFFHOOK));
@@ -637,6 +640,9 @@ public class NotificationManagerService extends INotificationManager.Stub
         mContext.registerReceiver(mIntentReceiver, pkgFilter);
         IntentFilter sdFilter = new IntentFilter(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
         mContext.registerReceiver(mIntentReceiver, sdFilter);
+
+	SettingsObserver observer = new SettingsObserver(mHandler);
+	observer.observe();
 
         ThemeUtils.registerThemeChangeReceiver(mContext, mThemeChangeReceiver);
     }
@@ -1319,8 +1325,25 @@ public class NotificationManagerService extends INotificationManager.Stub
             }
         }
 
+        boolean wasScreenOn = mWasScreenOn;
+        mWasScreenOn = false;
+
+        if (mLedNotification == null) {
+            mNotificationLight.turnOff();
+            return;
+        }
+
+        // We can assume that if the user turned the screen off while there was
+        // still an active notification then they wanted to keep the notification
+        // for later. In this case we shouldn't flash the notification light.
+        // For special notifications that automatically turn the screen on (such
+        // as missed calls), we use this flag to force the notification light
+        // even if the screen was turned off.
+        boolean forceWithScreenOff = (mLedNotification.notification.flags &
+                Notification.FLAG_FORCE_LED_SCREEN_OFF) != 0;
+
         // Don't flash while we are in a call or screen is on
-        if (mLedNotification == null || mInCall || mScreenOn) {
+        if (mInCall || mScreenOn || (wasScreenOn && !forceWithScreenOff)) {
             mNotificationLight.turnOff();
         } else {
             int ledARGB = mLedNotification.notification.ledARGB;
