@@ -12,7 +12,11 @@ import static com.android.server.wm.WindowManagerService.LayoutFields.SET_FORCE_
 import static com.android.server.wm.WindowManagerService.H.SET_DIM_PARAMETERS;
 
 import android.content.Context;
+import android.database.ContentObserver;
+import android.os.Handler;
 import android.os.SystemClock;
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 import android.util.Slog;
 import android.view.Surface;
@@ -38,6 +42,9 @@ public class WindowAnimator {
     private static final int KEYGUARD_SHOWN         = 2;
     private static final int KEYGUARD_ANIMATING_OUT = 3;
     int mForceHiding;
+    boolean mTransparentLock;
+    boolean mDisableToolbox;
+    SettingsObserver mObserver = null;
 
     final WindowManagerService mService;
     final Context mContext;
@@ -89,6 +96,19 @@ public class WindowAnimator {
         mService = service;
         mContext = context;
         mPolicy = policy;
+
+        try {
+            mTransparentLock = (Settings.System.getInt(mContext
+                    .getContentResolver(), Settings.System
+                    .LOCKSCREEN_TRANSPARENT) == 1);
+            mDisableToolbox = (Settings.System.getInt(mContext
+                    .getContentResolver(), Settings.System
+                    .DISABLE_TOOLBOX) == 1);
+        } catch (SettingNotFoundException e) {
+            Log.e(TAG, "SettingNotFoundException:\n" + e.getStackTrace());
+        }
+        mObserver = new SettingsObserver(new Handler());
+        mObserver.observe();
     }
 
     void hideWallpapersLocked(final WindowState w) {
@@ -286,14 +306,18 @@ public class WindowAnimator {
                         mService.mFocusMayChange = true;
                     }
                     if (win.isReadyForDisplay()) {
-                        if (nowAnimating) {
-                            if (winAnimator.mAnimationIsEntrance) {
-                                mForceHiding = KEYGUARD_ANIMATING_IN;
-                            } else {
-                                mForceHiding = KEYGUARD_ANIMATING_OUT;
-                            }
+                        if (mTransparentLock && !mDisableToolbox) {
+                            mForceHiding = KEYGUARD_NOT_SHOWN;
                         } else {
-                            mForceHiding = KEYGUARD_SHOWN;
+                            if (nowAnimating) {
+                                if (winAnimator.mAnimationIsEntrance) {
+                                    mForceHiding = KEYGUARD_ANIMATING_IN;
+                                } else {
+                                    mForceHiding = KEYGUARD_ANIMATING_OUT;
+                                }
+                            } else {
+                                mForceHiding = KEYGUARD_SHOWN;
+                            }
                         }
                     }
                     if (WindowManagerService.DEBUG_VISIBILITY) Slog.v(TAG,
@@ -591,5 +615,32 @@ public class WindowAnimator {
 
     synchronized void clearPendingActions() {
         mPendingActions = 0;
+    }
+
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.LOCKSCREEN_TRANSPARENT), false, this);
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            try {
+                mTransparentLock = (Settings.System.getInt(mContext
+                        .getContentResolver(), Settings.System
+                        .LOCKSCREEN_TRANSPARENT) == 1);
+                mDisableToolbox = (Settings.System.getInt(mContext
+                        .getContentResolver(), Settings.System
+                        .DISABLE_TOOLBOX) == 1);
+            } catch (SettingNotFoundException e) {
+                Log.e(TAG, "SettingNotFoundException:\n" + e.getStackTrace());
+            }
+        }
     }
 }

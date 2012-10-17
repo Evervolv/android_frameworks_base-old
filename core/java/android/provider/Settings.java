@@ -2028,6 +2028,12 @@ public final class Settings {
         public static final String LOCKSCREEN_STYLE = "lockscreen_style";
 
         /**
+         * Toggle to use a transparent background on the lockscreen.
+         * @hide
+         */
+        public static final String LOCKSCREEN_TRANSPARENT = "lockscreen_transparent";
+
+        /**
          * Statusbar battery icon style options.
          * 0 - Stock
          * 1 - Stock w/ percentages

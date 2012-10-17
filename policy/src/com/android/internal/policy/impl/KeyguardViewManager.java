@@ -22,15 +22,20 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.PixelFormat;
 import android.graphics.Canvas;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemProperties;
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewManager;
 import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
 import android.widget.FrameLayout;
 
 import android.graphics.Color;
@@ -59,6 +64,10 @@ public class KeyguardViewManager implements KeyguardWindowController {
     private KeyguardViewBase mKeyguardView;
 
     private boolean mScreenOn = false;
+    private boolean mTransparentLock;
+    private boolean mDisableToolbox;
+    private boolean mUpdateKeyguardHost;
+    private SettingsObserver mObserver = null;
 
     public interface ShowListener {
         void onShown(IBinder windowToken);
@@ -78,6 +87,10 @@ public class KeyguardViewManager implements KeyguardWindowController {
         mKeyguardViewProperties = keyguardViewProperties;
 
         mUpdateMonitor = updateMonitor;
+
+        mUpdateKeyguardHost = true;
+        mObserver = new SettingsObserver(new Handler());
+        mObserver.observe();
     }
 
     /**
@@ -109,6 +122,7 @@ public class KeyguardViewManager implements KeyguardWindowController {
         boolean enableScreenRotation =
                 SystemProperties.getBoolean("lockscreen.rot_override",false)
                 || res.getBoolean(R.bool.config_enableLockScreenRotation);
+
         if (mKeyguardHost == null) {
             if (DEBUG) Log.d(TAG, "keyguard host is null, creating it...");
 
@@ -116,10 +130,10 @@ public class KeyguardViewManager implements KeyguardWindowController {
 
             final int stretch = ViewGroup.LayoutParams.MATCH_PARENT;
             int flags = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN
-                    | WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER
                     | WindowManager.LayoutParams.FLAG_SLIPPERY
                     /*| WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                     | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR*/ ;
+
             if (!mNeedsInput) {
                 flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
             }
@@ -143,6 +157,31 @@ public class KeyguardViewManager implements KeyguardWindowController {
             mWindowLayoutParams = lp;
 
             mViewManager.addView(mKeyguardHost, lp);
+        }
+
+        if (mUpdateKeyguardHost) {
+            try {
+                mTransparentLock = (Settings.System.getInt(mContext
+                        .getContentResolver(), Settings.System
+                        .LOCKSCREEN_TRANSPARENT) == 1);
+                mDisableToolbox= (Settings.System.getInt(mContext
+                        .getContentResolver(), Settings.System
+                        .DISABLE_TOOLBOX) == 1);
+            } catch (SettingNotFoundException e) {
+                Log.e(TAG, "SettingNotFoundException:\n" + e.getStackTrace());
+            }
+            WindowManager.LayoutParams lp = (LayoutParams) mKeyguardHost
+                    .getLayoutParams();
+            if (!mTransparentLock || mDisableToolbox) {
+                lp.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            } else {
+                if ((lp.flags & WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER)
+                        == WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER) {
+                    lp.flags ^= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+                }
+            }
+            mViewManager.updateViewLayout(mKeyguardHost, lp);
+            mUpdateKeyguardHost = false;
         }
 
         if (enableScreenRotation) {
@@ -307,5 +346,23 @@ public class KeyguardViewManager implements KeyguardWindowController {
      */
     public synchronized boolean isShowing() {
         return (mKeyguardHost != null && mKeyguardHost.getVisibility() == View.VISIBLE);
+    }
+
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.LOCKSCREEN_TRANSPARENT), false, this);
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            mUpdateKeyguardHost = true;
+        }
     }
 }
