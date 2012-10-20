@@ -35,6 +35,7 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.CustomTheme;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
@@ -43,12 +44,14 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.inputmethodservice.InputMethodService;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
@@ -237,6 +240,8 @@ public class PhoneStatusBar extends BaseStatusBar {
     CustomTheme mCurrentTheme;
     private boolean mRecreating = false;
 
+    SettingsObserver mObserver = null;
+
     private AnimatorSet mLightsOutAnimation;
     private AnimatorSet mLightsOnAnimation;
 
@@ -341,6 +346,9 @@ public class PhoneStatusBar extends BaseStatusBar {
     // ================================================================================
     protected PhoneStatusBarView makeStatusBarView() {
         final Context context = mContext;
+
+        mObserver = new SettingsObserver(new Handler());
+        mObserver.observe();
 
         Resources res = context.getResources();
 
@@ -563,7 +571,20 @@ public class PhoneStatusBar extends BaseStatusBar {
     }
 
     protected void updateRecentsPanel() {
-        super.updateRecentsPanel(R.layout.status_bar_recent_panel);
+        boolean useSenseView = false;
+        try {
+            useSenseView = (Settings.System.getInt(mContext
+                    .getContentResolver(), Settings.System.SENSE4_RECENT_APPS) == 1)
+                    && !(Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.DISABLE_TOOLBOX) == 1);
+        } catch (SettingNotFoundException e) {
+            //This will never occur.
+        }
+        if (useSenseView) {
+            super.updateRecentsPanel(R.layout.status_bar_recent_panel_sense4);
+        } else {
+            super.updateRecentsPanel(R.layout.status_bar_recent_panel);
+        }
         // Make .03 alpha the minimum so you always see the item a bit-- slightly below
         // .03, the item disappears entirely (as if alpha = 0) and that discontinuity looks
         // a bit jarring
@@ -2569,6 +2590,24 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         @Override
         public void setBounds(Rect bounds) {
+        }
+    }
+
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SENSE4_RECENT_APPS), false, this);
+            mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updateRecentsPanel();
         }
     }
 }

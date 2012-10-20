@@ -2048,6 +2048,12 @@ public final class Settings {
           */
           public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
 
+          /**
+           * Toggle to render the recent apps view resembling sense 4.0
+           * @hide
+           */
+           public static final String SENSE4_RECENT_APPS = "sense4_recent_apps";
+
         /* END Constants for Evervolv Toolbox */
 
         /* START Constants for Theme compatibility */
