@@ -50,6 +50,7 @@ public class BatteryController extends BroadcastReceiver {
     private static final int BATTERY_PERCENT = 1;
     private static final int BATTERY_HIDDEN = 2;
     private boolean mThemeCompat;
+    private boolean mDisableToolbox;
 
     public BatteryController(Context context) {
         mContext = context;
@@ -59,6 +60,8 @@ public class BatteryController extends BroadcastReceiver {
                 Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT);
         mThemeCompat = Settings.System.getInt(mCr,
                 Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
+        mDisableToolbox = Settings.System.getInt(mCr,
+                Settings.System.DISABLE_TOOLBOX, 1) == 1;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -87,7 +90,7 @@ public class BatteryController extends BroadcastReceiver {
             final boolean plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
             mLastPluggedState = plugged;
             mLastBatteryLevel = level;
-            if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat) {
+            if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat && !mDisableToolbox) {
                 icon = plugged ? R.drawable.stat_sys_battery_charge
                                          : R.drawable.stat_sys_battery_mod;
             } else {
@@ -123,7 +126,7 @@ public class BatteryController extends BroadcastReceiver {
 
     private void batteryChange() {
         final int icon;
-        if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat) {
+        if (mBatteryStyle == BATTERY_PERCENT && mThemeCompat && !mDisableToolbox) {
             icon = mLastPluggedState ? R.drawable.stat_sys_battery_charge
                                      : R.drawable.stat_sys_battery_mod;
         } else {
@@ -170,18 +173,12 @@ public class BatteryController extends BroadcastReceiver {
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            if (uri == Settings.System.getUriFor(Settings.System.DISABLE_TOOLBOX)) {
-                mBatteryStyle = (Settings.System.getInt(mCr,
-                        Settings.System.DISABLE_TOOLBOX, 0) == 1) ?
-                        BATTERY_STOCK : Settings.System.getInt(mCr,
-                        Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT) ;
-            } else if (uri == Settings.System.getUriFor(Settings.System.STATUSBAR_BATT_STYLE)) {
-                mBatteryStyle = Settings.System.getInt(mCr,
-                        Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT);
-            } else if (uri == Settings.System.getUriFor(Settings.System.THEME_COMPATIBILITY_BATTERY)) {
-                mThemeCompat = Settings.System.getInt(mCr,
-                        Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
-            }
+            mDisableToolbox = Settings.System.getInt(mCr,
+                    Settings.System.DISABLE_TOOLBOX, 1) == 1;
+            mBatteryStyle = Settings.System.getInt(mCr,
+                    Settings.System.STATUSBAR_BATT_STYLE, BATTERY_PERCENT);
+            mThemeCompat = Settings.System.getInt(mCr,
+                    Settings.System.THEME_COMPATIBILITY_BATTERY, 1) == 1;
             batteryChange();
         }
     }

@@ -54,6 +54,7 @@ import android.media.AudioManager;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -102,20 +103,16 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private MultiWaveView mMultiWaveSelector;
     private SlidingTab mSlidingTabSelector;
     private RotarySelector mRotarySelector;
-    
-    // Get the style from settings
-    private int mLockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
-            Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_JB);
-    
+
     private static final int LOCK_STYLE_JB = 0;    
     private static final int LOCK_STYLE_ICS = 1;
     private static final int LOCK_STYLE_GB = 2;
     private static final int LOCK_STYLE_ECLAIR = 3;
-    
-    private boolean mUseJbLockscreen = (mLockscreenStyle == LOCK_STYLE_JB);
-    private boolean mUseIcsLockscreen = (mLockscreenStyle == LOCK_STYLE_ICS);
-    private boolean mUseGbLockscreen = (mLockscreenStyle == LOCK_STYLE_GB);
-    private boolean mUseEclairLockscreen = (mLockscreenStyle == LOCK_STYLE_ECLAIR);
+
+    private boolean mUseJbLockscreen;
+    private boolean mUseIcsLockscreen;
+    private boolean mUseGbLockscreen;
+    private boolean mUseEclairLockscreen;
 
     InfoCallbackImpl mInfoCallback = new InfoCallbackImpl() {
 
@@ -655,6 +652,24 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mCallback = callback;
         mEnableMenuKeyInLockScreen = shouldEnableMenuKey();
         mCreationOrientation = configuration.orientation;
+
+        // Set our style from settings
+        try {
+            int lockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_JB);
+            boolean disableToolbox = (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.DISABLE_TOOLBOX) == 1);
+            if (disableToolbox) {
+                mUseJbLockscreen = true;
+            } else {
+                mUseJbLockscreen = (lockscreenStyle == LOCK_STYLE_JB);
+                mUseIcsLockscreen = (lockscreenStyle == LOCK_STYLE_ICS);
+                mUseGbLockscreen = (lockscreenStyle == LOCK_STYLE_GB);
+                mUseEclairLockscreen = (lockscreenStyle == LOCK_STYLE_ECLAIR);
+            }
+        } catch (SettingNotFoundException e) {
+            //This will never occur
+        }
 
         if (LockPatternKeyguardView.DEBUG_CONFIGURATION) {
             Log.v(TAG, "***** CREATING LOCK SCREEN", new RuntimeException());
