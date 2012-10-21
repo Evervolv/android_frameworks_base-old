@@ -2056,16 +2056,26 @@ public final class Settings {
         public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
 
         /**
-          * Statusbar toggle for 6 bar signal strength.
-          * @hide
-          */
-          public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
+        * Statusbar toggle for 6 bar signal strength.
+        * @hide
+        */
+        public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
 
-          /**
-           * Toggle to render the recent apps view resembling sense 4.0
-           * @hide
-           */
-           public static final String SENSE4_RECENT_APPS = "sense4_recent_apps";
+        /**
+         * Toggle to render the recent apps view resembling sense 4.0
+         * @hide
+         */
+        public static final String SENSE4_RECENT_APPS = "sense4_recent_apps";
+
+        /**
+         * Show or hide power menu options
+         * 1 = hide reboot menu
+         * 2 = hide screenshot option
+         * 4 = hide sound toggle
+         * 8 = hide airplane mode toggle
+         * @hide
+         */
+        public static final String HIDDEN_POWER_MENU_OPTIONS = "hidden_power_menu_options";
 
         /* END Constants for Evervolv Toolbox */
 
