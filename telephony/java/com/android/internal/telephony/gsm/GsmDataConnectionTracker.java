@@ -1570,6 +1570,8 @@ public final class GsmDataConnectionTracker extends DataConnectionTracker {
             putRecoveryAction(RecoveryAction.GET_DATA_CALL_LIST);
         } else {
             if (VDBG) log("updateDataStallInfo: NONE");
+            //This is just a hack to get data connection up again, proper way would be to actually trigger recovery
+            mPhone.mCM.getDataCallList(this.obtainMessage(EVENT_DATA_STATE_CHANGED));
         }
     }
 
