@@ -2296,10 +2296,20 @@ public final class Settings {
         public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
 
         /**
-          * Statusbar toggle for 6 bar signal strength.
-          * @hide
-          */
-          public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
+         * Statusbar toggle for 6 bar signal strength.
+         * @hide
+         */
+        public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
+
+        /**
+         * Show or hide power menu options
+         * 1 = hide reboot menu
+         * 2 = hide screenshot option
+         * 4 = hide sound toggle
+         * 8 = hide airplane mode toggle
+         * @hide
+         */
+        public static final String HIDDEN_POWER_MENU_OPTIONS = "hidden_power_menu_options";
 
         /* END Constants for Evervolv Toolbox */
 

@@ -114,6 +114,13 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
     private boolean mHasTelephony;
     private boolean mHasVibrator;
     private boolean mDisableToolbox;
+    private int mHiddenMenuOptions;
+
+    private static final int HIDE_REBOOT = 1;
+    private static final int HIDE_SCREENSHOT = 2;
+    private static final int HIDE_SOUND = 4;
+    private static final int HIDE_AIRPLANE = 8;
+
 
     /**
      * @param context everything needs a context :(
@@ -145,7 +152,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         Vibrator vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mHasVibrator = vibrator != null && vibrator.hasVibrator();
 
-        checkToolboxState();
+        checkSettings();
     }
 
     /**
@@ -179,7 +186,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private void handleShow() {
         awakenIfNecessary();
-        checkToolboxState();
+        checkSettings();
+
         mDialog = createDialog();
         prepareDialog();
 
@@ -265,7 +273,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                     return true;
                 }
             });
-        if (!mDisableToolbox) {
+        if (!mDisableToolbox && (mHiddenMenuOptions & HIDE_REBOOT) != HIDE_REBOOT) {
             // next: reboot
             mItems.add(
                 new SinglePressAction(
@@ -288,7 +296,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                         return true;
                     }
                 });
-
+        }
+        if (!mDisableToolbox && (mHiddenMenuOptions & HIDE_SCREENSHOT) != HIDE_SCREENSHOT) { 
             // next: screenshot
             mItems.add(
                 new SinglePressAction(
@@ -309,7 +318,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
 
         // next: airplane mode
-        mItems.add(mAirplaneModeOn);
+        if ((mHiddenMenuOptions & HIDE_AIRPLANE) != HIDE_AIRPLANE) { 
+            mItems.add(mAirplaneModeOn);
+        }
 
         // next: bug report, if enabled
         if (Settings.Secure.getInt(mContext.getContentResolver(),
@@ -361,7 +372,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
 
         // last: silent mode
-        if (SHOW_SILENT_TOGGLE) {
+        if (SHOW_SILENT_TOGGLE && (mHiddenMenuOptions & HIDE_SOUND) != HIDE_SOUND) {
             mItems.add(mSilentModeAction);
         }
 
@@ -524,7 +535,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         mAirplaneModeOn.updateState(mAirplaneState);
         mAdapter.notifyDataSetChanged();
         mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
-        if (SHOW_SILENT_TOGGLE) {
+        if (SHOW_SILENT_TOGGLE && (mHiddenMenuOptions & HIDE_SOUND) != HIDE_SOUND) {
             IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
             mContext.registerReceiver(mRingerModeReceiver, filter);
         }
@@ -541,7 +552,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     /** {@inheritDoc} */
     public void onDismiss(DialogInterface dialog) {
-        if (SHOW_SILENT_TOGGLE) {
+        if (SHOW_SILENT_TOGGLE && (mHiddenMenuOptions & HIDE_SOUND) != HIDE_SOUND) {
             mContext.unregisterReceiver(mRingerModeReceiver);
         }
     }
@@ -1046,11 +1057,11 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
         }
     }
 
-    private void checkToolboxState() {
-        mDisableToolbox = Settings.System.getInt(
-                mContext.getContentResolver(),
-                Settings.System.DISABLE_TOOLBOX,
-                0) == 1;
+    private void checkSettings() {
+        mDisableToolbox = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1;
+        mHiddenMenuOptions = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.HIDDEN_POWER_MENU_OPTIONS, 0);
     }
 
     private static final class GlobalActionsDialog extends Dialog implements DialogInterface {
