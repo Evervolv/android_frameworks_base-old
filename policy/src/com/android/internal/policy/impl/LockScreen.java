@@ -109,10 +109,8 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
     private static final int LOCK_STYLE_GB = 2;
     private static final int LOCK_STYLE_ECLAIR = 3;
 
-    private boolean mUseJbLockscreen;
-    private boolean mUseIcsLockscreen;
-    private boolean mUseGbLockscreen;
-    private boolean mUseEclairLockscreen;
+    private int mLockscreenStyle;
+    private boolean mDisableToolbox;
 
     InfoCallbackImpl mInfoCallback = new InfoCallbackImpl() {
 
@@ -653,24 +651,6 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mEnableMenuKeyInLockScreen = shouldEnableMenuKey();
         mCreationOrientation = configuration.orientation;
 
-        // Set our style from settings
-        try {
-            int lockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_JB);
-            boolean disableToolbox = (Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.DISABLE_TOOLBOX) == 1);
-            if (disableToolbox) {
-                mUseJbLockscreen = true;
-            } else {
-                mUseJbLockscreen = (lockscreenStyle == LOCK_STYLE_JB);
-                mUseIcsLockscreen = (lockscreenStyle == LOCK_STYLE_ICS);
-                mUseGbLockscreen = (lockscreenStyle == LOCK_STYLE_GB);
-                mUseEclairLockscreen = (lockscreenStyle == LOCK_STYLE_ECLAIR);
-            }
-        } catch (SettingNotFoundException e) {
-            //This will never occur
-        }
-
         if (LockPatternKeyguardView.DEBUG_CONFIGURATION) {
             Log.v(TAG, "***** CREATING LOCK SCREEN", new RuntimeException());
             Log.v(TAG, "Cur orient=" + mCreationOrientation
@@ -704,30 +684,46 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mSlidingTabSelector = (SlidingTab) findViewById(R.id.tab_widget);
         mRotarySelector = (RotarySelector) findViewById(R.id.rotary_widget);
 
-        if (mUseJbLockscreen) {
-            mGlowPadSelector.setVisibility(View.VISIBLE);
-            mMultiWaveSelector.setVisibility(View.GONE);
-            mSlidingTabSelector.setVisibility(View.GONE);
-            mRotarySelector.setVisibility(View.GONE);
-            mUnlockWidget = mGlowPadSelector;
-        } else if (mUseIcsLockscreen) {
-            mMultiWaveSelector.setVisibility(View.VISIBLE);
-            mGlowPadSelector.setVisibility(View.GONE);
-            mSlidingTabSelector.setVisibility(View.GONE);
-            mRotarySelector.setVisibility(View.GONE);
-            mUnlockWidget = mMultiWaveSelector;
-        } else if (mUseGbLockscreen) {
-            mMultiWaveSelector.setVisibility(View.GONE);
-            mGlowPadSelector.setVisibility(View.GONE);
-            mSlidingTabSelector.setVisibility(View.VISIBLE);
-            mRotarySelector.setVisibility(View.GONE);
-            mUnlockWidget = mSlidingTabSelector;
-        } else if (mUseEclairLockscreen) {
-            mMultiWaveSelector.setVisibility(View.GONE);
-            mGlowPadSelector.setVisibility(View.GONE);
-            mSlidingTabSelector.setVisibility(View.GONE);
-            mRotarySelector.setVisibility(View.VISIBLE);
-            mUnlockWidget = mRotarySelector;
+        // Set our style from settings
+        try {
+            mLockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_JB);
+            mDisableToolbox = (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.DISABLE_TOOLBOX) == 1);
+        } catch (SettingNotFoundException e) {
+            //This will never occur
+        }
+
+        if (mDisableToolbox) {
+            mLockscreenStyle = LOCK_STYLE_JB;
+        }
+
+        switch (mLockscreenStyle) {
+            case LOCK_STYLE_JB:
+                mGlowPadSelector.setVisibility(View.VISIBLE);
+                mMultiWaveSelector.setVisibility(View.GONE);
+                mSlidingTabSelector.setVisibility(View.GONE);
+                mRotarySelector.setVisibility(View.GONE);
+                mUnlockWidget = mGlowPadSelector;
+                break;
+            case LOCK_STYLE_ICS:
+                mMultiWaveSelector.setVisibility(View.VISIBLE);
+                mGlowPadSelector.setVisibility(View.GONE);
+                mSlidingTabSelector.setVisibility(View.GONE);
+                mRotarySelector.setVisibility(View.GONE);
+                mUnlockWidget = mMultiWaveSelector;
+            case LOCK_STYLE_GB:
+                mMultiWaveSelector.setVisibility(View.GONE);
+                mGlowPadSelector.setVisibility(View.GONE);
+                mSlidingTabSelector.setVisibility(View.VISIBLE);
+                mRotarySelector.setVisibility(View.GONE);
+                mUnlockWidget = mSlidingTabSelector;
+            case LOCK_STYLE_ECLAIR:
+                mMultiWaveSelector.setVisibility(View.GONE);
+                mGlowPadSelector.setVisibility(View.GONE);
+                mSlidingTabSelector.setVisibility(View.GONE);
+                mRotarySelector.setVisibility(View.VISIBLE);
+                mUnlockWidget = mRotarySelector;
         }
 
         mUnlockWidgetMethods = createUnlockMethods(mUnlockWidget);
