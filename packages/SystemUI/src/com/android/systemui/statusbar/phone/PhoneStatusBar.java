@@ -571,15 +571,10 @@ public class PhoneStatusBar extends BaseStatusBar {
     }
 
     protected void updateRecentsPanel() {
-        boolean useSenseView = false;
-        try {
-            useSenseView = (Settings.System.getInt(mContext
-                    .getContentResolver(), Settings.System.SENSE4_RECENT_APPS) == 1)
-                    && !(Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.DISABLE_TOOLBOX) == 1);
-        } catch (SettingNotFoundException e) {
-            //This will never occur.
-        }
+        boolean useSenseView = (Settings.System.getInt(mContext
+                .getContentResolver(), Settings.System.SENSE4_RECENT_APPS, 0) == 1)
+                && !(Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1);
         if (useSenseView) {
             super.updateRecentsPanel(R.layout.status_bar_recent_panel_sense4);
         } else {

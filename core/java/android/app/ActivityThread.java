@@ -2837,15 +2837,10 @@ public final class ActivityThread {
         Bitmap thumbnail = mAvailThumbnailBitmap;
 
         Context context = getSystemContext();
-        boolean useSenseView = false;
-        try {
-            useSenseView = (Settings.System.getInt(context.getContentResolver(),
-                    Settings.System.SENSE4_RECENT_APPS) == 1)
-                    && !(Settings.System.getInt(context.getContentResolver(),
-                    Settings.System.DISABLE_TOOLBOX) == 1);
-        } catch (SettingNotFoundException e) {
-            //This will never occur.
-        }
+        boolean useSenseView = (Settings.System.getInt(context.getContentResolver(),
+                Settings.System.SENSE4_RECENT_APPS, 0) == 1)
+                && !(Settings.System.getInt(context.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1);
 
         try {
             if (thumbnail == null) {

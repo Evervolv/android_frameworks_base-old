@@ -684,15 +684,10 @@ class LockScreen extends LinearLayout implements KeyguardScreen {
         mSlidingTabSelector = (SlidingTab) findViewById(R.id.tab_widget);
         mRotarySelector = (RotarySelector) findViewById(R.id.rotary_widget);
 
-        // Set our style from settings
-        try {
-            mLockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_JB);
-            mDisableToolbox = (Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.DISABLE_TOOLBOX) == 1);
-        } catch (SettingNotFoundException e) {
-            //This will never occur
-        }
+        mLockscreenStyle = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.LOCKSCREEN_STYLE, LOCK_STYLE_JB);
+        mDisableToolbox = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1);
 
         if (mDisableToolbox) {
             mLockscreenStyle = LOCK_STYLE_JB;

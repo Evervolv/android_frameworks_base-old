@@ -240,14 +240,10 @@ public class RecentsPanelView extends FrameLayout implements OnItemClickListener
         super(context, attrs, defStyle);
         mContext = context;
 
-        try {
-            mUseSenseView = (Settings.System.getInt(mContext
-                    .getContentResolver(), Settings.System.SENSE4_RECENT_APPS) == 1)
-                    && !(Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.DISABLE_TOOLBOX) == 1);
-        } catch (SettingNotFoundException e) {
-            //This will never occur.
-        }
+        mUseSenseView = (Settings.System.getInt(mContext
+                .getContentResolver(), Settings.System.SENSE4_RECENT_APPS, 0) == 1)
+                && !(Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1);
         updateValuesFromResources();
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RecentsPanelView,

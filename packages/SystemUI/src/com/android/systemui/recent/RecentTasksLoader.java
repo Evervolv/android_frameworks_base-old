@@ -65,15 +65,10 @@ public class RecentTasksLoader {
     public RecentTasksLoader(Context context) {
         mContext = context;
 
-        boolean useSenseView = false;
-        try {
-            useSenseView = (Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.SENSE4_RECENT_APPS) == 1)
-                    && !(Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.DISABLE_TOOLBOX) == 1);
-        } catch (SettingNotFoundException e) {
-            //This will never occur.
-        }
+        boolean useSenseView = (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.SENSE4_RECENT_APPS, 0) == 1)
+                && !(Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1);
 
         final Resources res = context.getResources();
 
