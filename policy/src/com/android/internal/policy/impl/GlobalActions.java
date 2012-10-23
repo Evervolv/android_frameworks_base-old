@@ -104,6 +104,7 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private boolean mDisableToolbox;
     private int mHiddenMenuOptions;
+    private int mScreenshotDelay;
 
     private static final int HIDE_REBOOT = 1;
     private static final int HIDE_SCREENSHOT = 2;
@@ -431,9 +432,9 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                             msg.arg2 = 1;
                          */
 
-                        /* wait for the dialog box to close */
+                        /* User definable delay, mScreenshotDelay = 1 by default */
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(mScreenshotDelay * 1000);
                         } catch (InterruptedException ie) {
                         }
 
@@ -982,6 +983,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
                 Settings.System.DISABLE_TOOLBOX, 0) == 1;
         mHiddenMenuOptions = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.HIDDEN_POWER_MENU_OPTIONS, 0);
+        mScreenshotDelay = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.POWER_MENU_SCREENSHOT_DELAY, 1);
     }
 
     private IWindowManager getWindowManager() {
