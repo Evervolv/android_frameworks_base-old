@@ -57,6 +57,7 @@ import android.os.SystemProperties;
 import android.os.UEventObserver;
 import android.os.Vibrator;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 
 import com.android.internal.R;
 import com.android.internal.policy.PolicyManager;
@@ -520,6 +521,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private boolean mPowerKeyTriggered;
     private long mPowerKeyTime;
 
+    private boolean mTabletMode;
+
     ShortcutManager mShortcutManager;
     PowerManager.WakeLock mBroadcastWakeLock;
     boolean mHavePendingMediaKeyRepeatWithWakeLock;
@@ -587,6 +590,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.ACCELEROMETER_ROTATION_ANGLES), false, this);
             resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.SCREENSAVER_ENABLED), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.TABLET_MODE), false, this);
             if (SEPARATE_TIMEOUT_FOR_SCREEN_SAVER) {
                 resolver.registerContentObserver(Settings.Secure.getUriFor(
                         "screensaver_timeout"), false, this);
@@ -1079,24 +1084,36 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mContext.getResources().getDimensionPixelSize(
                         com.android.internal.R.dimen.navigation_bar_width);
 
-        // SystemUI (status bar) layout policy
         int shortSizeDp = shortSize
-                * DisplayMetrics.DENSITY_DEFAULT
-                / DisplayMetrics.DENSITY_DEVICE;
+              * DisplayMetrics.DENSITY_DEFAULT
+              / DisplayMetrics.DENSITY_DEVICE;
 
-        if (shortSizeDp < 600) {
-            // 0-599dp: "phone" UI with a separate status & navigation bar
-            mHasSystemNavBar = false;
-            mNavigationBarCanMove = true;
-        } else if (shortSizeDp < 720) {
-            // 600-719dp: "phone" UI with modifications for larger screens
-            mHasSystemNavBar = false;
-            mNavigationBarCanMove = false;
+        // Tablet Mode Toolbox option
+        boolean mTabletMode = (mDisableToolbox ? false : Settings.System.getInt(mContext
+                  .getContentResolver(), Settings.System.TABLET_MODE, 0) == 1);
+        Log.d("EVCHANGES", "mDisableToolbox: " + mDisableToolbox);
+
+        // SystemUI (status bar) layout policy
+        if (!mTabletMode) {
+            if (shortSizeDp < 600) {
+                // 0-599dp: "phone" UI with a separate status & navigation bar
+                mHasSystemNavBar = false;
+                mNavigationBarCanMove = true;
+            } else if (shortSizeDp < 720) {
+                // 600-719dp: "phone" UI with modifications for larger screens
+                mHasSystemNavBar = false;
+                mNavigationBarCanMove = false;
+            } else {
+                // 720dp: "tablet" UI with a single combined status & navigation bar
+                mHasSystemNavBar = true;
+                mNavigationBarCanMove = false;
+            }
         } else {
-            // 720dp: "tablet" UI with a single combined status & navigation bar
+            // Forced "tablet" UI via setting
             mHasSystemNavBar = true;
             mNavigationBarCanMove = false;
         }
+
 
         if (!mHasSystemNavBar) {
             mHasNavigationBar = mContext.getResources().getBoolean(
@@ -1300,7 +1317,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     /** {@inheritDoc} */
     public int checkAddPermission(WindowManager.LayoutParams attrs) {
         int type = attrs.type;
-        
+
         if (type < WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW
                 || type > WindowManager.LayoutParams.LAST_SYSTEM_WINDOW) {
             return WindowManagerImpl.ADD_OKAY;
@@ -4645,4 +4662,5 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         pw.print(prefix); pw.print("mPortraitRotation="); pw.print(mPortraitRotation);
                 pw.print(" mUpsideDownRotation="); pw.println(mUpsideDownRotation);
     }
+
 }

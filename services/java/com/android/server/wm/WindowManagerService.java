@@ -94,6 +94,7 @@ import android.os.SystemProperties;
 import android.os.TokenWatcher;
 import android.os.Trace;
 import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import android.util.DisplayMetrics;
 import android.util.EventLog;
 import android.util.FloatMath;
@@ -6422,7 +6423,17 @@ public class WindowManagerService extends IWindowManager.Stub
         sl = reduceConfigLayout(sl, Surface.ROTATION_90, density, unrotDh, unrotDw);
         sl = reduceConfigLayout(sl, Surface.ROTATION_180, density, unrotDw, unrotDh);
         sl = reduceConfigLayout(sl, Surface.ROTATION_270, density, unrotDh, unrotDw);
-        outConfig.smallestScreenWidthDp = (int)(mSmallestDisplayWidth / density);
+
+        // Force tablet mode setting
+        boolean useTabletMode = (Settings.System.getInt(mContext
+                  .getContentResolver(), Settings.System.TABLET_MODE, 0) == 1)
+                  && !(Settings.System.getInt(mContext.getContentResolver(),
+                  Settings.System.DISABLE_TOOLBOX, 0) == 1);
+        if (useTabletMode) {
+            outConfig.smallestScreenWidthDp = 721;
+        } else {
+            outConfig.smallestScreenWidthDp = (int)(mSmallestDisplayWidth / density);
+        }
         outConfig.screenLayout = sl;
     }
 

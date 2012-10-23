@@ -2084,6 +2084,12 @@ public final class Settings {
          */
         public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
 
+        /**
+         * Toggle tablet/phablet mode
+         * @hide
+         */
+        public static final String TABLET_MODE = "tablet_mode";
+
         /* END Constants for Evervolv Toolbox */
 
         /* START Constants for Theme compatibility */
