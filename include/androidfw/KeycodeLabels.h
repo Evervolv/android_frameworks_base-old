@@ -246,6 +246,8 @@ static const KeycodeLabel KEYCODES[] = {
     { "ASSIST", 219 },
     { "BRIGHTNESS_DOWN", 220 },
     { "BRIGHTNESS_UP", 221 },
+    { "QUECHAR", 222 },
+    { "FUNC_3", 223 },
 
     // NOTE: If you add a new keycode here you must also add it to several other files.
     //       Refer to frameworks/base/core/java/android/view/KeyEvent.java for the full list.

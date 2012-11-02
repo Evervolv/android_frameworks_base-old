@@ -630,6 +630,12 @@ public class KeyEvent extends InputEvent implements Parcelable {
      * Adjusts the screen brightness up. */
     public static final int KEYCODE_BRIGHTNESS_UP   = 221;
 
+    /** @hide */
+    public static final int KEYCODE_QUECHAR         = 222;
+
+    /** @hide */
+    public static final int KEYCODE_FUNC_3         = 223;
+
     private static final int LAST_KEYCODE           = KEYCODE_BRIGHTNESS_UP;
 
     // NOTE: If you add a new keycode here you must also add it to:
@@ -874,6 +880,8 @@ public class KeyEvent extends InputEvent implements Parcelable {
         names.append(KEYCODE_ASSIST, "KEYCODE_ASSIST");
         names.append(KEYCODE_BRIGHTNESS_DOWN, "KEYCODE_BRIGHTNESS_DOWN");
         names.append(KEYCODE_BRIGHTNESS_UP, "KEYCODE_BRIGHTNESS_UP");
+        names.append(KEYCODE_QUECHAR, "KEYCODE_QUECHAR");
+        names.append(KEYCODE_FUNC_3, "KEYCODE_FUNC_3");
     };
 
     // Symbolic names of all metakeys in bit order from least significant to most significant.

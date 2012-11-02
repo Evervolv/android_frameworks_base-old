@@ -18,6 +18,7 @@ package android.text.method;
 
 import android.text.*;
 import android.text.method.TextKeyListener.Capitalize;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -130,6 +131,17 @@ public class QwertyKeyListener extends BaseKeyListener {
                                     KeyCharacterMap.PICKER_DIALOG_INPUT, true, 1);
             }
             resetMetaState(content);
+            return true;
+        }
+
+        if (i == KeyCharacterMap.DOT_WWW_INPUT || i == KeyCharacterMap.DOT_COM_INPUT) {
+            content.replace(selStart, selEnd, selStart == 0 ? "www." : ".com");
+            adjustMetaAfterKeypress(content);
+            return true;
+        }
+        if (i == KeyCharacterMap.SMILEY_INPUT) {
+            content.replace(selStart, selEnd, ":-)");
+            adjustMetaAfterKeypress(content);
             return true;
         }
 
