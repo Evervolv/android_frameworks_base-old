@@ -624,6 +624,16 @@ public class KeyEvent extends InputEvent implements Parcelable {
      * Launches the global assist activity.  Not delivered to applications. */
     public static final int KEYCODE_ASSIST          = 219;
 
+    /**
+     * @hide
+     */
+    public static final int KEYCODE_QUECHAR         = 220;
+
+    /**
+     * @hide
+     */
+    public static final int KEYCODE_FUNC_3         = 221;
+
     private static final int LAST_KEYCODE           = KEYCODE_ASSIST;
 
     // NOTE: If you add a new keycode here you must also add it to:
@@ -866,6 +876,8 @@ public class KeyEvent extends InputEvent implements Parcelable {
         names.append(KEYCODE_RO, "KEYCODE_RO");
         names.append(KEYCODE_KANA, "KEYCODE_KANA");
         names.append(KEYCODE_ASSIST, "KEYCODE_ASSIST");
+        names.append(KEYCODE_QUECHAR, "KEYCODE_QUECHAR");
+        names.append(KEYCODE_FUNC_3, "KEYCODE_FUNC_3");
     };
 
     // Symbolic names of all metakeys in bit order from least significant to most significant.
