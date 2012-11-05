@@ -48,13 +48,13 @@
 
         <com.android.systemui.recent.RecentsHorizontalScrollView
 	        android:id="@+id/recents_container"
-	        android:layout_gravity="bottom|left|center"
+            android:layout_gravity="center"
 	        android:scrollbars="none"
 	        android:fadingEdge="none"
 	        android:fadingEdgeLength="0.0dip"
 	        android:clipChildren="false"
 	        android:clipToPadding="false"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_marginRight="0.0dip"
 	        android:stackFromBottom="true"
