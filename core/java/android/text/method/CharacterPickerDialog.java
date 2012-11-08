@@ -69,6 +69,7 @@ public class CharacterPickerDialog extends Dialog
      * Creates a new CharacterPickerDialog that presents the specified
      * <code>options</code> for insertion or replacement (depending on
      * the sense of <code>insert</code>) into <code>text</code>.
+     * @hide
      */
     public CharacterPickerDialog(Context context, View view,
                                  Editable text, String[] options,
