@@ -3464,8 +3464,10 @@ public final class Settings {
          */
         public static final String NSD_ON = "nsd_on";
 
+        /**
          * Whether the Wimax should be on.  Only the WiMAX service should touch this.
          * @hide
+         */
         public static final String WIMAX_ON = "wimax_on";
 
         /**
