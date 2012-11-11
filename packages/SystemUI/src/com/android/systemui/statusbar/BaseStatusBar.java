@@ -35,6 +35,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.storage.StorageManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -115,6 +116,9 @@ public abstract class BaseStatusBar extends SystemUI implements
 
     protected PopupMenu mNotificationBlamePopup;
 
+    // storage
+    private StorageManager mStorageManager;
+
     // UI-specific methods
 
     /**
@@ -192,6 +196,11 @@ public abstract class BaseStatusBar extends SystemUI implements
         mContext.getContentResolver().registerContentObserver(
                 Settings.Secure.getUriFor(Settings.Secure.DEVICE_PROVISIONED), true,
                 mProvisioningObserver);
+
+        // storage
+        mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        mStorageManager.registerListener(
+                new com.android.systemui.usb.StorageNotification(mContext));
 
         mWindowManager = IWindowManager.Stub.asInterface(
                 ServiceManager.getService(Context.WINDOW_SERVICE));

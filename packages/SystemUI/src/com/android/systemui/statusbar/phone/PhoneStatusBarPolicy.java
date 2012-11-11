@@ -30,7 +30,6 @@ import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.RemoteException;
-import android.os.storage.StorageManager;
 import android.provider.Settings;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
@@ -69,9 +68,6 @@ public class PhoneStatusBarPolicy {
     private final Context mContext;
     private final StatusBarManager mService;
     private final Handler mHandler = new Handler();
-
-    // storage
-    private StorageManager mStorageManager;
 
 
     // Assume it's all good unless we hear otherwise.  We don't always seem
@@ -148,11 +144,6 @@ public class PhoneStatusBarPolicy {
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         filter.addAction(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
         mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
-
-        // storage
-        mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
-        mStorageManager.registerListener(
-                new com.android.systemui.usb.StorageNotification(context));
 
         // TTY status
         mService.setIcon("tty",  R.drawable.stat_sys_tty_mode, 0, null);
