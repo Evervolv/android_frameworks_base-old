@@ -16,5 +16,5 @@
 
 $(call inherit-product, frameworks/base/data/sounds/AudioPackageElements.mk)
 $(call inherit-product, frameworks/base/data/sounds/AudioPackageStars.mk)
-$(call inherit-product, frameworks/base/data/sounds/AudioPackageNewWave.mk)
+#$(call inherit-product, frameworks/base/data/sounds/AudioPackageNewWave.mk)
 #$(call inherit-product, frameworks/base/data/sounds/OldAudio.mk)
