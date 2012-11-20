@@ -16,9 +16,11 @@
 
 package com.android.server;
 
+import com.android.internal.app.ThemeUtils;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -79,20 +81,19 @@ public class DeviceStorageMonitorService extends Binder {
     private static final int DEFAULT_FREE_STORAGE_LOG_INTERVAL_IN_MINUTES = 12*60; //in minutes
     private static final long DEFAULT_DISK_FREE_CHANGE_REPORTING_THRESHOLD = 2 * 1024 * 1024; // 2MB
     private static final long DEFAULT_CHECK_INTERVAL = MONITOR_INTERVAL*60*1000;
-
-    private long mFreeMem;  // on /data
-    private long mFreeMemAfterLastCacheClear;  // on /data
+    private long mFreeMem;  // on /data/data
+    private long mFreeMemAfterLastCacheClear;  // on /data/data
     private long mLastReportedFreeMem;
     private long mLastReportedFreeMemTime;
     private boolean mLowMemFlag=false;
     private boolean mMemFullFlag=false;
     private Context mContext;
+    private Context mUiContext;
     private ContentResolver mResolver;
-    private long mTotalMemory;  // on /data
+    private long mTotalMemory;  // on /data/data
     private StatFs mDataFileStats;
     private StatFs mSystemFileStats;
     private StatFs mCacheFileStats;
-
     private static final File DATA_PATH = Environment.getDataDirectory();
     private static final File SYSTEM_PATH = Environment.getRootDirectory();
     private static final File CACHE_PATH = Environment.getDownloadCacheDirectory();
@@ -316,6 +317,14 @@ public class DeviceStorageMonitorService extends Binder {
         mLastReportedFreeMemTime = 0;
         mContext = context;
         mResolver = mContext.getContentResolver();
+
+        ThemeUtils.registerThemeChangeReceiver(mContext, new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context content, Intent intent) {
+                mUiContext = null;
+            }
+        });
+
         //create StatFs object
         mDataFileStats = new StatFs(DATA_PATH.getAbsolutePath());
         mSystemFileStats = new StatFs(SYSTEM_PATH.getAbsolutePath());
@@ -375,7 +384,7 @@ public class DeviceStorageMonitorService extends Binder {
         notification.icon = com.android.internal.R.drawable.stat_notify_disk_full;
         notification.tickerText = title;
         notification.flags |= Notification.FLAG_NO_CLEAR;
-        notification.setLatestEventInfo(mContext, title, details, intent);
+        notification.setLatestEventInfo(getUiContext(), title, details, intent);
         mNotificationMgr.notifyAsUser(null, LOW_MEMORY_NOTIFICATION_ID, notification,
                 UserHandle.ALL);
         mContext.sendStickyBroadcastAsUser(mStorageLowIntent, UserHandle.ALL);
@@ -487,5 +496,12 @@ public class DeviceStorageMonitorService extends Binder {
                 pw.print(Formatter.formatFileSize(mContext, mMemCacheStartTrimThreshold));
                 pw.print(" mMemCacheTrimToThreshold=");
                 pw.println(Formatter.formatFileSize(mContext, mMemCacheTrimToThreshold));
+    }
+
+    private Context getUiContext() {
+        if (mUiContext == null) {
+            mUiContext = ThemeUtils.createUiContext(mContext);
+        }
+        return mUiContext != null ? mUiContext : mContext;
     }
 }
