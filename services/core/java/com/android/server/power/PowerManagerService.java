@@ -110,6 +110,8 @@ import com.android.server.power.batterysaver.BatterySaverPolicy;
 import com.android.server.power.batterysaver.BatterySaverStateMachine;
 import com.android.server.power.batterysaver.BatterySavingStats;
 
+import com.evervolv.internal.buttons.ButtonManager;
+
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
@@ -267,6 +269,7 @@ public final class PowerManagerService extends SystemService
     private SettingsObserver mSettingsObserver;
     private DreamManagerInternal mDreamManager;
     private LogicalLight mAttentionLight;
+    private LogicalLight mButtonsLight;
 
     private InattentiveSleepWarningController mInattentiveSleepWarningOverlayController;
     private final AmbientDisplaySuppressionController mAmbientDisplaySuppressionController;
@@ -585,6 +588,10 @@ public final class PowerManagerService extends SystemService
     // Transition to Doze is in progress.  We have transitioned to WAKEFULNESS_DOZING,
     // but the DreamService has not yet been told to start (it's an async process).
     private boolean mDozeStartInProgress;
+
+    private ButtonManager mButtonManager;
+    private int mButtonBrightnessSettingDefault;
+    private int mButtonBrightnessOverrideFromWindowManager = -1;
 
     private final class ForegroundProfileObserver extends SynchronousUserSwitchObserver {
         @Override
@@ -1060,6 +1067,9 @@ public final class PowerManagerService extends SystemService
             mScreenBrightnessSettingDefault = pm.getBrightnessConstraint(
                     PowerManager.BRIGHTNESS_CONSTRAINT_TYPE_DEFAULT);
 
+            mButtonManager = new ButtonManager(mContext);
+            mButtonBrightnessSettingDefault = mButtonManager.getButtonBrightness();
+
             SensorManager sensorManager = new SystemSensorManager(mContext, mHandler.getLooper());
 
             // The notifier runs on the system server's main looper so as not to interfere
@@ -1077,6 +1087,7 @@ public final class PowerManagerService extends SystemService
 
             mLightsManager = getLocalService(LightsManager.class);
             mAttentionLight = mLightsManager.getLight(LightsManager.LIGHT_ID_ATTENTION);
+            mButtonsLight = mLightsManager.getLight(LightsManager.LIGHT_ID_BUTTONS);
 
             // Initialize display power management.
             mDisplayManagerInternal.initPowerManagement(
@@ -2291,10 +2302,32 @@ public final class PowerManagerService extends SystemService
                             + screenOffTimeout - screenDimDuration;
                     if (now < nextTimeout) {
                         mUserActivitySummary = USER_ACTIVITY_SCREEN_BRIGHT;
+                        if (getWakefulnessLocked() == WAKEFULNESS_AWAKE) {
+                            int buttonBrightness = mButtonManager.getButtonBrightness();
+                            if (mButtonBrightnessOverrideFromWindowManager >= 0) {
+                                buttonBrightness = mButtonBrightnessOverrideFromWindowManager;
+                            }
+
+                            int buttonTimeout = mButtonManager.getButtonTimeout();
+                            if (buttonTimeout != 0
+                                    && now > mLastUserActivityTime + buttonTimeout) {
+                                mButtonsLight.setBrightness(0);
+                            } else {
+                                if (!mProximityPositive) {
+                                    mButtonsLight.setBrightness(buttonBrightness);
+                                    if (buttonBrightness != 0 && buttonTimeout != 0) {
+                                        nextTimeout = now + buttonTimeout;
+                                    }
+                                }
+                            }
+                        }
                     } else {
                         nextTimeout = mLastUserActivityTime + screenOffTimeout;
                         if (now < nextTimeout) {
                             mUserActivitySummary = USER_ACTIVITY_SCREEN_DIM;
+                            if (getWakefulnessLocked() == WAKEFULNESS_AWAKE) {
+                                mButtonsLight.setBrightness(0);
+                            }
                         }
                     }
                 }
@@ -3590,6 +3623,16 @@ public final class PowerManagerService extends SystemService
             if (!BrightnessSynchronizer.floatEquals(mScreenBrightnessOverrideFromWindowManager,
                     brightness)) {
                 mScreenBrightnessOverrideFromWindowManager = brightness;
+                mDirty |= DIRTY_SETTINGS;
+                updatePowerStateLocked();
+            }
+        }
+    }
+
+    private void setButtonBrightnessOverrideFromWindowManagerInternal(int brightness) {
+        synchronized (mLock) {
+            if (mButtonBrightnessOverrideFromWindowManager != brightness) {
+                mButtonBrightnessOverrideFromWindowManager = brightness;
                 mDirty |= DIRTY_SETTINGS;
                 updatePowerStateLocked();
             }
@@ -5475,6 +5518,18 @@ public final class PowerManagerService extends SystemService
                 screenBrightness = PowerManager.BRIGHTNESS_INVALID_FLOAT;
             }
             setScreenBrightnessOverrideFromWindowManagerInternal(screenBrightness);
+        }
+
+        @Override
+        public void setButtonBrightnessOverrideFromWindowManager(int screenBrightness) {
+            mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
+
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                setButtonBrightnessOverrideFromWindowManagerInternal(screenBrightness);
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
         }
 
         @Override
