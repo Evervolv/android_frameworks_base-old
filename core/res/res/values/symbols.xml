@@ -1869,4 +1869,5 @@
   <java-symbol type="drawable" name="ic_lockscreen_chevron_left" />
   <java-symbol type="drawable" name="ic_lockscreen_chevron_right" />
   <java-symbol type="bool" name="config_samsung_stk" />
+  <java-symbol type="bool" name="config_smsSamsungCdmaAlternateMessageIDEncoding" />
 </resources>
