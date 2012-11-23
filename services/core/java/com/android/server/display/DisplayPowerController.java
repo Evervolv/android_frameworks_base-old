@@ -633,6 +633,7 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         if (brightness < 0 && (state == Display.STATE_DOZE
                 || state == Display.STATE_DOZE_SUSPEND)) {
             brightness = mScreenBrightnessDozeConfig;
+            mLights.getLight(LightsManager.LIGHT_ID_BUTTONS).setBrightness(PowerManager.BRIGHTNESS_OFF);
         }
 
         // Apply manual brightness.
