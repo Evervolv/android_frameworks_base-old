@@ -6,10 +6,11 @@
 #
 
 LOCAL_PATH:= frameworks/base/data/sounds
+UBUNTU_PATH:= ubuntu/assets
 
 # Effects
 PRODUCT_COPY_FILES += \
-	$(LOCAL_PATH)/effects/ogg/camera_click.ogg:system/media/audio/ui/camera_click.ogg \
+	$(UBUNTU_PATH)/camera_click.ogg:system/media/audio/ui/camera_click.ogg \
 	$(LOCAL_PATH)/effects/ogg/camera_focus.ogg:system/media/audio/ui/camera_focus.ogg \
 	$(LOCAL_PATH)/effects/ogg/Dock.ogg:system/media/audio/ui/Dock.ogg \
 	$(LOCAL_PATH)/effects/ogg/Effect_Tick.ogg:system/media/audio/ui/Effect_Tick.ogg \
