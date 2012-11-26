@@ -42,5 +42,5 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_MODULE_TAGS := optional
 
-include $(BUILD_SHARED_LIBRARY)
+#include $(BUILD_SHARED_LIBRARY)
 
