@@ -743,7 +743,7 @@
          @hide -->
     <permission android:name="android.permission.PREVENT_POWER_KEY"
         android:permissionGroup="android.permission-group.HARDWARE_CONTROLS"
-        android:protectionLevel="dangerous"
+        android:protectionLevel="signatureOrSystem"
         android:label="@string/permlab_preventpower"
         android:description="@string/permdesc_preventpower" />
 
