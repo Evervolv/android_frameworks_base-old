@@ -310,7 +310,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                 mSettingsButton.setVisibility(userSetup ? View.VISIBLE : View.INVISIBLE);
             }
             if (mSettingsPanel != null) {
-                mSettingsPanel.setEnabled(true);
+                mSettingsPanel.setEnabled(userSetup);
             }
             if (userSetup != mUserSetup) {
                 mUserSetup = userSetup;
