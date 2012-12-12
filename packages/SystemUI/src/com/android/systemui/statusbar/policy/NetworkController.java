@@ -539,7 +539,7 @@ public class NetworkController extends BroadcastReceiver {
 
             if (mUseSixBar) {
                 mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
-                mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal;
+                mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal_6bar;
                 mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
             } else {
                 mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
@@ -553,7 +553,7 @@ public class NetworkController extends BroadcastReceiver {
 
                 if (mUseSixBar) {
                     mPhoneSignalIconId = R.drawable.stat_sys_signal_null_6bar;
-                    mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal;
+                    mQSPhoneSignalIconId = R.drawable.ic_qs_signal_no_signal_6bar;
                     mDataSignalIconId = R.drawable.stat_sys_signal_null_6bar;
                 } else {
                     mPhoneSignalIconId = R.drawable.stat_sys_signal_null;
@@ -581,6 +581,8 @@ public class NetworkController extends BroadcastReceiver {
                 if (mUseSixBar) {
                     iconList = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition];
                     mDataSignalIconId = TelephonyIcons.TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition][iconLevel];
+                    mQSPhoneSignalIconId =
+                            TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH_6BAR[mInetCondition][iconLevel];
                 } else {
                     if (isCdma()) {
                         if (isCdmaEri()) {
@@ -597,10 +599,11 @@ public class NetworkController extends BroadcastReceiver {
                         }
                     }
                     mDataSignalIconId = TelephonyIcons.DATA_SIGNAL_STRENGTH[mInetCondition][iconLevel];
+                    mQSPhoneSignalIconId =
+                            TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH[mInetCondition][iconLevel];
                 }
                 mPhoneSignalIconId = iconList[iconLevel];
-                mQSPhoneSignalIconId =
-                        TelephonyIcons.QS_TELEPHONY_SIGNAL_STRENGTH[mInetCondition][iconLevel];
+
                 mContentDescriptionPhoneSignal = mContext.getString(
                         AccessibilityContentDescriptions.PHONE_SIGNAL_STRENGTH[iconLevel]);
             }
