@@ -47,8 +47,6 @@ public class SignalStrength implements Parcelable {
     };
 
     /** @hide */
-    public static final int SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN = 0;
-    /** @hide */
     public static final int SIXBAR_SIGNAL_STRENGTH_ONE = 1;
     /** @hide */
     public static final int SIXBAR_SIGNAL_STRENGTH_TWO = 2;
@@ -490,24 +488,19 @@ public class SignalStrength implements Parcelable {
         int level;
 
         if (isGsm) {
-            if ((mLteSignalStrength == -1)
-                    && (mLteRsrp == -1)
-                    && (mLteRsrq == -1)
-                    && (mLteRssnr == -1)
-                    && (mLteCqi == -1)) {
+            level = getSixBarLteLevel();
+            if (level == SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
                 level = getSixBarGsmLevel();
-            } else {
-                level = getSixBarLteLevel();
             }
         } else {
             int cdmaLevel = getSixBarCdmaLevel();
             int evdoLevel = getSixBarEvdoLevel();
             if (evdoLevel == SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
                 /* We don't know evdo, use cdma */
-                level = getSixBarCdmaLevel();
+                level = cdmaLevel;
             } else if (cdmaLevel == SIGNAL_STRENGTH_NONE_OR_UNKNOWN) {
                 /* We don't know cdma, use evdo */
-                level = getSixBarEvdoLevel();
+                level = evdoLevel;
             } else {
                 /* We know both, use the lowest level */
                 level = cdmaLevel < evdoLevel ? cdmaLevel : evdoLevel;
@@ -628,7 +621,7 @@ public class SignalStrength implements Parcelable {
         // asu = 99 is a special case, where the signal strength is unknown.
         int asu = getGsmSignalStrength();
 
-        if (asu <= 2 || asu == 99) level = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        if (asu <= 2 || asu == 99) level = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
         else if (asu >= 12) level = SIXBAR_SIGNAL_STRENGTH_SIX;
         else if (asu >= 10) level = SIXBAR_SIGNAL_STRENGTH_FIVE;
         else if (asu >= 8)  level = SIXBAR_SIGNAL_STRENGTH_FOUR;
@@ -713,7 +706,7 @@ public class SignalStrength implements Parcelable {
         else if (cdmaDbm >= -100) levelDbm = SIXBAR_SIGNAL_STRENGTH_THREE;
         else if (cdmaDbm >= -105) levelDbm = SIXBAR_SIGNAL_STRENGTH_TWO;
         else if (cdmaDbm >= -110) levelDbm = SIXBAR_SIGNAL_STRENGTH_ONE;
-        else levelDbm = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else levelDbm = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 
         /*
          * HTC's signal to icon
@@ -733,7 +726,7 @@ public class SignalStrength implements Parcelable {
         else if (cdmaEcio >= -130) levelEcio = SIXBAR_SIGNAL_STRENGTH_THREE;
         else if (cdmaEcio >= -140) levelEcio = SIXBAR_SIGNAL_STRENGTH_TWO;
         else if (cdmaEcio >= -150) levelEcio = SIXBAR_SIGNAL_STRENGTH_ONE;
-        else levelEcio = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else levelEcio = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 
         int level = (levelDbm < levelEcio) ? levelDbm : levelEcio;
         if (DBG) log("getCdmaLevel(SixBar)=" + level);
@@ -816,7 +809,7 @@ public class SignalStrength implements Parcelable {
         else if (evdoDbm >= -95) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_THREE;
         else if (evdoDbm >= -100) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_TWO;
         else if (evdoDbm >= -105) levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_ONE;
-        else levelEvdoDbm = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else levelEvdoDbm = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 
         if (evdoSnr >= 8) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_SIX;
         else if (evdoSnr >= 6) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_FIVE;
@@ -824,7 +817,7 @@ public class SignalStrength implements Parcelable {
         else if (evdoSnr >= 4) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_THREE;
         else if (evdoSnr >= 3) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_TWO;
         else if (evdoSnr >= 1) levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_ONE;
-        else levelEvdoSnr = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else levelEvdoSnr = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 
 
         int level = (levelEvdoDbm < levelEvdoSnr) ? levelEvdoDbm : levelEvdoSnr;
@@ -940,36 +933,68 @@ public class SignalStrength implements Parcelable {
      * @hide
      */
     public int getSixBarLteLevel() {
-        int levelLteRsrp = 0;
-        int levelLteRssnr = 0;
+        /*
+         * TS 36.214 Physical Layer Section 5.1.3 TS 36.331 RRC RSSI = received
+         * signal + noise RSRP = reference signal dBm RSRQ = quality of signal
+         * dB= Number of Resource blocksxRSRP/RSSI SNR = gain=signal/noise ratio
+         * = -10log P1/P2 dB
+         */
+        int rssiIconLevel = SIGNAL_STRENGTH_NONE_OR_UNKNOWN, rsrpIconLevel = -1, snrIconLevel = -1;
 
-        if (mLteRsrp == -1) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
-        else if (mLteRsrp >= -95) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_SIX;
-        else if (mLteRsrp >= -100) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_FIVE;
-        else if (mLteRsrp >= -105) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_FOUR;
-        else if (mLteRsrp >= -110) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_THREE;
-        else if (mLteRsrp >= -115) levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_TWO;
-        else levelLteRsrp = SIXBAR_SIGNAL_STRENGTH_ONE;
+        if (mLteRsrp > -44) rsrpIconLevel = -1;
+        else if (mLteRsrp >= -85) rsrpIconLevel = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (mLteRsrp >= -92) rsrpIconLevel = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (mLteRsrp >= -99) rsrpIconLevel = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (mLteRsrp >= -106) rsrpIconLevel = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (mLteRsrp >= -113) rsrpIconLevel = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (mLteRsrp >= -120) rsrpIconLevel = SIXBAR_SIGNAL_STRENGTH_ONE;
+        else if (mLteRsrp >= -140) rsrpIconLevel = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 
-        if (mLteRssnr == INVALID) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
-        else if (mLteRssnr >= 45) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_SIX;
-        else if (mLteRssnr >= 25) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_FIVE;
-        else if (mLteRssnr >= 10) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_FOUR;
-        else if (mLteRssnr >= -10) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_THREE;
-        else if (mLteRssnr >= -30) levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_TWO;
-        else levelLteRssnr = SIXBAR_SIGNAL_STRENGTH_ONE;
+        /*
+         * Values are -200 dB to +300 (SNR*10dB) RS_SNR >= 13.0 dB =>4 bars 4.5
+         * dB <= RS_SNR < 13.0 dB => 3 bars 1.0 dB <= RS_SNR < 4.5 dB => 2 bars
+         * -3.0 dB <= RS_SNR < 1.0 dB 1 bar RS_SNR < -3.0 dB/No Service Antenna
+         * Icon Only
+         */
+        if (mLteRssnr > 300) snrIconLevel = -1;
+        else if (mLteRssnr >= 130) snrIconLevel = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (mLteRssnr >= 45) snrIconLevel = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (mLteRssnr >= 10) snrIconLevel = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (mLteRssnr >= 0) snrIconLevel = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (mLteRssnr >= -30) snrIconLevel = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (mLteRssnr >= -80) snrIconLevel = SIXBAR_SIGNAL_STRENGTH_ONE;
+        else if (mLteRssnr >= -200)
+            snrIconLevel = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
 
-        int level;
-        if (mLteRsrp == -1)
-            level = levelLteRssnr;
-        else if (mLteRssnr == INVALID)
-            level = levelLteRsrp;
-        else
-            level = (levelLteRssnr < levelLteRsrp) ? levelLteRssnr : levelLteRsrp;
+        if (DBG) log("getLTELevel(sixbar) - rsrp:" + mLteRsrp + " snr:" + mLteRssnr + " rsrpIconLevel:"
+                + rsrpIconLevel + " snrIconLevel:" + snrIconLevel);
 
-        if (DBG) log("Lte rsrp level: "+levelLteRsrp
-                + " snr level: " + levelLteRssnr + " level: " + level);
-        return level;
+        /* Choose a measurement type to use for notification */
+        if (snrIconLevel != -1 && rsrpIconLevel != -1) {
+            /*
+             * The number of bars displayed shall be the smaller of the bars
+             * associated with LTE RSRP and the bars associated with the LTE
+             * RS_SNR
+             */
+            return (rsrpIconLevel < snrIconLevel ? rsrpIconLevel : snrIconLevel);
+        }
+
+        if (snrIconLevel != -1) return snrIconLevel;
+
+        if (rsrpIconLevel != -1) return rsrpIconLevel;
+
+        /* Valid values are (0-63, 99) as defined in TS 36.331 */
+        if (mLteSignalStrength > 63) rssiIconLevel = SIGNAL_STRENGTH_NONE_OR_UNKNOWN;
+        else if (mLteSignalStrength >= 12) rssiIconLevel = SIXBAR_SIGNAL_STRENGTH_SIX;
+        else if (mLteSignalStrength >= 10) rssiIconLevel = SIXBAR_SIGNAL_STRENGTH_FIVE;
+        else if (mLteSignalStrength >= 8) rssiIconLevel = SIXBAR_SIGNAL_STRENGTH_FOUR;
+        else if (mLteSignalStrength >= 6) rssiIconLevel = SIXBAR_SIGNAL_STRENGTH_THREE;
+        else if (mLteSignalStrength >= 4) rssiIconLevel = SIXBAR_SIGNAL_STRENGTH_TWO;
+        else if (mLteSignalStrength >= 0) rssiIconLevel = SIXBAR_SIGNAL_STRENGTH_ONE;
+        if (DBG) log("getLTELevel(sixbar) - rssi:" + mLteSignalStrength + " rssiIconLevel:"
+                + rssiIconLevel);
+        return rssiIconLevel;
+
     }
 
     /**
