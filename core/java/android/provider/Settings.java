@@ -4081,6 +4081,12 @@ public final class Settings {
                 Global.WIFI_MOBILE_DATA_TRANSITION_WAKELOCK_TIMEOUT_MS;
 
         /**
+         * Whether the Wimax should be on.  Only the WiMAX service should touch this.
+         * @hide
+         */
+        public static final String WIMAX_ON = "wimax_on";
+
+        /**
          * Whether background data usage is allowed.
          *
          * @deprecated As of {@link VERSION_CODES#ICE_CREAM_SANDWICH},

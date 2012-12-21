@@ -109,6 +109,21 @@ public class NetworkUtils {
     public native static void markSocket(int socketfd, int mark);
 
     /**
+     * {@hide}
+     */
+    public native static int addRoutingRule(String param1, String param2, String param3, int param4);
+
+    /**
+     * {@hide}
+     */
+    public native static int delRoutingRule(String param1, String param2, String param3, int param4); 
+
+    /**
+     * {@hide}
+     */
+    public native static int addRoutingTable(String param1, String param2, String param3); 
+
+    /**
      * Convert a IPv4 address from an integer to an InetAddress.
      * @param hostAddress an int corresponding to the IPv4 address in network byte order
      */

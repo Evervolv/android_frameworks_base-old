@@ -206,6 +206,36 @@ static jboolean android_net_utils_runDhcpCommon(JNIEnv* env, jobject clazz, jstr
     return (jboolean)(result == 0);
 }
 
+#ifdef BOARD_HAVE_SQN_WIMAX
+static jint android_net_utils_addRoutingRule(JNIEnv* env,
+        jobject clazz,
+        jstring param1,
+        jstring param2,
+        jstring param3,
+        jint param4) {
+        int result = 0;
+        return (jint)result;
+}
+
+static jint android_net_utils_delRoutingRule(JNIEnv* env,
+        jobject clazz,
+        jstring param1,
+        jstring param2,
+        jstring param3,
+        jint param4) {
+        int result = 0;
+        return (jint)result;
+}
+
+static jint android_net_utils_addRoutingTable(JNIEnv* env,
+        jobject clazz,
+        jstring param1,
+        jstring param2,
+        jstring param3) {
+        int result = 0;
+        return (jint)result;
+}
+#endif
 
 static jboolean android_net_utils_runDhcp(JNIEnv* env, jobject clazz, jstring ifname, jobject info)
 {
@@ -267,6 +297,11 @@ static JNINativeMethod gNetworkUtilMethods[] = {
     { "releaseDhcpLease", "(Ljava/lang/String;)Z",  (void *)android_net_utils_releaseDhcpLease },
     { "getDhcpError", "()Ljava/lang/String;", (void*) android_net_utils_getDhcpError },
     { "markSocket", "(II)V", (void*) android_net_utils_markSocket },
+#ifdef BOARD_HAVE_SQN_WIMAX
+    { "addRoutingRule", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)I", (void*) android_net_utils_addRoutingRule },
+    { "delRoutingRule", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)I", (void*) android_net_utils_delRoutingRule },
+    { "addRoutingTable", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I", (void*) android_net_utils_addRoutingTable },
+#endif
 };
 
 int register_android_net_NetworkUtils(JNIEnv* env)
