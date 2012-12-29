@@ -57,6 +57,7 @@ import java.util.regex.Pattern;
  * the methods through which you access the protected information.
  */
 public class TelephonyManager {
+    private static final boolean DBG = false;
     private static final String TAG = "TelephonyManager";
 
     private static Context sContext;
@@ -469,7 +470,7 @@ public class TelephonyManager {
             }
         }
 
-        Log.d(TAG, "getLteOnCdmaMode=" + retVal + " curVal=" + curVal +
+         if (DBG) Log.d(TAG, "getLteOnCdmaMode=" + retVal + " curVal=" + curVal +
                 " product_type='" + productType +
                 "' lteOnCdmaProductType='" + sLteOnCdmaProductType + "'");
         return retVal;
