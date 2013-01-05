@@ -388,6 +388,10 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
             for (int i = 0; i < mUEventInfo.size(); ++i) {
                 UEventInfo uei = mUEventInfo.get(i);
                 if (devPath.equals(uei.getDevPath())) {
+                    if(name.equals("Headset")){
+                       state = ((mHeadsetState & (BIT_HDMI_AUDIO | BIT_USB_HEADSET_ANLG
+                             | BIT_USB_HEADSET_DGTL)) | (state & (BIT_HEADSET | BIT_HEADSET_NO_MIC)));
+                    }
                     updateLocked(name, uei.computeNewHeadsetState(mHeadsetState, state));
                     return;
                 }
@@ -412,7 +416,11 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
             }
 
             public String getSwitchStatePath() {
-                return String.format("/sys/class/switch/%s/state", mDevName);
+                if(mDevName.equals("Headset")){
+                    return "/sys/class/switch/h2w/state";
+                }else{
+                    return String.format("/sys/class/switch/%s/state", mDevName);
+                }
             }
 
             public boolean checkSwitchExists() {
