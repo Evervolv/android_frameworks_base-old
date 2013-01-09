@@ -329,7 +329,7 @@ public:
 
 private:
     // True if touch resampling is enabled.
-    const bool mResampleTouch;
+    bool mResampleTouch;
 
     // The input channel.
     sp<InputChannel> mChannel;
