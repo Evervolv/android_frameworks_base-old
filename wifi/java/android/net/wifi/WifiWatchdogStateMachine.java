@@ -74,8 +74,7 @@ import java.text.DecimalFormat;
  */
 public class WifiWatchdogStateMachine extends StateMachine {
 
-    /* STOPSHIP: Keep this configurable for debugging until ship */
-    private static boolean DBG = false;
+    private static final boolean DBG = false;
     private static final String TAG = "WifiWatchdogStateMachine";
 
     private static final int BASE = Protocol.BASE_WIFI_WATCHDOG;
@@ -695,9 +694,6 @@ public class WifiWatchdogStateMachine extends StateMachine {
             switch (msg.what) {
                 case EVENT_WATCHDOG_SETTINGS_CHANGE:
                     updateSettings();
-                    // STOPSHIP: Remove this at ship
-                    logd("Updated secure settings and turned debug on");
-                    DBG = true;
 
                     if (mPoorNetworkDetectionEnabled) {
                         transitionTo(mOnlineWatchState);
