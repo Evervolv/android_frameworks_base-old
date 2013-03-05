@@ -30,7 +30,9 @@ public class DhcpInfo implements Parcelable {
 
     public int dns1;
     public int dns2;
+    /** @hide */
     public int dns3;
+    /** @hide */
     public int dns4;
 
     public int serverAddress;
