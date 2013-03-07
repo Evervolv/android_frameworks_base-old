@@ -64,7 +64,7 @@ public class WimaxManagerConstants
      * scanning, connecting, connected, disconnecting, disconnected
      * initializing, initialized, unknown and ready.
      */
-    public static final String EXTRA_WIMAX_STATE = "4g_state";
+    public static final String EXTRA_WIMAX_STATE = "WimaxState";
     public static final String EXTRA_WIMAX_STATE_INT = "WimaxStateInt";
     /**
      * The lookup key for an int that indicates whether state of Wimax
