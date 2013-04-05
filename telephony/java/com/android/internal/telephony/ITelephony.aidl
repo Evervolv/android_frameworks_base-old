@@ -324,11 +324,6 @@ interface ITelephony {
     List<CellInfo> getAllCellInfo();
 
     /**
-     * Sets minimum time in milli-seconds between onCellInfoChanged
-     */
-    void setCellInfoListRate(int rateInMillis);
-
-    /**
      * Return if the current radio is GSM or CDMA.
      */
     int getLteOnGsmMode();
@@ -375,5 +370,10 @@ interface ITelephony {
        * Unregister a callback.
        */
       void removeListener(ITelephonyListener listener);
+
+    /**
+     * Sets minimum time in milli-seconds between onCellInfoChanged
+     */
+    void setCellInfoListRate(int rateInMillis);
 }
 
