@@ -162,7 +162,7 @@ public final class CellIdentityCdma implements Parcelable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("CellIdentityCdma:{");
+        StringBuilder sb = new StringBuilder("CellIdentitiyCdma:{");
         sb.append(" mNetworkId="); sb.append(mNetworkId);
         sb.append(" mSystemId="); sb.append(mSystemId);
         sb.append(" mBasestationId="); sb.append(mBasestationId);
