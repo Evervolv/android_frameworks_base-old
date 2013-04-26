@@ -1838,5 +1838,16 @@
   <java-symbol type="bool" name="config_smsSamsungCdmaAlternateMessageIDEncoding" />
   <java-symbol type="string" name="config_legacyUmsLunFile" />
   <java-symbol type="bool" name="config_setLandscapeProp" />
-
+  <java-symbol type="id" name="sliding_tab_view" />
+  <java-symbol type="id" name="rotary_selector_view" />
+  <java-symbol type="id" name="multiwave_view" />
+  <java-symbol type="drawable" name="ic_lock_ringer_on" />
+  <java-symbol type="drawable" name="ic_lock_ringer_off" />
+  <java-symbol type="color" name="keyguard_text_color_soundon" />
+  <java-symbol type="color" name="keyguard_text_color_soundoff" />
+  <java-symbol type="id" name="carrier_text" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_up" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_down" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_left" />
+  <java-symbol type="drawable" name="ic_lockscreen_chevron_right" />
 </resources>
