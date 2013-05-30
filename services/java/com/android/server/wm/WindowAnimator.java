@@ -14,6 +14,8 @@ import static com.android.server.wm.WindowManagerService.LayoutFields.SET_WALLPA
 import android.content.Context;
 import android.os.Debug;
 import android.os.SystemClock;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Slog;
 import android.util.SparseArray;
@@ -23,6 +25,7 @@ import android.util.TypedValue;
 import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceControl;
+import android.view.WindowManager;
 import android.view.WindowManagerPolicy;
 import android.view.animation.Animation;
 
@@ -208,6 +211,16 @@ public class WindowAnimator {
         }
     }
 
+    final boolean hideBackground(int flags) {
+        int background = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.LOCKSCREEN_BACKGROUND, -1, UserHandle.USER_CURRENT);
+        if (background == -3) {
+            return false;
+        } else {
+            return ((flags & FLAG_SHOW_WHEN_LOCKED) == 0);
+        }
+    }
+
     private void updateWindowsLocked(final int displayId) {
         ++mAnimTransactionSequence;
 
@@ -275,8 +288,8 @@ public class WindowAnimator {
                             + " hidden=" + win.mRootToken.hidden
                             + " anim=" + win.mWinAnimator.mAnimation);
                 } else if (mPolicy.canBeForceHidden(win, win.mAttrs)) {
-                    final boolean hideWhenLocked =
-                            (winAnimator.mAttrFlags & FLAG_SHOW_WHEN_LOCKED) == 0;
+                    final boolean hideWhenLocked = hideBackground(
+                            winAnimator.mAttrFlags);
                     final boolean changed;
                     if (((mForceHiding == KEYGUARD_ANIMATING_IN)
                                 && (!winAnimator.isAnimating() || hideWhenLocked))
