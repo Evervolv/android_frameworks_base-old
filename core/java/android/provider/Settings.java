@@ -2372,6 +2372,16 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_MESSAGE = "lockscreen_message";
 
+        /**
+         * Lockscreen background
+         * ( -1 for default background )
+         * ( -2 for custom image located in /data/data/com.evervolv.toolbox/files/lock_wallpaper )
+         * ( -3 for transparent background, desktop showing)
+         * ( any other positive value for custom color )
+         * @hide
+         */
+        public static final String LOCKSCREEN_BACKGROUND = "lockscreen_background";
+
         /* END Constants for Evervolv Toolbox */
 
         /* START Constants for Theme compatibility */

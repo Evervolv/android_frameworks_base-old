@@ -29,6 +29,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.SystemProperties;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Slog;
 import android.util.SparseArray;
@@ -225,6 +227,21 @@ public class KeyguardViewManager {
             inflateKeyguardView(options);
             mKeyguardView.requestFocus();
         }
+
+        int background = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.LOCKSCREEN_BACKGROUND, -1, UserHandle.USER_CURRENT);
+        if (background == -3) {
+            if ((mWindowLayoutParams.flags & WindowManager.LayoutParams
+                    .FLAG_SHOW_WALLPAPER) == WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER) {
+                mWindowLayoutParams.flags ^= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            }
+        } else {
+            if ((mWindowLayoutParams.flags & WindowManager.LayoutParams
+                    .FLAG_SHOW_WALLPAPER) != WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER) {
+                mWindowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            }
+        }
+
         updateUserActivityTimeoutInWindowLayoutParams();
         mViewManager.updateViewLayout(mKeyguardHost, mWindowLayoutParams);
 
