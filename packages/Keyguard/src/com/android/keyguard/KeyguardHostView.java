@@ -37,8 +37,11 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.UserInfo;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.RemoteControlClient;
 import android.os.Looper;
 import android.os.Parcel;
@@ -395,6 +398,8 @@ public class KeyguardHostView extends KeyguardViewBase {
             };
         }
 
+        updateBackground();
+
         showPrimarySecurityScreen(false);
         updateSecurityViews();
         enableUserSelectorIfNecessary();
@@ -434,6 +439,33 @@ public class KeyguardHostView extends KeyguardViewBase {
 
     private boolean shouldEnableAddWidget() {
         return numWidgets() < MAX_WIDGETS && mUserSetupCompleted;
+    }
+
+    private void updateBackground() {
+        if (Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1) {
+            return;
+        }
+        int background = Settings.System.getIntForUser(getContext().getContentResolver(),
+                Settings.System.LOCKSCREEN_BACKGROUND, -1, UserHandle.USER_CURRENT);
+        if (background == -1 || background == -3) {
+            return;
+        } else if (background == -2) {
+            try {
+                Context settingsContext = getContext().createPackageContext("com.evervolv.toolbox", 0);
+                String wallpaperFile = settingsContext.getFilesDir() + "/lock_wallpaper";
+                Bitmap backgroundBitmap = BitmapFactory.decodeFile(wallpaperFile);
+                setBackground(new BitmapDrawable(getContext().getResources(), backgroundBitmap));
+            } catch (NameNotFoundException e) {
+                Log.e(TAG, "Lockscreen background not found.");
+            }
+        } else {
+            try {
+                setBackgroundColor(background);
+            } catch(NumberFormatException e) {
+                Log.e(TAG, "Invalid background color " + background);
+            }
+        }
     }
 
     private int getDisabledFeatures(DevicePolicyManager dpm) {

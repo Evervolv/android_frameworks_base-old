@@ -394,10 +394,21 @@ public class KeyguardViewManager {
     }
 
     void updateShowWallpaper(boolean show) {
-        if (show) {
-            mWindowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+            int background = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.LOCKSCREEN_BACKGROUND, -1);
+            if (background == -3) {
+                mWindowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            } else {
+                mWindowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            }
         } else {
-            mWindowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            if (show) {
+                mWindowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            } else {
+                mWindowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            }
         }
 
         mViewManager.updateViewLayout(mKeyguardHost, mWindowLayoutParams);
