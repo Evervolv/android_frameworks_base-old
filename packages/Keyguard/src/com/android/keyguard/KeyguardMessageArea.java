@@ -218,7 +218,18 @@ class KeyguardMessageArea extends TextView {
      */
     void update() {
         MutableInt icon = new MutableInt(0);
-        CharSequence status = concat(getChargeInfo(icon), getOwnerInfo(), getCurrentMessage());
+        String message = null;
+        if (Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+            message = Settings.System.getString(getContext().getContentResolver(),
+                    Settings.System.LOCKSCREEN_MESSAGE);
+        }
+        CharSequence status;
+        if (message != null) {
+            status = concat(getChargeInfo(icon), message, getCurrentMessage());
+        } else {
+            status = concat(getChargeInfo(icon), getOwnerInfo(), getCurrentMessage());
+        }
         setCompoundDrawablesWithIntrinsicBounds(icon.value, 0, 0, 0);
         setText(status);
     }

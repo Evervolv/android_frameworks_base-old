@@ -2509,6 +2509,12 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_ENABLE_ROTATION = "lockscreen_enable_rotation";
 
+        /**
+         * Message to show on the lockscreen, replacing Owner info.
+         * @hide
+         */
+        public static final String LOCKSCREEN_MESSAGE = "lockscreen_message";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
