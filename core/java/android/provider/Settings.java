@@ -2366,6 +2366,12 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_STYLE = "lockscreen_style";
 
+        /**
+         * Message to show on the lockscreen, replacing Owner info.
+         * @hide
+         */
+        public static final String LOCKSCREEN_MESSAGE = "lockscreen_message";
+
         /* END Constants for Evervolv Toolbox */
 
         /* START Constants for Theme compatibility */

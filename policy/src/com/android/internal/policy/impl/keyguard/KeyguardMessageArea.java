@@ -162,6 +162,7 @@ class KeyguardMessageArea extends TextView {
         mHandler = new Handler(Looper.myLooper());
 
         mSeparator = getResources().getString(R.string.kg_text_message_separator);
+        mContext = context;
 
         update();
     }
@@ -186,7 +187,15 @@ class KeyguardMessageArea extends TextView {
      */
     void update() {
         MutableInt icon = new MutableInt(0);
-        CharSequence status = concat(getChargeInfo(icon), getOwnerInfo(), getCurrentMessage());
+        CharSequence status;
+        String message = Settings.System.getString(mContext
+                .getContentResolver(), Settings.System.LOCKSCREEN_MESSAGE);
+        if (message == null) {
+            status = concat(getChargeInfo(icon), getOwnerInfo(), getCurrentMessage());
+        } else {
+            status = concat(getChargeInfo(icon), message, getCurrentMessage());
+        }
+
         setCompoundDrawablesWithIntrinsicBounds(icon.value, 0, 0, 0);
         setText(status);
     }
