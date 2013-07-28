@@ -2178,7 +2178,7 @@ public class NotificationManagerService extends INotificationManager.Stub
         // For special notifications that automatically turn the screen on (such
         // as missed calls), we use this flag to force the notification light
         // even if the screen was turned off.
-        boolean forceWithScreenOff = (mLedNotification.notification.flags &
+        boolean forceWithScreenOff = (mLedNotification.sbn.getNotification().flags &
                 Notification.FLAG_FORCE_LED_SCREEN_OFF) != 0;
 
         // Don't flash while we are in a call or screen is on
