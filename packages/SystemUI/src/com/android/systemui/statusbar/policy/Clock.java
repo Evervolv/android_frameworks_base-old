@@ -17,10 +17,15 @@
 package com.android.systemui.statusbar.policy;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.database.ContentObserver;
+import android.net.Uri;
+import android.os.Handler;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
@@ -47,6 +52,9 @@ public class Clock extends TextView implements DemoMode {
     private String mClockFormatString;
     private SimpleDateFormat mClockFormat;
     private Locale mLocale;
+    private int mAmPmStyle;
+    private SettingsObserver mObserver = null;
+    private ContentResolver mCr;
 
     private static final int AM_PM_STYLE_NORMAL  = 0;
     private static final int AM_PM_STYLE_SMALL   = 1;
@@ -70,6 +78,9 @@ public class Clock extends TextView implements DemoMode {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
+        mCr = getContext().getContentResolver();
+        updateAmPm(); //Initialize mAmPmStyle
+
         if (!mAttached) {
             mAttached = true;
             IntentFilter filter = new IntentFilter();
@@ -81,6 +92,9 @@ public class Clock extends TextView implements DemoMode {
             filter.addAction(Intent.ACTION_USER_SWITCHED);
 
             getContext().registerReceiver(mIntentReceiver, filter, null, getHandler());
+
+            mObserver = new SettingsObserver(getHandler());
+            mObserver.observe();
         }
 
         // NOTE: It's safe to do these after registering the receiver since the receiver always runs
@@ -98,6 +112,8 @@ public class Clock extends TextView implements DemoMode {
         super.onDetachedFromWindow();
         if (mAttached) {
             getContext().unregisterReceiver(mIntentReceiver);
+            mObserver.stop();
+            mObserver = null;
             mAttached = false;
         }
     }
@@ -129,6 +145,7 @@ public class Clock extends TextView implements DemoMode {
         setText(getSmallTime());
     }
 
+
     private final CharSequence getSmallTime() {
         Context context = getContext();
         boolean is24 = DateFormat.is24HourFormat(context);
@@ -145,7 +162,7 @@ public class Clock extends TextView implements DemoMode {
              * add dummy characters around it to let us find it again after
              * formatting and change its size.
              */
-            if (AM_PM_STYLE != AM_PM_STYLE_NORMAL) {
+            if (mAmPmStyle != AM_PM_STYLE_NORMAL) {
                 int a = -1;
                 boolean quoted = false;
                 for (int i = 0; i < format.length(); i++) {
@@ -177,15 +194,15 @@ public class Clock extends TextView implements DemoMode {
         }
         String result = sdf.format(mCalendar.getTime());
 
-        if (AM_PM_STYLE != AM_PM_STYLE_NORMAL) {
+        if (mAmPmStyle != AM_PM_STYLE_NORMAL) {
             int magic1 = result.indexOf(MAGIC1);
             int magic2 = result.indexOf(MAGIC2);
             if (magic1 >= 0 && magic2 > magic1) {
                 SpannableStringBuilder formatted = new SpannableStringBuilder(result);
-                if (AM_PM_STYLE == AM_PM_STYLE_GONE) {
+                if (mAmPmStyle == AM_PM_STYLE_GONE) {
                     formatted.delete(magic1, magic2+1);
                 } else {
-                    if (AM_PM_STYLE == AM_PM_STYLE_SMALL) {
+                    if (mAmPmStyle == AM_PM_STYLE_SMALL) {
                         CharacterStyle style = new RelativeSizeSpan(0.7f);
                         formatted.setSpan(style, magic1, magic2,
                                           Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -224,5 +241,44 @@ public class Clock extends TextView implements DemoMode {
             setText(getSmallTime());
         }
     }
+
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUSBAR_CLOCK_AM_PM_STYLE), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        public void stop() {
+            mCr.unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            onChange(selfChange, null);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            updateAmPm();
+            updateClock();
+        }
+    }
+
+    private void updateAmPm() {
+        if (Settings.System.getInt(mCr, Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+            mAmPmStyle = Settings.System.getInt(mCr,
+                    Settings.System.STATUSBAR_CLOCK_AM_PM_STYLE, AM_PM_STYLE);
+        } else {
+            mAmPmStyle = AM_PM_STYLE;
+        }
+        mClockFormatString = "";
+    }
+
 }
 
