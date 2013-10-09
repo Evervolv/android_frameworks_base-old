@@ -20,14 +20,18 @@ import libcore.icu.LocaleData;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
@@ -67,10 +71,13 @@ public class Clock extends TextView implements DemoMode, Tunable {
     private static final int AM_PM_STYLE_NORMAL  = 0;
     private static final int AM_PM_STYLE_SMALL   = 1;
     private static final int AM_PM_STYLE_GONE    = 2;
+    private static final int AM_PM_STYLE = AM_PM_STYLE_GONE;
 
-    private final int mAmPmStyle;
     private boolean mShowSeconds;
     private Handler mSecondsHandler;
+    private SettingsObserver mObserver = null;
+    private ContentResolver mCr;
+    private int mAmPmStyle;
 
     public Clock(Context context) {
         this(context, null);
@@ -97,6 +104,9 @@ public class Clock extends TextView implements DemoMode, Tunable {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
 
+        mCr = getContext().getContentResolver();
+        updateAmPm(); //Initialize mAmPmStyle
+
         if (!mAttached) {
             mAttached = true;
             IntentFilter filter = new IntentFilter();
@@ -111,6 +121,9 @@ public class Clock extends TextView implements DemoMode, Tunable {
                     null, getHandler());
             TunerService.get(getContext()).addTunable(this, CLOCK_SECONDS,
                     StatusBarIconController.ICON_BLACKLIST);
+
+            mObserver = new SettingsObserver(getHandler());
+            mObserver.observe();
         }
 
         // NOTE: It's safe to do these after registering the receiver since the receiver always runs
@@ -129,6 +142,8 @@ public class Clock extends TextView implements DemoMode, Tunable {
         super.onDetachedFromWindow();
         if (mAttached) {
             getContext().unregisterReceiver(mIntentReceiver);
+            mObserver.stop();
+            mObserver = null;
             mAttached = false;
             TunerService.get(getContext()).removeTunable(this);
         }
@@ -195,6 +210,7 @@ public class Clock extends TextView implements DemoMode, Tunable {
             }
         }
     }
+
 
     private final CharSequence getSmallTime() {
         Context context = getContext();
@@ -328,5 +344,44 @@ public class Clock extends TextView implements DemoMode, Tunable {
             mSecondsHandler.postAtTime(this, SystemClock.uptimeMillis() / 1000 * 1000 + 1000);
         }
     };
+
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUSBAR_CLOCK_AM_PM_STYLE), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        public void stop() {
+            mCr.unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            onChange(selfChange, null);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            updateAmPm();
+            updateClock();
+        }
+    }
+
+    private void updateAmPm() {
+        if (Settings.System.getInt(mCr, Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+            mAmPmStyle = Settings.System.getInt(mCr,
+                    Settings.System.STATUSBAR_CLOCK_AM_PM_STYLE, AM_PM_STYLE);
+        } else {
+            mAmPmStyle = AM_PM_STYLE;
+        }
+        mClockFormatString = "";
+    }
+
 }
 

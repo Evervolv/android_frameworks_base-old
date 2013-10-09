@@ -3572,6 +3572,15 @@ public final class Settings {
         */
         public static final String DISABLE_TOOLBOX = "disable_toolbox";
 
+        /**
+         * Statusbar clock am/pm style
+         * 0 - Normal
+         * 1 - Small 
+         * 2 - Gone
+         * @hide
+         */
+        public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
+
         /* END Constants for Evervolv Toolbox */
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -3628,7 +3637,8 @@ public final class Settings {
             LOCK_TO_APP_ENABLED,
             NOTIFICATION_SOUND,
             ACCELEROMETER_ROTATION,
-            DISABLE_TOOLBOX
+            DISABLE_TOOLBOX,
+            STATUSBAR_CLOCK_AM_PM_STYLE
         };
 
         /**
