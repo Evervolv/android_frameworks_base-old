@@ -2374,6 +2374,15 @@ public final class Settings {
          */
         public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
 
+         /**
+          * Statusbar clock am/pm style
+          * 0 - Normal
+          * 1 - Small 
+          * 2 - Gone
+          * @hide
+          */
+        public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
+
         /**
          * Show or hide power menu options
          * 1 = hide reboot menu
