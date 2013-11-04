@@ -164,6 +164,13 @@ static void nativeSetFeature(JNIEnv *env, jclass clazz, jint featureId, jint dat
     }
 }
 
+static void nativeCpuBoost(JNIEnv *env, jobject clazz, jint duration) {
+    // Tell the Power HAL to boost the CPU
+    if (gPowerModule && gPowerModule->powerHint) {
+        gPowerModule->powerHint(gPowerModule, POWER_HINT_CPU_BOOST, (void *) duration);
+    }
+}
+
 // ----------------------------------------------------------------------------
 
 static JNINativeMethod gPowerManagerServiceMethods[] = {
@@ -182,6 +189,8 @@ static JNINativeMethod gPowerManagerServiceMethods[] = {
             (void*) nativeSendPowerHint },
     { "nativeSetFeature", "(II)V",
             (void*) nativeSetFeature },
+    { "nativeCpuBoost", "(I)V",
+            (void*) nativeCpuBoost },
 };
 
 #define FIND_CLASS(var, className) \

@@ -155,4 +155,9 @@ public class BridgePowerManager implements IPowerManager {
     public boolean isScreenBrightnessBoosted() throws RemoteException {
         return false;
     }
+
+    @Override
+    public void cpuBoost(int duration) throws RemoteException {
+        // pass for now
+    }
 }
