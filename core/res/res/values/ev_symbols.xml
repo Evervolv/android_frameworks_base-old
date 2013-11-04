@@ -51,4 +51,7 @@
   <!-- Doze invert -->
   <java-symbol type="bool" name="config_invert_colors_on_doze" />
 
+  <!-- Boolean to enable stk functionality on Samsung phones -->
+  <java-symbol type="bool" name="config_samsung_stk" />
+
 </resources>
