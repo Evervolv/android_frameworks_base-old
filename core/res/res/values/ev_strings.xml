@@ -49,8 +49,12 @@
     <string name="hot_reboot_title" product="tablet">Hot reboot tablet</string>
     <!-- Hot Reboot Progress Dialog title. Shown if the user chooses to hot reboot the phone. -->
     <string name="hot_reboot_title" product="default">Hot reboot phone</string>
-
     <!-- Hot Reboot Progress Dialog message. Shown if the user chooses to hot reboot the device. -->
     <string name="hot_reboot_progress">Restarting android framework\u2026</string>
+
+    <!-- Performance profile modes -->
+    <string name="perf_profile_pwrsv">Power save</string>
+    <string name="perf_profile_bal">Balanced</string>
+    <string name="perf_profile_perf">Performance</string>
 
 </resources>
