@@ -2242,6 +2242,9 @@ final class ActivityStack {
 
         mActivityTrigger.activityResumeTrigger(next.intent, next.info, next.appInfo);
 
+        // Some activities may want to alter the system power management
+        mStackSupervisor.mPm.activityResumed(next.intent);
+
         // If we are currently pausing an activity, then don't do anything
         // until that is done.
         if (!mStackSupervisor.allPausedActivitiesComplete()) {
@@ -2358,6 +2361,9 @@ final class ActivityStack {
                     mWindowManager.prepareAppTransition(prev.task == next.task
                             ? TRANSIT_ACTIVITY_CLOSE
                             : TRANSIT_TASK_CLOSE, false);
+                    if (prev.task != next.task) {
+                        mStackSupervisor.mPm.cpuBoost(2000 * 1000);
+                    }
                 }
                 mWindowManager.setAppVisibility(prev.appToken, false);
             } else {
@@ -2372,6 +2378,9 @@ final class ActivityStack {
                             : next.mLaunchTaskBehind
                                     ? TRANSIT_TASK_OPEN_BEHIND
                                     : TRANSIT_TASK_OPEN, false);
+                    if (prev.task != next.task) {
+                        mStackSupervisor.mPm.cpuBoost(2000 * 1000);
+                    }
                 }
             }
         } else {
