@@ -17,18 +17,22 @@
 package com.android.systemui;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.View;
@@ -50,12 +54,20 @@ public class BatteryMeterView extends View implements DemoMode,
 
     private final int[] mColors;
 
+    static final int STYLE_STOCK = 0;
+    static final int STYLE_PERCENT = 1;
+    static final int STYLE_HIDDEN = 2;
+
+    int mBatteryStyle = STYLE_PERCENT;
     boolean mShowPercent = true;
     private float mButtonHeightFraction;
     private float mSubpixelSmoothingLeft;
     private float mSubpixelSmoothingRight;
     private final Paint mFramePaint, mBatteryPaint, mWarningTextPaint, mTextPaint, mBoltPaint;
     private float mTextHeight, mWarningTextHeight;
+
+    private ContentResolver mCr;
+    private BatterySettingsObserver mObserver = null;
 
     private int mHeight;
     private int mWidth;
@@ -155,6 +167,11 @@ public class BatteryMeterView extends View implements DemoMode,
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
 
+        mObserver = new BatterySettingsObserver(getHandler());
+        mObserver.observe();
+
+        updateSettings();
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(ACTION_LEVEL_TEST);
@@ -172,6 +189,9 @@ public class BatteryMeterView extends View implements DemoMode,
 
         getContext().unregisterReceiver(mTracker);
         mBatteryController.removeStateChangedCallback(this);
+
+        mObserver.stop();
+        mObserver = null;
     }
 
     public BatteryMeterView(Context context) {
@@ -184,6 +204,9 @@ public class BatteryMeterView extends View implements DemoMode,
 
     public BatteryMeterView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+
+        mCr = context.getContentResolver();
+        updateSettings();
 
         final Resources res = context.getResources();
         TypedArray atts = context.obtainStyledAttributes(attrs, R.styleable.BatteryMeterView,
@@ -202,8 +225,7 @@ public class BatteryMeterView extends View implements DemoMode,
         levels.recycle();
         colors.recycle();
         atts.recycle();
-        mShowPercent = ENABLE_PERCENT && 0 != Settings.System.getInt(
-                context.getContentResolver(), "status_bar_show_battery_percent", 0);
+
         mWarningString = context.getString(R.string.battery_meter_very_low_overlay_symbol);
         mCriticalLevel = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_criticalBatteryWarningLevel);
@@ -442,6 +464,49 @@ public class BatteryMeterView extends View implements DemoMode,
     @Override
     public boolean hasOverlappingRendering() {
         return false;
+    }
+
+    private class BatterySettingsObserver extends ContentObserver {
+        public BatterySettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe() {
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUSBAR_BATT_STYLE), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+        }
+
+        public void stop() {
+            mCr.unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            onChange(selfChange, null);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            updateSettings();
+            postInvalidate();
+        }
+    }
+
+    private void updateSettings() {
+        if (Settings.System.getInt(mCr, Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+            mBatteryStyle = Settings.System.getInt(mCr,
+                    Settings.System.STATUSBAR_BATT_STYLE, STYLE_PERCENT);
+        } else {
+            mBatteryStyle = STYLE_STOCK;
+        }
+        mShowPercent = mBatteryStyle == STYLE_PERCENT;
+        if (mBatteryStyle == STYLE_HIDDEN) {
+            setVisibility(GONE);
+        } else {
+            setVisibility(VISIBLE);
+        }
     }
 
     private boolean mDemoMode;
