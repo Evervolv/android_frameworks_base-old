@@ -221,12 +221,14 @@ int getformat(int audioformat)
         return AUDIO_FORMAT_AMR_NB;
     else if(audioformat==javaAudioTrackFields.AMRWB)
         return AUDIO_FORMAT_AMR_WB;
+#ifdef QCOM_HARDWARE
     else if(audioformat==javaAudioTrackFields.EVRC)
         return AUDIO_FORMAT_EVRC;
     else if(audioformat==javaAudioTrackFields.EVRCB)
         return AUDIO_FORMAT_EVRCB;
     else if(audioformat==javaAudioTrackFields.EVRCWB)
         return AUDIO_FORMAT_EVRCWB;
+#endif
 
     return AUDIO_FORMAT_PCM_8_BIT;
 }
