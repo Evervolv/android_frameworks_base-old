@@ -17,6 +17,7 @@
 package com.android.keyguard;
 
 import android.app.PendingIntent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import com.android.internal.policy.IKeyguardShowCallback;
@@ -34,6 +35,7 @@ import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -206,6 +208,7 @@ public class KeyguardViewManager {
         }
 
         public void setCustomBackground(Drawable d) {
+            if (DEBUG) Log.d(TAG, "setCustomBackground");
             mCustomBackground = d;
             if (d != null) {
                 d.setColorFilter(BACKGROUND_COLOR, PorterDuff.Mode.SRC_OVER);
@@ -289,6 +292,15 @@ public class KeyguardViewManager {
                     | WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN
                     | WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
 
+            if (Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+                int background = Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.LOCKSCREEN_BACKGROUND, -1);
+                if (background == -3) {
+                    flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+                }
+            }
+
             if (!mNeedsInput) {
                 flags |= WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM;
             }
@@ -317,7 +329,7 @@ public class KeyguardViewManager {
         }
 
         if (force || mKeyguardView == null) {
-            mKeyguardHost.setCustomBackground(null);
+            updateBackground();
             mKeyguardHost.removeAllViews();
             inflateKeyguardView(options);
             mKeyguardView.requestFocus();
@@ -326,6 +338,33 @@ public class KeyguardViewManager {
         mViewManager.updateViewLayout(mKeyguardHost, mWindowLayoutParams);
 
         mKeyguardHost.restoreHierarchyState(mStateContainer);
+    }
+
+    private void updateBackground() {
+        if (DEBUG) Log.d(TAG, "updateBackground");
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+            int background = Settings.System.getInt(mContext.getContentResolver(),
+                    Settings.System.LOCKSCREEN_BACKGROUND, -1);
+            if (DEBUG) Log.d(TAG, "background=" + background);
+            if (background == -1 || background == -3) {
+                mKeyguardHost.setCustomBackground(null);
+            } else if (background == -2) {
+                try {
+                    Context settingsContext = mContext.createPackageContext("com.evervolv.toolbox", 0);
+                    String wallpaperFile = settingsContext.getFilesDir() + "/lock_wallpaper";
+                    if (DEBUG) Log.d(TAG, "backgroundFile=" + wallpaperFile);
+                    mKeyguardHost.setCustomBackground(
+                            new BitmapDrawable(mContext.getResources(), wallpaperFile));
+                } catch (PackageManager.NameNotFoundException e) {
+                    mKeyguardHost.setCustomBackground(null);
+                }
+            } else {
+                mKeyguardHost.setCustomBackground(new ColorDrawable(background));
+            }
+        } else {
+            mKeyguardHost.setCustomBackground(null);
+        }
     }
 
     private void inflateKeyguardView(Bundle options) {
@@ -394,15 +433,12 @@ public class KeyguardViewManager {
     }
 
     void updateShowWallpaper(boolean show) {
+        if (DEBUG) Log.d(TAG, "updateShowWallpaper show=" + show);
         if (Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.DISABLE_TOOLBOX, 0) != 1) {
-            int background = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.LOCKSCREEN_BACKGROUND, -1);
-            if (background == -3) {
+                Settings.System.DISABLE_TOOLBOX, 0) != 1 &&
+                Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.LOCKSCREEN_BACKGROUND, -1) == -3) {
                 mWindowLayoutParams.flags &= ~WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-            } else {
-                mWindowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-            }
         } else {
             if (show) {
                 mWindowLayoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
