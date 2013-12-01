@@ -993,7 +993,15 @@ public class ActivityManager {
         return !isLowRamDeviceStatic()
                 && !RoSystemProperties.CONFIG_AVOID_GFX_ACCEL
                 && !Resources.getSystem()
-                        .getBoolean(com.android.internal.R.bool.config_avoidGfxAccel);
+                        .getBoolean(com.android.internal.R.bool.config_avoidGfxAccel)
+                || isForcedHighEndGfx();
+    }
+
+    /**
+     * @hide
+     */
+    public static boolean isForcedHighEndGfx() {
+        return SystemProperties.getBoolean("debug.force_highendgfx", false);
     }
 
     /**
