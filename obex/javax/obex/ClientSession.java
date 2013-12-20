@@ -58,6 +58,8 @@ public final class ClientSession extends ObexSession {
 
     private boolean mRequestActive;
 
+    private boolean setMTU = false;
+
     private final InputStream mInput;
 
     private final OutputStream mOutput;
@@ -241,6 +243,10 @@ public final class ClientSession extends ObexSession {
             return -1;
         }
         return ObexHelper.convertToLong(mConnectionId);
+    }
+
+    public void reduceMTU(boolean enable) {
+        setMTU = enable;
     }
 
     public Operation put(HeaderSet header) throws IOException {
@@ -449,7 +455,9 @@ public final class ClientSession extends ObexSession {
                 maxPacketSize = (mInput.read() << 8) + mInput.read();
 
                 //check with local max size
-                if (maxPacketSize > ObexHelper.MAX_CLIENT_PACKET_SIZE) {
+                if (setMTU) {
+                    maxPacketSize = ObexHelper.A2DP_SCO_OBEX_MAX_CLIENT_PACKET_SIZE;
+                } else if (maxPacketSize > ObexHelper.MAX_CLIENT_PACKET_SIZE) {
                     maxPacketSize = ObexHelper.MAX_CLIENT_PACKET_SIZE;
                 }
 
