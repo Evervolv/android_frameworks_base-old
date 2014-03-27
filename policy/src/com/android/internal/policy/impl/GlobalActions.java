@@ -32,7 +32,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
@@ -75,6 +77,7 @@ import com.android.internal.app.ThemeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 /**
  * Needed for takeScreenshot
@@ -274,8 +277,18 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
         mItems = new ArrayList<Action>();
 
-        final boolean quickbootEnabled = Settings.System.getInt(
-                mContext.getContentResolver(), "enable_quickboot", 0) == 1;
+        int quickbootAvailable = 1;
+        final PackageManager pm = mContext.getPackageManager();
+        try {
+            pm.getPackageInfo("com.qapp.quickboot", PackageManager.GET_META_DATA);
+        } catch (NameNotFoundException e) {
+            quickbootAvailable = 0;
+        }
+
+        final boolean quickbootEnabled = Settings.Global.getInt(
+                mContext.getContentResolver(), Settings.Global.ENABLE_QUICKBOOT,
+                quickbootAvailable) == 1;
+
         // first: power off
         mItems.add(
             new SinglePressAction(
@@ -291,6 +304,12 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
                     // shutdown by making sure radio and power are handled accordingly.
                     mWindowManagerFuncs.shutdown(true);
+                }
+
+                public boolean onLongPress() {
+                    // long press always does a full shutdown in case quickboot is enabled
+                    mWindowManagerFuncs.shutdown(true);
+                    return true;
                 }
 
                 public boolean showDuringKeyguard() {
