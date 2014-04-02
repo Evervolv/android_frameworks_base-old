@@ -28,6 +28,10 @@ LOCAL_SHARED_LIBRARIES := \
     libOpenSLES \
     libtinyalsa
 
+ifeq ($(TARGET_CONTINUOUS_SPLASH_ENABLED),true)
+    LOCAL_CFLAGS += -DCONTINUOUS_SPLASH
+endif
+
 LOCAL_MODULE:= bootanimation
 
 LOCAL_INIT_RC := bootanim.rc
