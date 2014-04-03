@@ -715,7 +715,9 @@ public final class MediaStore {
                         return null;
                     }
                     String filePath = c.getString(1);
-                    if (filePath != null) {
+                    if (filePath == null) {
+                        return null;
+                    } else {
                         if (isVideo) {
                             bitmap = ThumbnailUtils.createVideoThumbnail(filePath, kind);
                         } else {
