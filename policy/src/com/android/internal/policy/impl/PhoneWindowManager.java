@@ -4655,11 +4655,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case KeyEvent.KEYCODE_POWER: {
                 result &= ~ACTION_PASS_TO_USER;
                 if (down) {
-                    boolean panic = mImmersiveModeConfirmation.onPowerKeyDown(interactive,
-                            event.getDownTime(), isImmersiveMode(mLastSystemUiFlags));
-                    if (panic) {
-                        mHandler.post(mRequestTransientNav);
-                    }
                     if (interactive && !mPowerKeyTriggered
                             && (event.getFlags() & KeyEvent.FLAG_FALLBACK) == 0) {
                         mPowerKeyTriggered = true;
