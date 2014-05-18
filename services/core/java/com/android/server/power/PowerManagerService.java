@@ -446,6 +446,9 @@ public final class PowerManagerService extends SystemService
     private static native void nativeSetAutoSuspend(boolean enable);
     private static native void nativeSendPowerHint(int hintId, int data);
     private static native void nativeCpuBoost(int duration);
+    static native void nativeSetPowerProfile(int profile);
+
+    private PerformanceManager mPerformanceManager;
 
     public PowerManagerService(Context context) {
         super(context);
@@ -454,6 +457,7 @@ public final class PowerManagerService extends SystemService
                 Process.THREAD_PRIORITY_DISPLAY, false /*allowIo*/);
         mHandlerThread.start();
         mHandler = new PowerManagerHandler(mHandlerThread.getLooper());
+        mPerformanceManager = new PerformanceManager(context);
 
         synchronized (mLock) {
             mWakeLockSuspendBlocker = createSuspendBlockerLocked("PowerManagerService.WakeLocks");
@@ -587,6 +591,9 @@ public final class PowerManagerService extends SystemService
             resolver.registerContentObserver(Settings.Global.getUriFor(
                     Settings.Global.THEATER_MODE_ON),
                     false, mSettingsObserver, UserHandle.USER_ALL);
+
+            mPerformanceManager.reset();
+
             // Go.
             readConfigurationLocked();
             updateSettingsLocked();
@@ -3083,10 +3090,32 @@ public final class PowerManagerService extends SystemService
                     android.Manifest.permission.DEVICE_POWER, null);
             final long ident = Binder.clearCallingIdentity();
             try {
-                return setLowPowerModeInternal(mode);
+                boolean changed = setLowPowerModeInternal(mode);
+                if (changed) {
+                    mPerformanceManager.setPowerProfile(mLowPowerModeEnabled ?
+                            PowerManager.PROFILE_POWER_SAVE : PowerManager.PROFILE_BALANCED);
+                }
+                return changed;
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
+        }
+
+        @Override // Binder call
+        public boolean setPowerProfile(String profile) {
+            mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
+            final long ident = Binder.clearCallingIdentity();
+            try {
+                setLowPowerModeInternal(PowerManager.PROFILE_POWER_SAVE.equals(profile));
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
+            return mPerformanceManager.setPowerProfile(profile);
+        }
+
+        @Override
+        public String getPowerProfile() {
+            return mPerformanceManager.getPowerProfile();
         }
 
         /**
@@ -3097,12 +3126,20 @@ public final class PowerManagerService extends SystemService
         @Override
         public void cpuBoost(int duration) {
             if (duration > 0 && duration <= MAX_CPU_BOOST_TIME) {
-                nativeCpuBoost(duration);
+                // Don't send boosts if we're in another power profile
+                String profile = mPerformanceManager.getPowerProfile();
+                if (profile == null || profile.equals(PowerManager.PROFILE_BALANCED)) {
+                    nativeCpuBoost(duration);
+                }
             } else {
                 Log.e(TAG, "Invalid boost duration: " + duration);
             }
         }
 
+        @Override
+        public void activityResumed(String componentName) {
+            mPerformanceManager.activityResumed(componentName);
+        }
 
         /**
          * Reboots the device.

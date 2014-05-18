@@ -62,4 +62,9 @@ interface IPowerManager
     void updateBlockedUids(int uid, boolean isBlocked);
 
     void cpuBoost(int duration);
+
+    boolean setPowerProfile(String profile);
+    String getPowerProfile();
+
+    void activityResumed(String componentName);
 }
