@@ -198,6 +198,28 @@ public class AudioManager {
     public static final String EXTRA_MASTER_VOLUME_MUTED =
         "android.media.EXTRA_MASTER_VOLUME_MUTED";
 
+
+    /**
+     * @hide Broadcast intent when RemoteControlClient list is updated.
+     */
+    @SdkConstant(SdkConstantType.BROADCAST_INTENT_ACTION)
+    public static final String RCC_CHANGED_ACTION = "org.codeaurora.bluetooth.RCC_CHANGED_ACTION";
+
+    /**
+     * @hide Used for sharing the calling package name
+     */
+    public static final String EXTRA_CALLING_PACKAGE_NAME = "org.codeaurora.bluetooth.EXTRA_CALLING_PACKAGE_NAME";
+
+    /**
+     * @hide Used for sharing the focus changed value
+     */
+    public static final String EXTRA_FOCUS_CHANGED_VALUE = "org.codeaurora.bluetooth.EXTRA_FOCUS_CHANGED_VALUE";
+
+    /**
+     * @hide Used for sharing the availability changed value
+     */
+    public static final String EXTRA_AVAILABLITY_CHANGED_VALUE = "org.codeaurora.bluetooth.EXTRA_AVAILABLITY_CHANGED_VALUE";
+
     /** The audio stream for phone calls */
     public static final int STREAM_VOICE_CALL = AudioSystem.STREAM_VOICE_CALL;
     /** The audio stream for system sounds */
@@ -218,6 +240,8 @@ public class AudioManager {
     public static final int STREAM_DTMF = AudioSystem.STREAM_DTMF;
     /** @hide The audio stream for text to speech (TTS) */
     public static final int STREAM_TTS = AudioSystem.STREAM_TTS;
+    /** @hide The audio stream for incall music delivery */
+    public static final int STREAM_INCALL_MUSIC = AudioSystem.STREAM_INCALL_MUSIC;
     /** Number of audio streams */
     /**
      * @deprecated Use AudioSystem.getNumStreamTypes() instead
@@ -236,7 +260,8 @@ public class AudioManager {
         7,  // STREAM_BLUETOOTH_SCO
         7,  // STREAM_SYSTEM_ENFORCED
         11, // STREAM_DTMF
-        11  // STREAM_TTS
+        11, // STREAM_TTS
+        4   // STREAM_INCALL_MUSIC
     };
 
     /**
@@ -2126,6 +2151,7 @@ public class AudioManager {
         }
         // construct a PendingIntent for the media button and register it
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        mediaButtonIntent.addFlags(mediaButtonIntent.FLAG_RECEIVER_FOREGROUND);
         //     the associated intent will be handled by the component being registered
         mediaButtonIntent.setComponent(eventReceiver);
         PendingIntent pi = PendingIntent.getBroadcast(mContext,

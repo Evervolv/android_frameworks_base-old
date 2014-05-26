@@ -1342,7 +1342,6 @@ public class MediaPlayer implements SubtitleController.Listener
      */
     public void release() {
         stayAwake(false);
-        updateSurfaceScreenOn();
         mOnPreparedListener = null;
         mOnBufferingUpdateListener = null;
         mOnCompletionListener = null;
@@ -2741,6 +2740,23 @@ public class MediaPlayer implements SubtitleController.Listener
         return (mode == VIDEO_SCALING_MODE_SCALE_TO_FIT ||
                 mode == VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
     }
+
+    /** @hide
+    */
+    public boolean suspend() {
+        stayAwake(false);
+        return _suspend();
+    }
+
+    private native boolean _suspend();
+
+    /** @hide
+    */
+    public boolean resume() {
+        return _resume();
+    }
+
+    private native boolean _resume();
 
     private Context mProxyContext = null;
     private ProxyReceiver mProxyReceiver = null;

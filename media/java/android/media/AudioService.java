@@ -431,8 +431,8 @@ public class AudioService extends IAudioService.Stub {
     // Devices for which the volume is fixed and VolumePanel slider should be disabled
     final int mFixedVolumeDevices = AudioSystem.DEVICE_OUT_AUX_DIGITAL |
             AudioSystem.DEVICE_OUT_DGTL_DOCK_HEADSET |
-            AudioSystem.DEVICE_OUT_ANLG_DOCK_HEADSET |
-            AudioSystem.DEVICE_OUT_ALL_USB;
+            AudioSystem.DEVICE_OUT_ALL_USB |
+            AudioSystem.DEVICE_OUT_PROXY; // use fixed volume on proxy device(WiFi display)
 
     // TODO merge orientation and rotation
     private final boolean mMonitorOrientation;
@@ -1149,7 +1149,7 @@ public class AudioService extends IAudioService.Stub {
         return delta;
     }
 
-    private void sendBroadcastToAll(Intent intent) {
+    protected void sendBroadcastToAll(Intent intent) {
         final long ident = Binder.clearCallingIdentity();
         try {
             mContext.sendBroadcastAsUser(intent, UserHandle.ALL);
@@ -1986,10 +1986,19 @@ public class AudioService extends IAudioService.Stub {
     /** @see AudioManager#setBluetoothA2dpOn(boolean) */
     public void setBluetoothA2dpOn(boolean on) {
         synchronized (mBluetoothA2dpEnabledLock) {
-            mBluetoothA2dpEnabled = on;
+           int config = AudioSystem.FORCE_NONE;
+           mBluetoothA2dpEnabled = on;
+           config = AudioSystem.getForceUse(AudioSystem.FOR_MEDIA);
+           if((config == AudioSystem.FORCE_BT_A2DP) && (!mBluetoothA2dpEnabled)) {
+               config = AudioSystem.FORCE_NO_BT_A2DP;
+           } else if(mBluetoothA2dpEnabled) {
+               config = AudioSystem.FORCE_NONE;
+           }
+           Log.d(TAG, "BTEnabled "+mBluetoothA2dpEnabled+" config "+config);
+
             sendMsg(mAudioHandler, MSG_SET_FORCE_BT_A2DP_USE, SENDMSG_QUEUE,
                     AudioSystem.FOR_MEDIA,
-                    mBluetoothA2dpEnabled ? AudioSystem.FORCE_NONE : AudioSystem.FORCE_NO_BT_A2DP,
+                    config,
                     null, 0);
         }
     }
@@ -2150,14 +2159,23 @@ public class AudioService extends IAudioService.Stub {
                                 mScoAudioMode =
                                         (targetSdkVersion < Build.VERSION_CODES.JELLY_BEAN_MR2) ?
                                                 SCO_MODE_VIRTUAL_CALL : SCO_MODE_RAW;
+                                /*
+                                 * Raw mode causes some issues on HFP head units,
+                                 * apparently when doing PBAP, so disregard it on
+                                 * those for now and keep using VIRTUAL_CALL
+                                 */
+                                if (mBluetoothHeadsetDevice != null) {
+                                    BluetoothClass btClass = mBluetoothHeadsetDevice.getBluetoothClass();
+                                    if (btClass.getDeviceClass() ==
+                                        BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE  &&
+                                        btClass.hasService(BluetoothClass.Service.OBJECT_TRANSFER)) {
+                                            mScoAudioMode = SCO_MODE_VIRTUAL_CALL;
+                                    }
+                                }
                                 if (mBluetoothHeadset != null && mBluetoothHeadsetDevice != null) {
                                     boolean status;
-                                    if (mScoAudioMode == SCO_MODE_RAW) {
-                                        status = mBluetoothHeadset.connectAudio();
-                                    } else {
-                                        status = mBluetoothHeadset.startScoUsingVirtualVoiceCall(
+                                    status = mBluetoothHeadset.startScoUsingVirtualVoiceCall(
                                                                             mBluetoothHeadsetDevice);
-                                    }
                                     if (status) {
                                         mScoAudioState = SCO_STATE_ACTIVE_INTERNAL;
                                     } else {
@@ -2181,12 +2199,8 @@ public class AudioService extends IAudioService.Stub {
                     if (mScoAudioState == SCO_STATE_ACTIVE_INTERNAL) {
                         if (mBluetoothHeadset != null && mBluetoothHeadsetDevice != null) {
                             boolean status;
-                            if (mScoAudioMode == SCO_MODE_RAW) {
-                                status = mBluetoothHeadset.disconnectAudio();
-                            } else {
                                 status = mBluetoothHeadset.stopScoUsingVirtualVoiceCall(
                                                                         mBluetoothHeadsetDevice);
-                            }
                             if (!status) {
                                 mScoAudioState = SCO_STATE_INACTIVE;
                                 broadcastScoConnectionState(
@@ -2362,20 +2376,12 @@ public class AudioService extends IAudioService.Stub {
                             switch (mScoAudioState) {
                             case SCO_STATE_ACTIVATE_REQ:
                                 mScoAudioState = SCO_STATE_ACTIVE_INTERNAL;
-                                if (mScoAudioMode == SCO_MODE_RAW) {
-                                    status = mBluetoothHeadset.connectAudio();
-                                } else {
-                                    status = mBluetoothHeadset.startScoUsingVirtualVoiceCall(
+                                status = mBluetoothHeadset.startScoUsingVirtualVoiceCall(
                                                                         mBluetoothHeadsetDevice);
-                                }
                                 break;
                             case SCO_STATE_DEACTIVATE_REQ:
-                                if (mScoAudioMode == SCO_MODE_RAW) {
-                                    status = mBluetoothHeadset.disconnectAudio();
-                                } else {
-                                    status = mBluetoothHeadset.stopScoUsingVirtualVoiceCall(
+                                 status = mBluetoothHeadset.stopScoUsingVirtualVoiceCall(
                                                                         mBluetoothHeadsetDevice);
-                                }
                                 break;
                             case SCO_STATE_DEACTIVATE_EXT_REQ:
                                 status = mBluetoothHeadset.stopVoiceRecognition(
@@ -2395,14 +2401,25 @@ public class AudioService extends IAudioService.Stub {
             }
         }
         public void onServiceDisconnected(int profile) {
+            Log.d(TAG, "onServiceDisconnected: Bluetooth profile: " + profile);
             switch(profile) {
             case BluetoothProfile.A2DP:
                 synchronized (mA2dpAvrcpLock) {
                     mA2dp = null;
                     synchronized (mConnectedDevices) {
                         if (mConnectedDevices.containsKey(AudioSystem.DEVICE_OUT_BLUETOOTH_A2DP)) {
-                            makeA2dpDeviceUnavailableNow(
-                                    mConnectedDevices.get(AudioSystem.DEVICE_OUT_BLUETOOTH_A2DP));
+                            Log.d(TAG, "A2dp service disconnects, pause music player");
+                            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+                            BluetoothDevice btDevice = adapter.getRemoteDevice
+                                    (mConnectedDevices.get(AudioSystem.DEVICE_OUT_BLUETOOTH_A2DP));
+                            int delay = checkSendBecomingNoisyIntent(
+                                                AudioSystem.DEVICE_OUT_BLUETOOTH_A2DP, 0);
+                            queueMsgUnderWakeLock(mAudioHandler,
+                                                MSG_SET_A2DP_CONNECTION_STATE,
+                                                BluetoothA2dp.STATE_DISCONNECTED,
+                                                0,
+                                                btDevice,
+                                                delay);
                         }
                     }
                 }

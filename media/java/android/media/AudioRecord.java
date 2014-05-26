@@ -22,6 +22,10 @@ package android.media;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 
+import android.app.ActivityThread;
+import android.app.AppOpsManager;
+import android.content.Context;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -308,6 +312,7 @@ public class AudioRecord
         case AudioFormat.ENCODING_EVRC:
         case AudioFormat.ENCODING_EVRCB:
         case AudioFormat.ENCODING_EVRCWB:
+        case AudioFormat.ENCODING_EVRCNW:
             mAudioFormat = audioFormat;
             break;
         default:
@@ -327,13 +332,13 @@ public class AudioRecord
         // NB: this section is only valid with PCM data.
         // To update when supporting compressed formats
         int bytesPerSample;
-        if(mAudioFormat == AudioFormat.ENCODING_PCM_8BIT)
-            bytesPerSample = 1;
+        if(mAudioFormat == AudioFormat.ENCODING_PCM_16BIT)
+            bytesPerSample = 2;
         else if((mAudioFormat == AudioFormat.ENCODING_AMRWB) &&
                 (mRecordSource != MediaRecorder.AudioSource.VOICE_COMMUNICATION))
             bytesPerSample = 61;
         else
-            bytesPerSample = 2;
+            bytesPerSample = 1;
         int frameSizeInBytes = mChannelCount * bytesPerSample;
         if ((audioBufferSize % frameSizeInBytes != 0) || (audioBufferSize < 1)) {
             throw new IllegalArgumentException("Invalid audio buffer size.");
@@ -494,7 +499,8 @@ public class AudioRecord
             && audioFormat != AudioFormat.ENCODING_AMRWB
             && audioFormat != AudioFormat.ENCODING_EVRC
             && audioFormat != AudioFormat.ENCODING_EVRCB
-            && audioFormat != AudioFormat.ENCODING_EVRCWB) {
+            && audioFormat != AudioFormat.ENCODING_EVRCWB
+            && audioFormat != AudioFormat.ENCODING_EVRCNW) {
             loge("getMinBufferSize(): Invalid audio format.");
             return ERROR_BAD_VALUE;
         }
@@ -520,6 +526,21 @@ public class AudioRecord
         return mSessionId;
     }
 
+    //--------------------------------------------------------
+    // Check user permission
+    //--------------------------------------------------------
+    private boolean checkPermission() {
+        AppOpsManager appOps = (AppOpsManager) ActivityThread.currentApplication().
+            getSystemService(Context.APP_OPS_SERVICE);
+        int callingUid = Binder.getCallingUid();
+        String callingPackage= ActivityThread.currentPackageName();
+        if (appOps.noteOp(AppOpsManager.OP_RECORD_AUDIO, callingUid, callingPackage) ==
+            AppOpsManager.MODE_ALLOWED)
+            return true;
+        else
+            return false;
+    }
+
     //---------------------------------------------------------
     // Transport control methods
     //--------------------
@@ -533,6 +554,10 @@ public class AudioRecord
             throw new IllegalStateException("startRecording() called on an "
                     + "uninitialized AudioRecord.");
         }
+
+        // check user permission
+        if (!checkPermission())
+            return;
 
         // start recording
         synchronized(mRecordingStateLock) {
@@ -555,6 +580,10 @@ public class AudioRecord
             throw new IllegalStateException("startRecording() called on an "
                     + "uninitialized AudioRecord.");
         }
+
+        // check user permission
+        if (!checkPermission())
+            return;
 
         // start recording
         synchronized(mRecordingStateLock) {

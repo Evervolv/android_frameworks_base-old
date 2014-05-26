@@ -128,6 +128,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
     private int mState;
     private final BluetoothHandler mHandler;
     private int mErrorRecoveryRetryCounter;
+    private boolean mIsBluetoothServiceConnected = false;
 
     private void registerForAirplaneMode(IntentFilter filter) {
         final ContentResolver resolver = mContext.getContentResolver();
@@ -449,6 +450,12 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             return false;
         }
 
+        if (!mIsBluetoothServiceConnected || mState != BluetoothAdapter.STATE_ON)
+        {
+            Log.d(TAG, "Disable(): Service is not Connected Or Bluetooth is not enabled");
+            return true;
+        }
+
         if (DBG) {
             Log.d(TAG,"disable(): mBluetooth = " + mBluetooth +
                 " mBinding = " + mBinding);
@@ -737,6 +744,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                 }
                 case MESSAGE_SAVE_NAME_AND_ADDRESS: {
                     boolean unbind = false;
+                    boolean waitonofftimeout = false;
                     if (DBG) Log.d(TAG,"MESSAGE_SAVE_NAME_AND_ADDRESS");
                     synchronized(mConnection) {
                         if (!mEnable && mBluetooth != null) {
@@ -792,8 +800,10 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                             mHandler.sendMessage(getMsg);
                         }
                     }
-                    if (!mEnable && mBluetooth != null) waitForOnOff(false, true);
-                    if (unbind) {
+                    if (!mEnable && mBluetooth != null) {
+                        waitonofftimeout = waitForOnOff(false, true);
+                    }
+                    if (unbind && waitonofftimeout) {
                         unbindAndFinish();
                     }
                     break;
@@ -868,6 +878,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                 case MESSAGE_BLUETOOTH_SERVICE_CONNECTED:
                 {
                     if (DBG) Log.d(TAG,"MESSAGE_BLUETOOTH_SERVICE_CONNECTED: " + msg.arg1);
+
+                    mIsBluetoothServiceConnected = true;
 
                     IBinder service = (IBinder) msg.obj;
                     synchronized(mConnection) {
@@ -974,6 +986,9 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                 case MESSAGE_BLUETOOTH_SERVICE_DISCONNECTED:
                 {
                     Log.e(TAG, "MESSAGE_BLUETOOTH_SERVICE_DISCONNECTED: " + msg.arg1);
+
+                    mIsBluetoothServiceConnected = false;
+
                     synchronized(mConnection) {
                         if (msg.arg1 == SERVICE_IBLUETOOTH) {
                             // if service is unbinded already, do nothing and return
@@ -992,7 +1007,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                     }
 
                     if (mEnable) {
-                        mEnable = false;
+                        if (!isBluetoothPersistedStateOn())
+                            mEnable = false;
                         // Send a Bluetooth Restart message
                         Message restartMsg = mHandler.obtainMessage(
                             MESSAGE_RESTART_BLUETOOTH_SERVICE);
@@ -1252,6 +1268,7 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
             intent.putExtra(BluetoothAdapter.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothAdapter.EXTRA_STATE, newState);
             intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
             if (DBG) Log.d(TAG,"Bluetooth State Change Intent: " + prevState + " -> " + newState);
             mContext.sendBroadcastAsUser(intent, UserHandle.ALL,
                     BLUETOOTH_PERM);

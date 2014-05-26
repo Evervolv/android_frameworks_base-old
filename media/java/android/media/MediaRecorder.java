@@ -204,6 +204,11 @@ public class MediaRecorder
          */
         public static final int REMOTE_SUBMIX = 8;
 
+        /** @hide */
+        public static final int FM_RX = 9;
+
+        /** @hide */
+        public static final int FM_RX_A2DP = 10;
         /**
          * Audio source for preemptible, low-priority software hotword detection
          * It presents the same gain and pre processing tuning as {@link #VOICE_RECOGNITION}.
@@ -274,10 +279,13 @@ public class MediaRecorder
 
         /** @hide H.264/AAC data encapsulated in MPEG2/TS */
         public static final int OUTPUT_FORMAT_MPEG2TS = 8;
+
         /** @hide QCP file format */
         public static final int QCP = 9;
+
         /** @hide 3GPP2 media file format*/
         public static final int THREE_GPP2 = 10;
+
         /** @hide WAVE media file format*/
         public static final int WAVE = 11;
     };
@@ -343,7 +351,7 @@ public class MediaRecorder
      * @see android.media.MediaRecorder.AudioSource
      */
     public static final int getAudioSourceMax() {
-        return AudioSource.REMOTE_SUBMIX;
+        return AudioSource.FM_RX_A2DP;
     }
 
     /**
@@ -378,7 +386,7 @@ public class MediaRecorder
              profile.quality <= CamcorderProfile.QUALITY_TIME_LAPSE_QVGA) {
             // Nothing needs to be done. Call to setCaptureRate() enables
             // time lapse video recording.
-        } else {
+        } else if (profile.audioCodec >= 0) {
             setAudioEncodingBitRate(profile.audioBitRate);
             setAudioChannels(profile.audioChannels);
             setAudioSamplingRate(profile.audioSampleRate);
@@ -732,6 +740,10 @@ public class MediaRecorder
      * prepare().
      */
     public native void start() throws IllegalStateException;
+
+    /** @hide
+    */
+    public native void pause() throws IllegalStateException;
 
     /**
      * Stops recording. Call this after start(). Once recording is stopped,
