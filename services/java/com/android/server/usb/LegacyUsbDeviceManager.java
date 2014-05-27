@@ -80,7 +80,7 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
 
     private static final int MSG_UPDATE_STATE = 0;
     private static final int MSG_ENABLE_ADB = 1;
-    private static final int MSG_SET_CURRENT_FUNCTION = 2;
+    private static final int MSG_SET_CURRENT_FUNCTIONS = 2;
     private static final int MSG_SYSTEM_READY = 3;
     private static final int MSG_BOOT_COMPLETED = 4;
 
@@ -533,10 +533,10 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
                 case MSG_ENABLE_ADB:
                     setAdbEnabled(msg.arg1 == 1);
                     break;
-                case MSG_SET_CURRENT_FUNCTION:
-                    String function = (String)msg.obj;
+                case MSG_SET_CURRENT_FUNCTIONS:
+                    String functions = (String)msg.obj;
                     boolean makeDefault = (msg.arg1 == 1);
-                    setEnabledFunctions(function, makeDefault);
+                    setEnabledFunctions(functions, makeDefault);
                     break;
                 case MSG_SYSTEM_READY:
                     updateUsbNotification();
@@ -680,5 +680,11 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
                 pw.println("IOException: " + e);
             }
         }
+    }
+
+    @Override
+    public void setCurrentFunctions(String functions, boolean makeDefault) {
+        if (DEBUG) Slog.d(TAG, "setCurrentFunctions(" + functions + ") default: " + makeDefault);
+        mHandler.sendMessage(MSG_SET_CURRENT_FUNCTIONS, functions, makeDefault);
     }
 }
