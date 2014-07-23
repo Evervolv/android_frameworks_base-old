@@ -1,4 +1,7 @@
 /*
+ * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+ * Not a Contribution.
+ *
  * Copyright (C) 2007 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -775,8 +778,11 @@ public class LocationManagerService extends ILocationManager.Stub {
                             == AppOpsManager.MODE_ALLOWED;
                 }
             } else {
-                if (!allowMonitoring || mAppOps.checkOpNoThrow(op, mUid, mPackageName)
-                        != AppOpsManager.MODE_ALLOWED) {
+                int mode =  mAppOps.checkOpNoThrow(op, mUid, mPackageName);
+                if (allowMonitoring && mode == AppOpsManager.MODE_ASK) {
+                    return true;
+                }
+                if (!allowMonitoring || mode != AppOpsManager.MODE_ALLOWED) {
                     mAppOps.finishOp(op, mUid, mPackageName);
                     return false;
                 }
@@ -1178,7 +1184,8 @@ public class LocationManagerService extends ILocationManager.Stub {
     boolean checkLocationAccess(int uid, String packageName, int allowedResolutionLevel) {
         int op = resolutionLevelToOp(allowedResolutionLevel);
         if (op >= 0) {
-            if (mAppOps.checkOp(op, uid, packageName) != AppOpsManager.MODE_ALLOWED) {
+            int mode = mAppOps.checkOp(op, uid, packageName);
+            if (mode != AppOpsManager.MODE_ALLOWED && mode != AppOpsManager.MODE_ASK) {
                 return false;
             }
         }
