@@ -219,4 +219,10 @@ interface IAudioService {
     oneway void unregisterAudioPolicyAsync(in IAudioPolicyCallback pcb);
 
            int setFocusPropertiesForPolicy(int duckingBehavior, in IAudioPolicyCallback pcb);
+
+    void setRemoteControlClientBrowsedPlayer();
+
+    void getRemoteControlClientNowPlayingEntries();
+
+    void setRemoteControlClientPlayItem(long uid, int scope);
 }
