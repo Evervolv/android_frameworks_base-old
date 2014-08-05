@@ -377,6 +377,8 @@ public class AudioManager {
     public static final int STREAM_DTMF = AudioSystem.STREAM_DTMF;
     /** @hide The audio stream for text to speech (TTS) */
     public static final int STREAM_TTS = AudioSystem.STREAM_TTS;
+    /** @hide The audio stream for incall music delivery */
+    public static final int STREAM_INCALL_MUSIC = AudioSystem.STREAM_INCALL_MUSIC;
     /** Number of audio streams */
     /**
      * @deprecated Use AudioSystem.getNumStreamTypes() instead
