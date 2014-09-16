@@ -143,6 +143,11 @@ public class PhoneAccount implements Parcelable {
      */
     public static final int NO_RESOURCE_ID = -1;
 
+    /**
+     * {@hide}
+     */
+    public static final String SCHEME_SMSTO = "smsto";
+
     private final PhoneAccountHandle mAccountHandle;
     private final Uri mAddress;
     private final Uri mSubscriptionAddress;
