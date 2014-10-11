@@ -45,6 +45,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.android.internal.widget.LockPatternUtils;
+import com.android.keyguard.EmergencyButton;
 import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.KeyguardUpdateMonitorCallback;
 import com.android.systemui.EventLogConstants;
@@ -83,6 +84,7 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
     private KeyguardAffordanceView mPhoneImageView;
     private KeyguardAffordanceView mLockIcon;
     private TextView mIndicationText;
+    private EmergencyButton mEmergencyButton;
     private ViewGroup mPreviewContainer;
 
     private View mPhonePreview;
@@ -164,12 +166,14 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
         mPhoneImageView = (KeyguardAffordanceView) findViewById(R.id.phone_button);
         mLockIcon = (KeyguardAffordanceView) findViewById(R.id.lock_icon);
         mIndicationText = (TextView) findViewById(R.id.keyguard_indication_text);
+        mEmergencyButton = (EmergencyButton) findViewById(R.id.emergency_call_button);
         watchForCameraPolicyChanges();
         updateCameraVisibility();
         updatePhoneVisibility();
         mUnlockMethodCache = UnlockMethodCache.getInstance(getContext());
         mUnlockMethodCache.addListener(this);
         updateLockIcon();
+        updateEmergencyButton();
         setClipChildren(false);
         setClipToPadding(false);
         mPreviewInflater = new PreviewInflater(mContext, new LockPatternUtils(mContext));
@@ -203,6 +207,8 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
         mIndicationText.setTextSize(TypedValue.COMPLEX_UNIT_PX,
                 getResources().getDimensionPixelSize(
                         com.android.internal.R.dimen.text_size_small_material));
+
+        updateEmergencyButton();
     }
 
     public void setActivityStarter(ActivityStarter activityStarter) {
@@ -493,6 +499,13 @@ public class KeyguardBottomAreaView extends FrameLayout implements View.OnClickL
                 .setInterpolator(mLinearOutSlowInInterpolator)
                 .setStartDelay(delay)
                 .setDuration(DOZE_ANIMATION_ELEMENT_DURATION);
+    }
+
+    private void updateEmergencyButton() {
+        boolean enabled = getResources().getBoolean(R.bool.config_showEmergencyButton);
+        if (mEmergencyButton != null) {
+            mLockPatternUtils.updateEmergencyCallButtonState(mEmergencyButton, enabled, false);
+        }
     }
 
     private final BroadcastReceiver mDevicePolicyReceiver = new BroadcastReceiver() {
