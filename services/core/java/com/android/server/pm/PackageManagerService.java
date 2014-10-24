@@ -219,6 +219,8 @@ import dalvik.system.VMRuntime;
 import libcore.io.IoUtils;
 import libcore.util.EmptyArray;
 
+import com.android.services.SecurityBridge.api.PackageManagerMonitor;
+
 /**
  * Keep track of all those .apks everywhere.
  * 
@@ -274,6 +276,9 @@ public class PackageManagerService extends IPackageManager.Stub {
     static final int SCAN_REQUIRE_KNOWN = 1<<12;
 
     static final int REMOVE_CHATTY = 1<<16;
+
+    private static final String SECURITY_BRIDGE_NAME = "com.android.services.SecurityBridge.core.PackageManagerSB";
+    private PackageManagerMonitor mSecurityBridge;
 
     /**
      * Timeout (in milliseconds) after which the watchdog should declare that
@@ -1291,6 +1296,21 @@ public class PackageManagerService extends IPackageManager.Stub {
 
         if (mSdkVersion <= 0) {
             Slog.w(TAG, "**** ro.build.version.sdk not set!");
+        }
+
+        Object bridgeObject;
+
+        try {
+
+            /*
+             * load and create the security bridge
+             */
+            bridgeObject = getClass().getClassLoader().loadClass(SECURITY_BRIDGE_NAME).newInstance();
+            mSecurityBridge = (PackageManagerMonitor)bridgeObject;
+
+        } catch (Exception e){
+            Slog.w(TAG, "No security bridge jar found, using default");
+            mSecurityBridge = new PackageManagerMonitor();
         }
 
         mContext = context;
@@ -10533,6 +10553,13 @@ public class PackageManagerService extends IPackageManager.Stub {
         res.returnCode = PackageManager.INSTALL_SUCCEEDED;
 
         if (DEBUG_INSTALL) Slog.d(TAG, "installPackageLI: path=" + tmpPackageFile);
+        if (true != mSecurityBridge.approveAppInstallRequest(
+                        args.getResourcePath(),
+                        Uri.fromFile(args.originFile).toSafeString())) {
+            res.returnCode = PackageManager.INSTALL_FAILED_VERIFICATION_FAILURE;
+            return;
+        }
+
         // Retrieve PackageSettings and parse package
         final int parseFlags = mDefParseFlags | PackageParser.PARSE_CHATTY
                 | (forwardLocked ? PackageParser.PARSE_FORWARD_LOCK : 0)
