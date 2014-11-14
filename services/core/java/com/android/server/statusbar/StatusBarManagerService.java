@@ -785,8 +785,9 @@ public class StatusBarManagerService extends IStatusBarService.Stub {
                 if (safeMode) {
                     ShutdownThread.rebootSafeMode(getUiContext(), false);
                 } else {
+                    boolean confirm = ShutdownThread.isAdvancedRebootPossible(getUiContext());
                     ShutdownThread.reboot(getUiContext(),
-                            PowerManager.SHUTDOWN_USER_REQUESTED, false);
+                            PowerManager.SHUTDOWN_USER_REQUESTED, confirm);
                 }
             });
         } finally {

@@ -19,4 +19,15 @@
   <!-- Vendor mismatched fingerprint warning -->
   <java-symbol type="string" name="system_error_vendorprint" />
 
+  <java-symbol type="string" name="reboot_title" />
+  <java-symbol type="string" name="reboot_progress" />
+  <java-symbol type="array" name="shutdown_reboot_options" />
+  <java-symbol type="array" name="shutdown_reboot_actions" />
+
+  <!-- Power menu -->
+  <java-symbol type="drawable" name="ic_lock_screenshot" />
+  <java-symbol type="string" name="global_action_screenshot" />
+  <java-symbol type="drawable" name="ic_lock_settings" />
+  <java-symbol type="drawable" name="ic_lock_user" />
+
 </resources>
