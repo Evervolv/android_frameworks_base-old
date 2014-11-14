@@ -1431,6 +1431,23 @@ public class Intent implements Parcelable, Cloneable {
     public static final String ACTION_SEARCH_LONG_PRESS = "android.intent.action.SEARCH_LONG_PRESS";
 
     /**
+     * Activity Action: Start action associated with long press on the recents key.
+     * <p>Input: {@link #EXTRA_LONG_PRESS_RELEASE} is set to true if the long press
+     * is released
+     * <p>Output: Nothing
+     * @hide
+     */
+    public static final String ACTION_RECENTS_LONG_PRESS = "android.intent.action.RECENTS_LONG_PRESS";
+
+    /**
+     * This field is part of the intent {@link #ACTION_RECENTS_LONG_PRESS}.
+     * The type of the extra is a boolean that indicates if the long press
+     * is released.
+     * @hide
+     */
+    public static final String EXTRA_RECENTS_LONG_PRESS_RELEASE = "android.intent.extra.RECENTS_LONG_PRESS_RELEASE";
+
+    /**
      * Activity Action: The user pressed the "Report" button in the crash/ANR dialog.
      * This intent is delivered to the package which installed the application, usually
      * Google Play.

@@ -4571,5 +4571,10 @@ message MetricsEvent {
 
     // Add new aosp constants above this line.
     // END OF AOSP CONSTANTS
+
+    // OPEN: Settings > Languages & input > Hardware keys
+    // CATEGORY: SETTINGS
+    // OS: Evervolv
+    HARDWARE_KEYS = 1144;
   }
 }
