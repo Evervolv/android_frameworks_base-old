@@ -308,12 +308,14 @@ public class FlashlightController {
             new CameraCaptureSession.StateListener() {
         @Override
         public void onConfigured(CameraCaptureSession session) {
-            if (session.getDevice() == mCameraDevice) {
-                mSession = session;
-            } else {
-                session.close();
+            if (mSurface != null) {
+                if (session.getDevice() == mCameraDevice) {
+                    mSession = session;
+                } else {
+                    session.close();
+                }
+                postUpdateFlashlight();
             }
-            postUpdateFlashlight();
         }
 
         @Override
