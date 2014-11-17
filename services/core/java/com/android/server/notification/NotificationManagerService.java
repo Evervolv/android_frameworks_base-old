@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2015 The CyanogenMod Project
+ * Copyright (C) 2017 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -297,6 +299,9 @@ import com.android.server.utils.quota.MultiRateLimiter;
 import com.android.server.wm.ActivityTaskManagerInternal;
 import com.android.server.wm.BackgroundActivityStartCallback;
 import com.android.server.wm.WindowManagerInternal;
+
+import com.evervolv.internal.notification.LedValues;
+import com.evervolv.internal.notification.NotificationLightHelper;
 
 import libcore.io.IoUtils;
 
@@ -614,6 +619,8 @@ public class NotificationManagerService extends SystemService {
     private NotificationRecordLogger mNotificationRecordLogger;
     private InstanceIdSequence mNotificationInstanceIdSequence;
     private Set<String> mMsgPkgsAllowedAsConvos = new HashSet();
+
+    private NotificationLightHelper mNotificationLightHelper;
 
     static class Archive {
         final SparseArray<Boolean> mEnabled;
@@ -1529,8 +1536,11 @@ public class NotificationManagerService extends SystemService {
     @GuardedBy("mNotificationLock")
     private void clearLightsLocked() {
         // light
-        mLights.clear();
-        updateLightsLocked();
+        // clear only if lockscreen is not active
+        if (!mNotificationLightHelper.isKeyguardLocked()) {
+            mLights.clear();
+            updateLightsLocked();
+        }
     }
 
     protected final BroadcastReceiver mLocaleChangeReceiver = new BroadcastReceiver() {
@@ -1736,7 +1746,10 @@ public class NotificationManagerService extends SystemService {
             } else if (action.equals(Intent.ACTION_USER_PRESENT)) {
                 // turn off LED when user passes through lock screen
                 if (mNotificationLight != null) {
-                    mNotificationLight.turnOff();
+                    // if lights with screen on is disabled.
+                    if (!mNotificationLightHelper.showLightsScreenOn()) {
+                        mNotificationLight.turnOff();
+                    }
                 }
             } else if (action.equals(Intent.ACTION_USER_SWITCHED)) {
                 final int userId = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, USER_NULL);
@@ -2114,6 +2127,7 @@ public class NotificationManagerService extends SystemService {
                             new Intent(ACTION_INTERRUPTION_FILTER_CHANGED_INTERNAL)
                                     .addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT),
                             UserHandle.ALL, permission.MANAGE_NOTIFICATIONS);
+                    mNotificationLightHelper.setZenMode(mZenModeHelper.getZenMode());
                     synchronized (mNotificationLock) {
                         updateInterruptionFilterLocked();
                     }
@@ -2363,8 +2377,16 @@ public class NotificationManagerService extends SystemService {
                 LocalServices.getService(ActivityManagerInternal.class),
                 createToastRateLimiter());
 
+        mNotificationLightHelper = new NotificationLightHelper(getContext(),
+                 new NotificationLightHelper.LedUpdater() {
+            public void update() {
+                updateNotificationPulse();
+            }
+        });
+
         publishBinderService(Context.NOTIFICATION_SERVICE, mService, /* allowIsolated= */ false,
                 DUMP_FLAG_PRIORITY_CRITICAL | DUMP_FLAG_PRIORITY_NORMAL);
+        publishBinderService(Context.NOTIFICATION_SERVICE, mService);
         publishLocalService(NotificationManagerInternal.class, mInternalService);
     }
 
@@ -7425,6 +7447,12 @@ public class NotificationManagerService extends SystemService {
         if (!mHasLight) {
             return false;
         }
+        // Forced on
+        // Used by LineageParts light picker
+        // eg to allow selecting battery light color when notification led is turned off.
+        if (isLedForcedOn(record)) {
+            return true;
+        }
         // user turned lights off globally
         if (!mNotificationPulseEnabled) {
             return false;
@@ -7435,10 +7463,6 @@ public class NotificationManagerService extends SystemService {
         }
         // unimportant notification
         if (!aboveThreshold) {
-            return false;
-        }
-        // suppressed due to DND
-        if ((record.getSuppressedVisualEffects() & SUPPRESSED_EFFECT_LIGHTS) != 0) {
             return false;
         }
         // Suppressed because it's a silent update
@@ -8895,17 +8919,33 @@ public class NotificationManagerService extends SystemService {
             }
         }
 
-        // Don't flash while we are in a call or screen is on
-        if (ledNotification == null || isInCall() || mScreenOn) {
+        NotificationRecord.Light light = ledNotification != null ?
+                ledNotification.getLight() : null;
+        if (ledNotification == null || mNotificationLightHelper == null || light == null) {
+            mNotificationLight.turnOff();
+            return;
+        }
+
+        LedValues ledValues = new LedValues(light.color, light.onMs, light.offMs);
+        mNotificationLightHelper.calcLights(ledValues, ledNotification.getSbn().getPackageName(),
+                ledNotification.getSbn().getNotification(), mScreenOn || isInCall(),
+                ledNotification.getSuppressedVisualEffects());
+
+        if (!ledValues.isEnabled()) {
             mNotificationLight.turnOff();
         } else {
-            NotificationRecord.Light light = ledNotification.getLight();
-            if (light != null && mNotificationPulseEnabled) {
-                // pulse repeatedly
-                mNotificationLight.setFlashing(light.color, LogicalLight.LIGHT_FLASH_TIMED,
-                        light.onMs, light.offMs);
+            // we are using 1:0 to indicate LED should stay always on
+            if (ledValues.getOnMs() == 1 && ledValues.getOffMs() == 0) {
+                mNotificationLight.setColor(ledValues.getColor());
+            } else {
+                mNotificationLight.setFlashing(ledValues.getColor(),
+                        LogicalLight.LIGHT_FLASH_TIMED, ledValues.getOnMs(), ledValues.getOffMs());
             }
         }
+    }
+
+    private boolean isLedForcedOn(NotificationRecord nr) {
+        return nr != null && mNotificationLightHelper.isForcedOn(nr.getSbn().getNotification());
     }
 
     @GuardedBy("mNotificationLock")
