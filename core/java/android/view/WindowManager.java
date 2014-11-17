@@ -1391,6 +1391,27 @@ public interface WindowManager extends ViewManager {
         public static final int PRIVATE_FLAG_TASK_SNAPSHOT = 0x00080000;
 
         /**
+         * Flag to force hide the Status Bar
+         *
+         * {@hide}
+         */
+        public static final int PRIVATE_FLAG_STATUS_HIDE_FORCED = 0x01000000;
+
+        /**
+         * Flag to force hide the Navigation Bar
+         *
+         * {@hide}
+         */
+        public static final int PRIVATE_FLAG_NAV_HIDE_FORCED = 0x02000000;
+
+        /**
+         * The window had not set FULLSCREEN flag so don't handle it as fullscreen in layoutWindowLw
+         *
+         * {@hide}
+         */
+        public static final int PRIVATE_FLAG_WAS_NOT_FULLSCREEN = 0x04000000;
+
+        /**
          * Control flags that are private to the platform.
          * @hide
          */
