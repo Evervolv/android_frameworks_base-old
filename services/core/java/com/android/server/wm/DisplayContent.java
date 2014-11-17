@@ -3617,6 +3617,10 @@ class DisplayContent extends WindowContainer<DisplayContent.DisplayChildWindowCo
         updateStatusBarVisibilityLocked(visibility);
     }
 
+    void addSystemUIVisibilityFlag(int flags) {
+        mLastStatusBarVisibility |= flags;
+    }
+
     private boolean updateStatusBarVisibilityLocked(int visibility) {
         if (mLastDispatchedSystemUiVisibility == visibility) {
             return false;

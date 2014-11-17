@@ -238,6 +238,7 @@ import android.view.WindowManager.RemoveContentMode;
 import android.view.WindowManager.TransitionType;
 import android.view.WindowManagerGlobal;
 import android.view.WindowManagerPolicyConstants.PointerEventListener;
+import android.view.WindowManagerPolicyControl;
 
 import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
@@ -761,7 +762,7 @@ public class WindowManagerService extends IWindowManager.Stub
             boolean changed;
             synchronized (mGlobalLock) {
                 changed = ImmersiveModeConfirmation.loadSetting(mCurrentUserId, mContext)
-                        || PolicyControl.reloadFromSetting(mContext);
+                        || WindowManagerPolicyControl.reloadFromSetting(mContext);
             }
             if (changed) {
                 updateRotation(false /* alwaysSendConfiguration */, false /* forceRelayout */);
@@ -3098,6 +3099,24 @@ public class WindowManagerService extends IWindowManager.Stub
             final DisplayContent displayContent = mRoot.getDisplayContent(displayId);
             if (displayContent != null) {
                 displayContent.unregisterPointerEventListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void addSystemUIVisibilityFlag(int flags) {
+        if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.STATUS_BAR)
+                != PackageManager.PERMISSION_GRANTED) {
+            throw new SecurityException("Caller does not hold permission "
+                    + android.Manifest.permission.STATUS_BAR);
+        }
+
+        synchronized (mGlobalLock) {
+            final DisplayContent displayContent = mRoot.getDisplayContent(DEFAULT_DISPLAY);
+            if (displayContent != null) {
+                displayContent.addSystemUIVisibilityFlag(flags);
+            } else {
+                Slog.w(TAG, "addSystemUIVisibilityFlag with invalid displayId=" + DEFAULT_DISPLAY);
             }
         }
     }
@@ -6167,7 +6186,7 @@ public class WindowManagerService extends IWindowManager.Stub
                 pw.print("  mRecentsAnimationController="); pw.println(mRecentsAnimationController);
                 mRecentsAnimationController.dump(pw, "    ");
             }
-            PolicyControl.dump("  ", pw);
+            WindowManagerPolicyControl.dump("  ", pw);
         }
     }
 
