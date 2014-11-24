@@ -2729,12 +2729,6 @@ public final class Settings {
         public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
 
         /**
-         * Statusbar toggle for 6 bar signal strength.
-         * @hide
-         */
-        public static final String STATUSBAR_6BAR_SIGNAL = "statusbar_6bar_signal";
-
-        /**
          * Show or hide power menu options
          * 1 = hide reboot menu
          * 2 = hide screenshot option
