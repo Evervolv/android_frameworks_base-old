@@ -264,11 +264,11 @@ public class BatteryMeterView extends LinearLayout implements
 
     private void updateShowPercent() {
         final boolean showing = mBatteryPercentView != null;
-        final boolean systemSetting = 0 != Settings.System
+        final int systemSetting = Settings.System
                 .getIntForUser(getContext().getContentResolver(),
                 SHOW_BATTERY_PERCENT, 0, mUser);
 
-        if ((mShowPercentAvailable && systemSetting) || mForceShowPercent) {
+        if ((mShowPercentAvailable && systemSetting == 1) || mForceShowPercent) {
             if (!showing) {
                 mBatteryPercentView = loadPercentView();
                 if (mTextColor != 0) mBatteryPercentView.setTextColor(mTextColor);
@@ -284,6 +284,7 @@ public class BatteryMeterView extends LinearLayout implements
                 mBatteryPercentView = null;
             }
         }
+        mDrawable.setShowPercent(mShowPercentAvailable && systemSetting > 1);
     }
 
     @Override
