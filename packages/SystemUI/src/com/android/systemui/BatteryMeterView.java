@@ -330,6 +330,9 @@ public class BatteryMeterView extends LinearLayout implements
         mCharging = pluggedIn;
         mLevel = level;
         updatePercentText();
+        if (pluggedIn) {
+            updateShowPercent();
+        }
     }
 
     @Override
@@ -396,16 +399,17 @@ public class BatteryMeterView extends LinearLayout implements
     private void updateShowPercent() {
         final boolean showing = mBatteryPercentView != null;
         // TODO(b/140051051)
-        final boolean systemSetting = 0 != whitelistIpcs(() -> Settings.System
+        final int systemSetting = whitelistIpcs(() -> Settings.System
                 .getIntForUser(getContext().getContentResolver(),
                 SHOW_BATTERY_PERCENT, 0, mUser));
         boolean shouldShow =
-                (mShowPercentAvailable && systemSetting && mShowPercentMode != MODE_OFF)
+                (mShowPercentAvailable && systemSetting == 1 && mShowPercentMode != MODE_OFF)
                 || mShowPercentMode == MODE_ON
                 || mShowPercentMode == MODE_ESTIMATE;
         shouldShow = shouldShow && !mBatteryStateUnknown;
 
         if (shouldShow) {
+            mDrawable.setShowPercent(false);
             if (!showing) {
                 mBatteryPercentView = loadPercentView();
                 if (mPercentageStyleId != 0) { // Only set if specified as attribute
@@ -419,6 +423,7 @@ public class BatteryMeterView extends LinearLayout implements
                                 LayoutParams.MATCH_PARENT));
             }
         } else {
+            mDrawable.setShowPercent(mShowPercentAvailable && systemSetting == 2);
             if (showing) {
                 removeView(mBatteryPercentView);
                 mBatteryPercentView = null;
