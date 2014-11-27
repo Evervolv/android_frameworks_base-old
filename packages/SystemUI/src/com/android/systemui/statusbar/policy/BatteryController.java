@@ -17,11 +17,16 @@
 package com.android.systemui.statusbar.policy;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Handler;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.FileDescriptor;
@@ -32,6 +37,17 @@ public class BatteryController extends BroadcastReceiver {
     private static final String TAG = "BatteryController";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
+    public static final int STYLE_ICON_PORTRAIT = 0;
+    public static final int STYLE_CIRCLE = 2;
+    public static final int STYLE_DOTTED_CIRCLE = 3;
+    public static final int STYLE_GONE = 4;
+    public static final int STYLE_ICON_LANDSCAPE = 5;
+    public static final int STYLE_TEXT = 6;
+
+    public static final int PERCENTAGE_MODE_OFF = 0;
+    public static final int PERCENTAGE_MODE_INSIDE = 1;
+    public static final int PERCENTAGE_MODE_OUTSIDE = 2;
+
     private final ArrayList<BatteryStateChangeCallback> mChangeCallbacks = new ArrayList<>();
     private final PowerManager mPowerManager;
 
@@ -41,7 +57,14 @@ public class BatteryController extends BroadcastReceiver {
     private boolean mCharged;
     private boolean mPowerSave;
 
-    public BatteryController(Context context) {
+    private int mStyle;
+    private int mPercentMode;
+    private int mUserId;
+
+    private SettingsObserver mObserver;
+    private ContentResolver mCr;
+
+    public BatteryController(Context context, Handler handler) {
         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 
         IntentFilter filter = new IntentFilter();
@@ -51,6 +74,14 @@ public class BatteryController extends BroadcastReceiver {
         context.registerReceiver(this, filter);
 
         updatePowerSave();
+
+        mObserver = new SettingsObserver(context, handler);
+        mObserver.observe();
+    }
+
+    public void setUserId(int userId) {
+        mUserId = userId;
+        mObserver.observe();
     }
 
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
@@ -65,6 +96,7 @@ public class BatteryController extends BroadcastReceiver {
     public void addStateChangedCallback(BatteryStateChangeCallback cb) {
         mChangeCallbacks.add(cb);
         cb.onBatteryLevelChanged(mLevel, mPluggedIn, mCharging);
+        cb.onBatteryStyleChanged(mStyle, mPercentMode);
     }
 
     public void removeStateChangedCallback(BatteryStateChangeCallback cb) {
@@ -121,8 +153,58 @@ public class BatteryController extends BroadcastReceiver {
         }
     }
 
+    private void fireSettingsChanged() {
+        final int N = mChangeCallbacks.size();
+        for (int i = 0; i < N; i++) {
+            mChangeCallbacks.get(i).onBatteryStyleChanged(mStyle, mPercentMode);
+        }
+    }
+
     public interface BatteryStateChangeCallback {
         void onBatteryLevelChanged(int level, boolean pluggedIn, boolean charging);
         void onPowerSaveChanged();
+        void onBatteryStyleChanged(int style, int percentMode);
     }
+
+    private final class SettingsObserver extends ContentObserver {
+
+        public SettingsObserver(Context context, Handler handler) {
+            super(handler);
+            mCr = context.getContentResolver();
+        }
+
+        public void observe() {
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUSBAR_BATT_STYLE), false, this);
+            mCr.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUSBAR_SHOW_BATTERY_PERCENT), false, this);
+
+            update();
+        }
+
+        public void stop() {
+            mCr.unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            update();
+        }
+
+        private void update() {
+            if (Settings.System.getInt(mCr, Settings.System.DISABLE_TOOLBOX, 0) != 1) {
+                mStyle = Settings.System.getInt(mCr,
+                        Settings.System.STATUSBAR_BATT_STYLE, 0);
+                mPercentMode = Settings.System.getInt(mCr,
+                        Settings.System.STATUSBAR_SHOW_BATTERY_PERCENT, 0);
+            } else {
+                mStyle = STYLE_ICON_PORTRAIT;
+                mPercentMode = PERCENTAGE_MODE_OFF;
+            }
+
+            fireSettingsChanged();
+        }
+    };
 }
