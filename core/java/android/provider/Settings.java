@@ -2680,6 +2680,12 @@ public final class Settings {
          */
         public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
 
+        /**
+         * Whether to wake the screen with the home key, the value is boolean.
+         * @hide
+         */
+        public static final String HOME_WAKE_SCREEN = "home_wake_screen";
+
         /* END Constants for Evervolv Toolbox */
 
         /**
