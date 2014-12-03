@@ -46,8 +46,9 @@ int main()
         noBootAnimation = atoi(value);
     }
     ALOGI_IF(noBootAnimation,  "boot animation disabled");
-    if (!noBootAnimation) {
 
+    property_get("ro.alarm_boot", value, "false");
+    if (!noBootAnimation && strcmp(value, "true")) {
         sp<ProcessState> proc(ProcessState::self());
         ProcessState::self()->startThreadPool();
 
