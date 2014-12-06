@@ -2377,4 +2377,8 @@
     <!-- Older sensors are not setting event.timestamp correctly.  Setting to
           true will use SystemClock.elapsedRealtimeNanos() to set timestamp-->
     <bool name="config_useSystemClockforSensors">false</bool>
+
+    <!-- Support in Surfaceflinger for blur layers.
+         NOTE: This requires additional hardware-specific code. -->
+    <bool name="config_ui_blur_enabled">false</bool>
 </resources>
