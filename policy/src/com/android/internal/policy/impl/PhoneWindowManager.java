@@ -494,6 +494,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mIsLongPress;
     // Behavior of volume wake
     boolean mVolumeWakeScreen;
+    // Behavior of home wake
+    boolean mHomeWakeScreen;
     // Behavior of trackball wake
     boolean mTrackballWakeScreen;
 
@@ -672,6 +674,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.VOLUME_WAKE_SCREEN), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.HOME_WAKE_SCREEN), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.TRACKBALL_WAKE_SCREEN), false, this,
@@ -1382,6 +1387,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_CURRENT) == 1);
             mVolumeWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.VOLUME_WAKE_SCREEN, 0,
+                    UserHandle.USER_CURRENT) == 1);
+            mHomeWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
+                    Settings.System.HOME_WAKE_SCREEN, 0,
                     UserHandle.USER_CURRENT) == 1);
             mTrackballWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.TRACKBALL_WAKE_SCREEN, 1,
@@ -4526,6 +4534,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         // Handle special keys.
         switch (keyCode) {
+            case KeyEvent.KEYCODE_HOME:
+                if (down && !interactive && mHomeWakeScreen) {
+                    isWakeKey = true;
+                }
+                break;
+
             case KeyEvent.KEYCODE_ENDCALL: {
                 result &= ~ACTION_PASS_TO_USER;
                 if (down) {
