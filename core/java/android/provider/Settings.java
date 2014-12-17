@@ -3626,6 +3626,12 @@ public final class Settings {
         public static final String POWER_MENU_SCREENSHOT_DELAY = "power_menu_screenshot_delay";
 
         /**
+         * Whether or not volume button music controls should be enabled to seek media tracks
+         * @hide
+         */
+        public static final String LOCKSCREEN_MUSIC_CONTROLS_VOLBTN = "lockscreen_music_controls_volbtn";
+
+        /**
          * Whether to wake the screen with the home key, the value is boolean.
          * @hide
          */
@@ -3722,6 +3728,7 @@ public final class Settings {
             STATUSBAR_CLOCK_AM_PM_STYLE,
             HIDDEN_POWER_MENU_OPTIONS,
             POWER_MENU_SCREENSHOT_DELAY,
+            LOCKSCREEN_MUSIC_CONTROLS_VOLBTN,
             HOME_WAKE_SCREEN,
             BACK_WAKE_SCREEN,
             MENU_WAKE_SCREEN,
