@@ -3321,6 +3321,18 @@ public final class Settings {
         public static final String MENU_WAKE_SCREEN = "menu_wake_screen";
 
         /**
+         * Whether to wake the screen with the assist key, the value is boolean.
+         * @hide
+         */
+        public static final String ASSIST_WAKE_SCREEN = "assist_wake_screen";
+
+        /**
+         * Whether to wake the screen with the app switch key, the value is boolean.
+         * @hide
+         */
+        public static final String APP_SWITCH_WAKE_SCREEN = "app_switch_wake_screen";
+
+        /**
          * Whether to wake the screen with the volume keys, the value is boolean.
          * @hide
          */
@@ -3390,6 +3402,8 @@ public final class Settings {
             HOME_WAKE_SCREEN,
             BACK_WAKE_SCREEN,
             MENU_WAKE_SCREEN,
+            ASSIST_WAKE_SCREEN,
+            APP_SWITCH_WAKE_SCREEN,
             VOLUME_WAKE_SCREEN
         };
 
