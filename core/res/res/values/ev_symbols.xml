@@ -29,6 +29,7 @@
   <java-symbol type="bool" name="config_global_phone_enabled" />
   <java-symbol type="bool" name="use_motion_accel" />
   <java-symbol type="bool" name="config_wifiApFirmwareReload" />
+  <java-symbol type="bool" name="config_legacyGpsHAL" />
   <java-symbol type="drawable" name="ic_lock_power_reboot" />
   <java-symbol type="id" name="permission_text" />
   <java-symbol type="id" name="permission_remember_layout" />
