@@ -1899,6 +1899,8 @@ public class NotificationPanelView extends PanelView implements
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.STATUS_BAR_QUICK_QS_PULLDOWN), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DISABLE_TOOLBOX), false, this);
             update();
         }
 
@@ -1919,8 +1921,11 @@ public class NotificationPanelView extends PanelView implements
 
         public void update() {
             ContentResolver resolver = mContext.getContentResolver();
-            mOneFingerQuickSettingsIntercept = Settings.System.getInt(
+            boolean toolboxEnabled = (Settings.System.getInt(resolver,
+                    Settings.System.DISABLE_TOOLBOX, 0) == 0);
+            boolean OneFingerQuickSettingsEnabled = Settings.System.getInt(
                     resolver, Settings.System.STATUS_BAR_QUICK_QS_PULLDOWN, 1) == 1;
+            mOneFingerQuickSettingsIntercept = toolboxEnabled && OneFingerQuickSettingsEnabled;
         }
     }
 }
