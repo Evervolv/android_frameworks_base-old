@@ -1852,6 +1852,7 @@
   <java-symbol type="anim" name="lock_screen_behind_enter_fade_in" />
   <java-symbol type="anim" name="lock_screen_wallpaper_exit" />
   <java-symbol type="anim" name="launch_task_behind_source" />
+  <java-symbol type="anim" name="lock_screen_wallpaper_exit_noop" />
 
   <java-symbol type="bool" name="config_alwaysUseCdmaRssi" />
   <java-symbol type="dimen" name="status_bar_icon_size" />
@@ -2180,4 +2181,9 @@
   <java-symbol type="string" name="config_partial_segment_expire_age" />
   <java-symbol type="bool" name="config_global_phone_enabled" />
   <java-symbol type="bool" name="use_motion_accel" />
+
+  <!-- Theme install failure notification -->
+  <java-symbol type="string" name="theme_install_error_title" />
+  <java-symbol type="string" name="theme_install_error_message" />
+
 </resources>
