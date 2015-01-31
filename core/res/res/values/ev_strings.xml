@@ -24,6 +24,9 @@
     <!-- Button to reboot the phone, within the Phone Options dialog -->
     <string name="reboot_system" product="default">Reboot phone</string>
 
+    <!-- label for current user in phone options dialog -->
+    <string name="global_action_current_user">Current</string>
+
     <!-- label for item that screenshots in phone options dialog -->
     <string name="global_action_screenshot">Screenshot</string>
 

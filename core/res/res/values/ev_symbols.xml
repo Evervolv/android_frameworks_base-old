@@ -27,6 +27,9 @@
   <java-symbol type="string" name="reboot_progress" />
   <java-symbol type="string" name="reboot_system" />
 
+  <java-symbol type="string" name="global_action_current_user" />
+  <java-symbol type="dimen" name="global_actions_avatar_size" />
+
   <!-- Performance Profiles -->
   <java-symbol type="string" name="config_perf_profile_prop" />
   <java-symbol type="string" name="config_perf_profile_default_entry" />
