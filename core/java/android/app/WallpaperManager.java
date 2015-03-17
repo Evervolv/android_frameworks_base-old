@@ -317,6 +317,12 @@ public class WallpaperManager {
             }
         }
 
+        public void forgetLoadedKeyguardWallpaper() {
+            synchronized (this) {
+                mKeyguardWallpaper = null;
+            }
+        }
+
         private Bitmap getCurrentWallpaperLocked(Context context) {
             if (mService == null) {
                 Log.w(TAG, "WallpaperService not running");
@@ -716,6 +722,13 @@ public class WallpaperManager {
         if (isWallpaperSupported()) {
             sGlobals.forgetLoadedWallpaper();
         }
+    }
+
+    /**
+     * @hide
+     */
+    public void forgetLoadedKeyguardWallpaper() {
+        sGlobals.forgetLoadedKeyguardWallpaper();
     }
 
     /**
