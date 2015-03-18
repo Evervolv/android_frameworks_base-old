@@ -64,6 +64,7 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
     // Values for the different battery styles
     private static final int BATTERY_STYLE_PORTRAIT = 0;
     private static final int BATTERY_STYLE_CIRCLE = 2;
+    private static final int BATTERY_STYLE_DOTTED_CIRCLE = 3;
     private static final int BATTERY_STYLE_TEXT = 5;
 
     @Retention(SOURCE)
@@ -328,7 +329,9 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
 
     private void updateBatteryIcon() {
         switch (mBatteryStyle) {
+            case BATTERY_STYLE_DOTTED_CIRCLE:
             case BATTERY_STYLE_CIRCLE:
+                mCircleDrawable.setUsePathEffect(mBatteryStyle == BATTERY_STYLE_DOTTED_CIRCLE);
                 mBatteryIconView.setImageDrawable(mCircleDrawable);
                 break;
             default:
@@ -380,9 +383,11 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         float iconScaleFactor = typedValue.getFloat();
 
         int batteryHeight = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_height);
-        int batteryWidth = mBatteryStyle == BATTERY_STYLE_CIRCLE ?
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_circle_width) :
-                res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width);
+        int batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_width);
+        if (mBatteryStyle == BATTERY_STYLE_CIRCLE
+                || mBatteryStyle == BATTERY_STYLE_DOTTED_CIRCLE) {
+            batteryWidth = res.getDimensionPixelSize(R.dimen.status_bar_battery_icon_circle_width);
+        }
         int marginBottom = res.getDimensionPixelSize(R.dimen.battery_margin_bottom);
 
         LinearLayout.LayoutParams scaledLayoutParams = new LinearLayout.LayoutParams(
