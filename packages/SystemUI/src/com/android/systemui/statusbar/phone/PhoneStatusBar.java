@@ -615,7 +615,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         // TODO: use MediaSessionManager.SessionListener to hook us up to future updates
         // in session state
 
-        addNavigationBar();
+        addNavigationBar(false);
 
         // Lastly, call to the icon policy to install/update all the icons.
         mIconPolicy = new PhoneStatusBarPolicy(mContext, mCastController, mHotspotController);
@@ -1201,7 +1201,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
     }
 
-    private void prepareNavigationBarView() {
+    private void prepareNavigationBarView(boolean forceReset) {
         mNavigationBarView.reorient();
 
         mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
@@ -1211,11 +1211,21 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         mNavigationBarView.getBackButton().setLongClickable(true);
         mNavigationBarView.getBackButton().setOnLongClickListener(mLongPressBackRecentsListener);
         mNavigationBarView.getHomeButton().setOnTouchListener(mHomeActionListener);
+
+        if (forceReset) {
+            // Nav Bar was added dynamically - we need to reset the mSystemUiVisibility and call
+            // setSystemUiVisibility so that mNavigationBarMode is set to the correct value
+            int newVal = mSystemUiVisibility;
+            mSystemUiVisibility = 0;
+            setSystemUiVisibility(newVal, SYSTEM_UI_VISIBILITY_MASK);
+        }
+
+
         updateSearchPanel();
     }
 
     // For small-screen devices (read: phones) that lack hardware navigation buttons
-    private void addNavigationBar() {
+    private void addNavigationBar(boolean forceReset) {
         if (DEBUG) Log.v(TAG, "addNavigationBar: about to add " + mNavigationBarView);
         if (mNavigationBarView == null) return;
 
@@ -1226,7 +1236,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             return;
         }
 
-        prepareNavigationBarView();
+        prepareNavigationBarView(forceReset);
 
         mWindowManager.addView(mNavigationBarView, getNavigationBarLayoutParams());
     }
@@ -1234,7 +1244,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private void repositionNavigationBar() {
         if (mNavigationBarView == null || !mNavigationBarView.isAttachedToWindow()) return;
 
-        prepareNavigationBarView();
+        prepareNavigationBarView(false);
 
         mWindowManager.updateViewLayout(mNavigationBarView, getNavigationBarLayoutParams());
     }
