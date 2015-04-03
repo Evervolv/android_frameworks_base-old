@@ -1777,19 +1777,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR,
                     Settings.Secure.INCALL_POWER_BUTTON_BEHAVIOR_DEFAULT,
                     UserHandle.USER_CURRENT);
-            mHomeWakeScreen = (Settings.System.getIntForUser(resolver,
+            mHomeWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.HOME_WAKE_SCREEN, 1, UserHandle.USER_CURRENT) == 1);
-            mBackWakeScreen = (Settings.System.getIntForUser(resolver,
+            mBackWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.BACK_WAKE_SCREEN, 0, UserHandle.USER_CURRENT) == 1);
-            mMenuWakeScreen = (Settings.System.getIntForUser(resolver,
+            mMenuWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.MENU_WAKE_SCREEN, 0, UserHandle.USER_CURRENT) == 1);
-            mAssistWakeScreen = (Settings.System.getIntForUser(resolver,
+            mAssistWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.ASSIST_WAKE_SCREEN, 0, UserHandle.USER_CURRENT) == 1);
-            mAppSwitchWakeScreen = (Settings.System.getIntForUser(resolver,
+            mAppSwitchWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.APP_SWITCH_WAKE_SCREEN, 0, UserHandle.USER_CURRENT) == 1);
-            mVolumeWakeScreen = (Settings.System.getIntForUser(resolver,
+            mVolumeWakeScreen = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.VOLUME_WAKE_SCREEN, 0, UserHandle.USER_CURRENT) == 1);
-            mVolBtnMusicControls = (Settings.System.getIntForUser(resolver,
+            mVolBtnMusicControls = mDisableToolbox ? false : (Settings.System.getIntForUser(resolver,
                     Settings.System.LOCKSCREEN_MUSIC_CONTROLS_VOLBTN, 1, UserHandle.USER_CURRENT) == 1);
 
             mDisableToolbox = (Settings.System.getIntForUser(resolver,
