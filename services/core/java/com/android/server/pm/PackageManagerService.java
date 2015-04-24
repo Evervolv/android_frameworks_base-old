@@ -547,9 +547,9 @@ public class PackageManagerService extends IPackageManager.Stub {
     private IconPackHelper mIconPackHelper;
 
     private Map<String, Pair<Integer, Long>> mPackageHashes =
-            new HashMap<String, Pair<Integer, Long>>();
+            new ArrayMap<String, Pair<Integer, Long>>();
 
-    private Map<String, Long> mAvailableCommonResources = new HashMap<String, Long>();
+    private Map<String, Long> mAvailableCommonResources = new ArrayMap<String, Long>();
 
     private ThemeConfig mBootThemeConfig;
 
@@ -6533,7 +6533,7 @@ public class PackageManagerService extends IPackageManager.Stub {
             // We must compile resources here because during the initial boot process we may get
             // here before a default theme has had a chance to compile its resources
             if (pkg.mOverlayTargets.isEmpty() && mOverlays.containsKey(pkg.packageName)) {
-                HashMap<String, PackageParser.Package> themes = mOverlays.get(pkg.packageName);
+                ArrayMap<String, PackageParser.Package> themes = mOverlays.get(pkg.packageName);
                 for(PackageParser.Package themePkg : themes.values()) {
                     if (!isBootScan || (mBootThemeConfig != null &&
                             (themePkg.packageName.equals(mBootThemeConfig.getOverlayPkgName()) ||
@@ -6801,9 +6801,9 @@ public class PackageManagerService extends IPackageManager.Stub {
     private void insertIntoOverlayMap(String target, PackageParser.Package opkg) {
         if (!mOverlays.containsKey(target)) {
             mOverlays.put(target,
-                    new HashMap<String, PackageParser.Package>());
+                    new ArrayMap<String, PackageParser.Package>());
         }
-        HashMap<String, PackageParser.Package> map = mOverlays.get(target);
+        ArrayMap<String, PackageParser.Package> map = mOverlays.get(target);
         map.put(opkg.packageName, opkg);
     }
 
@@ -6875,7 +6875,7 @@ public class PackageManagerService extends IPackageManager.Stub {
 
     private void uninstallThemeForAllApps(PackageParser.Package opkg) {
         for(String target : opkg.mOverlayTargets) {
-            HashMap<String, PackageParser.Package> map = mOverlays.get(target);
+            ArrayMap<String, PackageParser.Package> map = mOverlays.get(target);
             if (map != null) {
                 map.remove(opkg.packageName);
 
@@ -6890,7 +6890,7 @@ public class PackageManagerService extends IPackageManager.Stub {
     }
 
     private void uninstallThemeForApp(PackageParser.Package appPkg) {
-        HashMap<String, PackageParser.Package> map = mOverlays.get(appPkg.packageName);
+        ArrayMap<String, PackageParser.Package> map = mOverlays.get(appPkg.packageName);
         if (map == null) return;
 
         for(PackageParser.Package opkg : map.values()) {

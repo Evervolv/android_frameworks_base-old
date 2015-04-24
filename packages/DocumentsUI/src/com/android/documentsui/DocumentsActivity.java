@@ -51,6 +51,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.RemoteException;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
@@ -309,7 +310,6 @@ public class DocumentsActivity extends Activity {
             } else if (mState.action == ACTION_STANDALONE) {
                 mState.allowMultiple = true;
             }
-        }
 
         if (mState.action == ACTION_MANAGE) {
             mState.acceptMimes = new String[] { "*/*" };
@@ -484,7 +484,7 @@ public class DocumentsActivity extends Activity {
             } else if (mState.action == ACTION_CREATE) {
                 mRootsToolbar.setTitle(R.string.title_save);
             } else if (mState.action == ACTION_STANDALONE) {
-                actionBar.setTitle(R.string.title_standalone);
+                mRootsToolbar.setTitle(R.string.title_standalone);
             }
         }
 
@@ -961,9 +961,7 @@ public class DocumentsActivity extends Activity {
             if (pick != null) {
                 final CharSequence displayName = (mState.stack.size() <= 1) ? root.title
                         : cwd.displayName;
-                if (displayName != null) {
-                    pick.setPickTarget(cwd, displayName);
-                }
+                pick.setPickTarget(cwd, displayName);
             }
         }
 
@@ -1108,17 +1106,22 @@ public class DocumentsActivity extends Activity {
                 startActivity(view);
             } catch (ActivityNotFoundException ex2) {
                 File file = null;
-                String id = doc.documentId.substring(0, doc.documentId.indexOf(":"));
-                File volume = mIdToPath.get(id);
-                if (volume != null) {
-                    String fileName = doc.documentId.substring(doc.documentId.indexOf(":") + 1);
-                    file = new File(volume, fileName);
-                }
-                if (file != null) {
-                    view.setDataAndType(Uri.fromFile(file), doc.mimeType);
-                    try {
-                        startActivity(view);
-                    } catch (ActivityNotFoundException ex3) {
+                int idx = doc.documentId.indexOf(":");
+                if (idx != -1){
+                    String id = doc.documentId.substring(0, idx);
+                    File volume = mIdToPath.get(id);
+                    if (volume != null) {
+                        String fileName = doc.documentId.substring(doc.documentId.indexOf(":") + 1);
+                        file = new File(volume, fileName);
+                    }
+                    if (file != null) {
+                        view.setDataAndType(Uri.fromFile(file), doc.mimeType);
+                        try {
+                            startActivity(view);
+                        } catch (ActivityNotFoundException ex3) {
+                            Toast.makeText(this, R.string.toast_no_application, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
                         Toast.makeText(this, R.string.toast_no_application, Toast.LENGTH_SHORT).show();
                     }
                 } else {
@@ -1267,7 +1270,7 @@ public class DocumentsActivity extends Activity {
                         resolver, cwd.derivedUri.getAuthority());
                 childUri = DocumentsContract.createDocument(
                         client, cwd.derivedUri, mMimeType, mDisplayName);
-            } catch (Exception e) {
+            } catch (RemoteException e) {
                 Log.w(TAG, "Failed to create document", e);
             } finally {
                 ContentProviderClient.releaseQuietly(client);
@@ -1347,7 +1350,11 @@ public class DocumentsActivity extends Activity {
 
                     count++;
                     publishProgress((Integer) count);
-                } catch (Exception e) {
+                } catch (RemoteException e) {
+                    Log.w(TAG, "Failed to copy " + doc, e);
+                } catch (FileNotFoundException e) {
+                    Log.w(TAG, "Failed to copy " + doc, e);
+                }catch (IOException e) {
                     Log.w(TAG, "Failed to copy " + doc, e);
                 }
             }
