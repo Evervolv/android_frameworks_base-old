@@ -5475,7 +5475,6 @@ public class PackageManagerService extends IPackageManager.Stub {
                     + " already installed.  Skipping duplicate.");
         }
 
-<<<<<<< HEAD
         // If we're only installing presumed-existing packages, require that the
         // scanned APK is both already known and at the path previously established
         // for it.  Previously unknown packages we pick up normally, but if we have an
