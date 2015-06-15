@@ -24,6 +24,7 @@ import android.app.IActivityManager;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.IBluetoothManager;
+import android.content.pm.ThemeUtils;
 import android.media.AudioAttributes;
 import android.nfc.NfcAdapter;
 import android.nfc.INfcAdapter;
@@ -121,6 +122,10 @@ public final class ShutdownThread extends Thread {
     private static AlertDialog sConfirmDialog;
     private ProgressDialog mProgressDialog;
 
+<<<<<<< HEAD
+=======
+    private static AudioManager mAudioManager;
+>>>>>>> d8e138b... Show reboot dialog using themed resources
     private ShutdownThread() {
     }
 
@@ -160,8 +165,31 @@ public final class ShutdownThread extends Thread {
 
         if (confirm) {
             final CloseDialogReceiver closer = new CloseDialogReceiver(context);
+<<<<<<< HEAD
             if (sConfirmDialog != null) {
                 sConfirmDialog.dismiss();
+=======
+            final boolean advancedReboot = isAdvancedRebootPossible(context);
+            final Context uiContext = getUiContext(context);
+
+            if (sConfirmDialog != null) {
+                sConfirmDialog.dismiss();
+                sConfirmDialog = null;
+            }
+            AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(uiContext)
+                    .setTitle(mRebootSafeMode
+                            ? com.android.internal.R.string.reboot_safemode_title
+                            : showRebootOption
+                                    ? com.android.internal.R.string.reboot_title
+                                    : com.android.internal.R.string.power_off);
+
+            if (!advancedReboot) {
+                confirmDialogBuilder.setMessage(resourceId);
+            } else {
+                confirmDialogBuilder
+                      .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options,
+                              0, null);
+>>>>>>> d8e138b... Show reboot dialog using themed resources
             }
 
             // Set different dialog message based on whether or not we're rebooting
@@ -820,5 +848,14 @@ public final class ShutdownThread extends Thread {
         } catch (Exception e) {
             Log.e(TAG, "Unknown exception while trying to invoke rebootOrShutdown");
         }
+    }
+
+    private static Context getUiContext(Context context) {
+        Context uiContext = null;
+        if (context != null) {
+            uiContext = ThemeUtils.createUiContext(context);
+            uiContext.setTheme(android.R.style.Theme_DeviceDefault_Light_DarkActionBar);
+        }
+        return uiContext != null ? uiContext : context;
     }
 }
