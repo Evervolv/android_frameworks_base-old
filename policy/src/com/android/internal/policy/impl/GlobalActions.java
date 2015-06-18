@@ -42,6 +42,7 @@ import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IPowerManager;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -407,8 +408,8 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
     private final class RebootAction extends SinglePressAction implements LongPressAction {
         private RebootAction() {
-            super(com.android.internal.R.drawable.ic_lock_reboot,
-                R.string.global_action_reboot);
+            super(com.android.internal.R.drawable.ic_lock_power_reboot,
+                    R.string.global_action_reboot);
         }
 
         @Override
@@ -429,7 +430,14 @@ class GlobalActions implements DialogInterface.OnDismissListener, DialogInterfac
 
         @Override
         public void onPress() {
-            mWindowManagerFuncs.reboot("null");
+            try {
+                IPowerManager pm = IPowerManager.Stub.asInterface(ServiceManager
+                        .getService(Context.POWER_SERVICE));
+                pm.reboot(true, null, false);
+            } catch (RemoteException e) {
+                Log.e(TAG, "PowerManager service died!", e);
+                return;
+            }
         }
     }
 

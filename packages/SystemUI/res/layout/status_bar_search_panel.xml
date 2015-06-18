@@ -22,6 +22,7 @@
 <com.android.systemui.SearchPanelView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/search_panel_container"
+    android:layout_marginBottom="@dimen/navigation_bar_height"
     android:layout_height="match_parent"
     android:layout_width="match_parent">
 
@@ -35,8 +36,10 @@
         android:id="@+id/search_panel_circle">
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_width="@dimen/search_panel_circle_size"
+            android:layout_height="@dimen/search_panel_circle_size"
+            android:scaleType="centerInside"
             android:id="@+id/search_logo" />
     </com.android.systemui.SearchPanelCircleView>
 

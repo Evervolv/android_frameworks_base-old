@@ -212,8 +212,8 @@ public class VolumePanel extends Handler implements DemoMode {
                 true),
         NotificationStream(AudioManager.STREAM_NOTIFICATION,
                 R.string.volume_icon_description_notification,
-                com.android.systemui.R.drawable.ic_ringer_audible,
-                com.android.systemui.R.drawable.ic_ringer_mute,
+                com.android.systemui.R.drawable.ic_notification_audible,
+                com.android.systemui.R.drawable.ic_notification_audible,
                 true),
         // for now, use media resources for master volume
         MasterStream(STREAM_MASTER,
