@@ -138,9 +138,10 @@ public final class ShutdownThread extends Thread {
      * @param confirm true if user confirmation is needed before shutting down.
      */
     public static void shutdown(final Context context, boolean confirm) {
+        final Context uiContext = getUiContext(context);
         mReboot = false;
         mRebootSafeMode = false;
-        shutdownInner(context, confirm);
+        shutdownInner(uiContext, confirm);
     }
 
     static void shutdownInner(final Context context, boolean confirm) {
@@ -283,10 +284,11 @@ public final class ShutdownThread extends Thread {
      * @param confirm true if user confirmation is needed before shutting down.
      */
     public static void reboot(final Context context, String reason, boolean confirm) {
+        final Context uiContext = getUiContext(context);
         mReboot = true;
         mRebootSafeMode = false;
         mRebootReason = reason;
-        shutdownInner(context, confirm);
+        shutdownInner(uiContext, confirm);
     }
 
     private static String getShutdownMusicFilePath() {
