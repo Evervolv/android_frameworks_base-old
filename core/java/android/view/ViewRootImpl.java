@@ -6773,6 +6773,11 @@ public final class ViewRootImpl implements ViewParent,
             final MotionEvent event = (MotionEvent)q.mEvent;
             mHandwritingInitiator.onTouchEvent(event);
 
+            if (event.getPointerCount() == 3 && isSwipeToScreenshotGestureActive()) {
+                event.setAction(MotionEvent.ACTION_CANCEL);
+                Log.d("teste", "canceling motionEvent because of threeGesture detecting");
+            }
+
             mAttachInfo.mUnbufferedDispatchRequested = false;
             mAttachInfo.mHandlingPointerEvent = true;
             boolean handled = mView.dispatchPointerEvent(event);
@@ -11333,5 +11338,14 @@ public final class ViewRootImpl implements ViewParent,
             return;
         }
         mSurfaceSyncer.merge(mSyncId, syncId, otherSyncer);
+    }
+
+    private boolean isSwipeToScreenshotGestureActive() {
+        try {
+            return ActivityManager.getService().isSwipeToScreenshotGestureActive();
+        } catch (RemoteException e) {
+            Log.e("teste", "isSwipeToScreenshotGestureActive exception", e);
+            return false;
+        }
     }
 }
