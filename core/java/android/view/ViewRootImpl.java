@@ -7231,6 +7231,10 @@ public final class ViewRootImpl implements ViewParent,
                 mLastClickToolType = event.getToolType(event.getActionIndex());
             }
 
+            if (isScreenshotGestureActive(event)) {
+                event.setAction(MotionEvent.ACTION_CANCEL);
+            }
+
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
                 notifyLeaveTypingEvent();
             }
@@ -11787,5 +11791,13 @@ public final class ViewRootImpl implements ViewParent,
     public void removeTrustedPresentationCallback(@NonNull SurfaceControl.Transaction t,
             @NonNull Consumer<Boolean> listener) {
         t.clearTrustedPresentationCallback(getSurfaceControl());
+    }
+
+    private boolean isScreenshotGestureActive(MotionEvent event) {
+        if (event.getPointerCount() != 3) return false;
+        try {
+            return ActivityManager.getService().isScreenshotGestureActive();
+        } catch (RemoteException e) { }
+        return false;
     }
 }
