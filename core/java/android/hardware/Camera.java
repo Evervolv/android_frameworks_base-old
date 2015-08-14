@@ -57,6 +57,7 @@ import com.android.internal.app.IAppOpsService;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -574,6 +575,15 @@ public class Camera {
             mEventHandler = null;
         }
 
+
+        // Force HAL1 if the package name is in our 'blacklist'
+        String packageList = SystemProperties.get("vendor.camera.hal1.packagelist", "");
+        if (!packageList.isEmpty()) {
+            if (Arrays.asList(packageList.split(","))
+                    .contains(ActivityThread.currentOpPackageName())) {
+                halVersion = CAMERA_HAL_API_VERSION_1_0;
+            }
+        }
         return native_setup(new WeakReference<Camera>(this), cameraId, halVersion,
                 ActivityThread.currentOpPackageName());
     }
