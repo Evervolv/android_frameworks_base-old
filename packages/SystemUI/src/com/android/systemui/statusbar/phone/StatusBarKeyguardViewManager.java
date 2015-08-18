@@ -134,6 +134,7 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
     private final BouncerInteractor mBouncerInteractor;
     private final BouncerViewDelegate mBouncerViewDelegate;
     private final Lazy<com.android.systemui.shade.ShadeController> mShadeController;
+    private final Lazy<Optional<CentralSurfaces>> mCentralSurfacesOptionalLazy;
 
     private final BouncerExpansionCallback mExpansionCallback = new BouncerExpansionCallback() {
         private boolean mBouncerAnimating;
@@ -288,7 +289,8 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
             FeatureFlags featureFlags,
             BouncerCallbackInteractor bouncerCallbackInteractor,
             BouncerInteractor bouncerInteractor,
-            BouncerView bouncerView) {
+            BouncerView bouncerView,
+            Lazy<Optional<CentralSurfaces>> centralSurfacesOptionalLazy) {
         mContext = context;
         mViewMediatorCallback = callback;
         mLockPatternUtils = lockPatternUtils;
@@ -312,6 +314,7 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
         mFoldAodAnimationController = sysUIUnfoldComponent
                 .map(SysUIUnfoldComponent::getFoldAodAnimationController).orElse(null);
         mIsModernBouncerEnabled = featureFlags.isEnabled(Flags.MODERN_BOUNCER);
+        mCentralSurfacesOptionalLazy = centralSurfacesOptionalLazy;
     }
 
     @Override
@@ -816,6 +819,8 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
             mMediaManager.updateMediaMetaData(false, animate && !mOccluded);
         }
         mNotificationShadeWindowController.setKeyguardOccluded(mOccluded);
+        mCentralSurfacesOptionalLazy.get().map(CentralSurfaces::getVisualizerView).ifPresent(
+                v -> v.setOccluded(occluded));
 
         // setDozing(false) will call reset once we stop dozing. Also, if we're going away, there's
         // no need to reset the keyguard views as we'll be gone shortly. Resetting now could cause

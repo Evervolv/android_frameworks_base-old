@@ -55,6 +55,7 @@ import com.android.systemui.shade.NotificationShadeWindowViewController;
 import com.android.systemui.statusbar.GestureRecorder;
 import com.android.systemui.statusbar.LightRevealScrim;
 import com.android.systemui.statusbar.NotificationPresenter;
+import com.android.systemui.statusbar.VisualizerView;
 import com.android.systemui.statusbar.notification.row.NotificationGutsManager;
 
 import java.io.PrintWriter;
@@ -223,6 +224,8 @@ public interface CentralSurfaces extends Dumpable, ActivityStarter, LifecycleOwn
 
     /** Get the Keyguard Message Area that displays auth messages. */
     AuthKeyguardMessageArea getKeyguardMessageArea();
+
+    VisualizerView getVisualizerView();
 
     int getStatusBarHeight();
 
