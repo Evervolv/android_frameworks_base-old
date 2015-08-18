@@ -122,6 +122,7 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
     private final FoldAodAnimationController mFoldAodAnimationController;
     private KeyguardMessageAreaController mKeyguardMessageAreaController;
     private final Lazy<ShadeController> mShadeController;
+    private final Lazy<Optional<CentralSurfaces>> mCentralSurfacesOptionalLazy;
 
     private final BouncerExpansionCallback mExpansionCallback = new BouncerExpansionCallback() {
         private boolean mBouncerAnimating;
@@ -267,7 +268,8 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
             KeyguardMessageAreaController.Factory keyguardMessageAreaFactory,
             Optional<SysUIUnfoldComponent> sysUIUnfoldComponent,
             Lazy<ShadeController> shadeController,
-            LatencyTracker latencyTracker) {
+            LatencyTracker latencyTracker,
+            Lazy<Optional<CentralSurfaces>> centralSurfacesOptionalLazy) {
         mContext = context;
         mViewMediatorCallback = callback;
         mLockPatternUtils = lockPatternUtils;
@@ -286,6 +288,7 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
         mLatencyTracker = latencyTracker;
         mFoldAodAnimationController = sysUIUnfoldComponent
                 .map(SysUIUnfoldComponent::getFoldAodAnimationController).orElse(null);
+        mCentralSurfacesOptionalLazy = centralSurfacesOptionalLazy;
     }
 
     @Override
@@ -735,6 +738,8 @@ public class StatusBarKeyguardViewManager implements RemoteInputController.Callb
             mMediaManager.updateMediaMetaData(false, animate && !mOccluded);
         }
         mNotificationShadeWindowController.setKeyguardOccluded(mOccluded);
+        mCentralSurfacesOptionalLazy.get().map(CentralSurfaces::getVisualizerView).ifPresent(
+                v -> v.setOccluded(occluded));
 
         // setDozing(false) will call reset once we stop dozing.
         if (!mDozing) {
