@@ -58,4 +58,7 @@
 
   <!-- Blur effects -->
   <java-symbol type="bool" name="config_ui_blur_enabled" />
+
+  <!-- WiFi turn off notification -->
+  <java-symbol type="string" name="notify_turn_wifi_off_title" />
 </resources>
