@@ -2662,13 +2662,25 @@ public final class Settings {
         public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
 
         /**
-         * Statusbar battery icon style options.
-         * 0 - Stock
-         * 1 - Stock w/ percentages
-         * 2 - Hidden
+         * Display style of the status bar battery information
+         * 0: Display the battery an icon in portrait mode
+         * 2: Display the battery as a circle
+         * 4: Hide the battery status information
+         * 5: Display the battery an icon in landscape mode
+         * 6: Display the battery as plain text
+         * default: 0
          * @hide
          */
         public static final String STATUSBAR_BATT_STYLE = "statusbar_batt_style";
+
+        /**
+         * Status bar battery %
+         * 0: Hide the battery percentage
+         * 1: Display the battery percentage inside the icon
+         * 2: Display the battery percentage next to the icon
+         * @hide
+         */
+        public static final String STATUSBAR_SHOW_BATTERY_PERCENT = "statusbar_show_battery_percent";
 
         /**
          * Show or hide power menu options
