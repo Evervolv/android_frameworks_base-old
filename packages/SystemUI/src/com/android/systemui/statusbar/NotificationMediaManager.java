@@ -71,6 +71,9 @@ import com.android.systemui.statusbar.phone.StatusBarWindowController;
 import com.android.systemui.statusbar.policy.KeyguardMonitor;
 import com.android.systemui.statusbar.VisualizerView;
 import com.android.systemui.SysUiServiceProvider;
+import com.android.systemui.tuner.TunerService;
+
+import evervolv.provider.EVSettings;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -90,9 +93,12 @@ import dagger.Lazy;
  * notification, which this class keeps track of.
  */
 @Singleton
-public class NotificationMediaManager implements Dumpable {
+public class NotificationMediaManager implements Dumpable, TunerService.Tunable {
     private static final String TAG = "NotificationMediaManager";
     public static final boolean DEBUG_MEDIA = false;
+
+    private static final String LOCKSCREEN_MEDIA_METADATA =
+            "evsecure:" + EVSettings.Secure.LOCKSCREEN_MEDIA_METADATA;
 
     private final StatusBarStateController mStatusBarStateController
             = Dependency.get(StatusBarStateController.class);
@@ -142,6 +148,8 @@ public class NotificationMediaManager implements Dumpable {
     private ImageView mBackdropBack;
 
     private boolean mShowCompactMediaSeekbar;
+    private boolean mShowMediaMetadata;
+
     private final DeviceConfig.OnPropertiesChangedListener mPropertiesChangedListener =
             new DeviceConfig.OnPropertiesChangedListener() {
         @Override
@@ -226,6 +234,17 @@ public class NotificationMediaManager implements Dumpable {
         DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_SYSTEMUI,
                 mContext.getMainExecutor(),
                 mPropertiesChangedListener);
+
+        final TunerService tunerService = Dependency.get(TunerService.class);
+        tunerService.addTunable(this, LOCKSCREEN_MEDIA_METADATA);
+    }
+
+    @Override
+    public void onTuningChanged(String key, String newValue) {
+        if (LOCKSCREEN_MEDIA_METADATA.equals(key)) {
+            mShowMediaMetadata = TunerService.parseIntegerSwitch(newValue, true);
+            dispatchUpdateMediaMetaData(false /* changed */, true /* allowAnimation */);
+        }
     }
 
     public static boolean isPlayingState(int state) {
@@ -514,7 +533,7 @@ public class NotificationMediaManager implements Dumpable {
     private void finishUpdateMediaMetaData(boolean metaDataChanged, boolean allowEnterAnimation,
             @Nullable Bitmap bmp) {
         Drawable artworkDrawable = null;
-        if (bmp != null) {
+        if (bmp != null && (mShowMediaMetadata || !ENABLE_LOCKSCREEN_WALLPAPER)) {
             artworkDrawable = new BitmapDrawable(mBackdropBack.getResources(), bmp);
         }
         boolean hasMediaArtwork = artworkDrawable != null;
