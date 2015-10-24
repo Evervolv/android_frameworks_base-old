@@ -72,8 +72,11 @@ import com.android.systemui.statusbar.phone.ScrimController;
 import com.android.systemui.statusbar.phone.ScrimState;
 import com.android.systemui.statusbar.phone.StatusBar;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.Utils;
 import com.android.systemui.util.concurrency.DelayableExecutor;
+
+import evervolv.provider.EVSettings;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -91,9 +94,12 @@ import dagger.Lazy;
  * Handles tasks and state related to media notifications. For example, there is a 'current' media
  * notification, which this class keeps track of.
  */
-public class NotificationMediaManager implements Dumpable {
+public class NotificationMediaManager implements Dumpable, TunerService.Tunable {
     private static final String TAG = "NotificationMediaManager";
     public static final boolean DEBUG_MEDIA = false;
+
+    private static final String LOCKSCREEN_MEDIA_METADATA =
+            "evsecure:" + EVSettings.Secure.LOCKSCREEN_MEDIA_METADATA;
 
     private final StatusBarStateController mStatusBarStateController
             = Dependency.get(StatusBarStateController.class);
@@ -115,6 +121,7 @@ public class NotificationMediaManager implements Dumpable {
     private final NotifPipeline mNotifPipeline;
     private final NotifCollection mNotifCollection;
     private final boolean mUsingNotifPipeline;
+    private boolean mShowMediaMetadata;
 
     @Nullable
     private Lazy<NotificationShadeWindowController> mNotificationShadeWindowController;
@@ -208,6 +215,15 @@ public class NotificationMediaManager implements Dumpable {
         }
 
         dumpManager.registerDumpable(this);
+
+        Dependency.get(TunerService.class).addTunable(this, LOCKSCREEN_MEDIA_METADATA);
+    }
+
+    @Override
+    public void onTuningChanged(String key, String newValue) {
+        if (LOCKSCREEN_MEDIA_METADATA.equals(key)) {
+            mShowMediaMetadata = TunerService.parseIntegerSwitch(newValue, true);
+        }
     }
 
     private void setupNotifPipeline() {
@@ -615,7 +631,7 @@ public class NotificationMediaManager implements Dumpable {
         }
 
         Bitmap artworkBitmap = null;
-        if (mediaMetadata != null && !mKeyguardBypassController.getBypassEnabled()) {
+        if (mShowMediaMetadata && mediaMetadata != null && !mKeyguardBypassController.getBypassEnabled()) {
             artworkBitmap = mediaMetadata.getBitmap(MediaMetadata.METADATA_KEY_ART);
             if (artworkBitmap == null) {
                 artworkBitmap = mediaMetadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
