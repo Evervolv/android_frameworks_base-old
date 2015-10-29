@@ -546,12 +546,7 @@ public final class SystemServer {
         LockSettingsService lockSettings = null;
         AssetAtlasService atlas = null;
         MediaRouterService mediaRouter = null;
-<<<<<<< HEAD
-=======
-        GestureService gestureService = null;
-        EdgeGestureService edgeGestureService = null;
         ThemeService themeService = null;
->>>>>>> 39f7484... Themes: Port to CM13 [1/3]
 
         // Bring up services needed for UI.
         if (mFactoryTestMode != FactoryTest.FACTORY_TEST_LOW_LEVEL) {
@@ -1080,23 +1075,6 @@ public final class SystemServer {
             reportWtf("making Display Manager Service ready", e);
         }
 
-<<<<<<< HEAD
-=======
-        if (edgeGestureService != null) {
-            try {
-                edgeGestureService.systemReady();
-            } catch (Throwable e) {
-                reportWtf("making EdgeGesture service ready", e);
-            }
-        }
-
-        if (gestureService != null) {
-            try {
-                gestureService.systemReady();
-            } catch (Throwable e) {
-                reportWtf("making Gesture Sensor Service ready", e);
-            }
-        }
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_APP_FAILURE);
@@ -1108,7 +1086,6 @@ public final class SystemServer {
         filter.addDataScheme("package");
         context.registerReceiver(new AppsFailureReceiver(), filter);
 
->>>>>>> 39f7484... Themes: Port to CM13 [1/3]
         // These are needed to propagate to the runnable below.
         final NetworkManagementService networkManagementF = networkManagement;
         final NetworkStatsService networkStatsF = networkStats;

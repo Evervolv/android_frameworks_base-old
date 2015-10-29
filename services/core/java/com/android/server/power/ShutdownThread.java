@@ -24,7 +24,6 @@ import android.app.IActivityManager;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.IBluetoothManager;
-import android.content.pm.ThemeUtils;
 import android.media.AudioAttributes;
 import android.nfc.NfcAdapter;
 import android.nfc.INfcAdapter;
@@ -33,6 +32,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ThemeUtils;
 import android.os.IBinder;
 import android.os.IPowerManager;
 import android.os.Handler;
@@ -122,10 +122,6 @@ public final class ShutdownThread extends Thread {
     private static AlertDialog sConfirmDialog;
     private ProgressDialog mProgressDialog;
 
-<<<<<<< HEAD
-=======
-    private static AudioManager mAudioManager;
->>>>>>> d8e138b... Show reboot dialog using themed resources
     private ShutdownThread() {
     }
 
@@ -138,10 +134,9 @@ public final class ShutdownThread extends Thread {
      * @param confirm true if user confirmation is needed before shutting down.
      */
     public static void shutdown(final Context context, boolean confirm) {
-        final Context uiContext = getUiContext(context);
         mReboot = false;
         mRebootSafeMode = false;
-        shutdownInner(uiContext, confirm);
+        shutdownInner(context, confirm);
     }
 
     static void shutdownInner(final Context context, boolean confirm) {
@@ -166,36 +161,16 @@ public final class ShutdownThread extends Thread {
 
         if (confirm) {
             final CloseDialogReceiver closer = new CloseDialogReceiver(context);
-<<<<<<< HEAD
-            if (sConfirmDialog != null) {
-                sConfirmDialog.dismiss();
-=======
-            final boolean advancedReboot = isAdvancedRebootPossible(context);
             final Context uiContext = getUiContext(context);
 
             if (sConfirmDialog != null) {
                 sConfirmDialog.dismiss();
                 sConfirmDialog = null;
             }
-            AlertDialog.Builder confirmDialogBuilder = new AlertDialog.Builder(uiContext)
-                    .setTitle(mRebootSafeMode
-                            ? com.android.internal.R.string.reboot_safemode_title
-                            : showRebootOption
-                                    ? com.android.internal.R.string.reboot_title
-                                    : com.android.internal.R.string.power_off);
-
-            if (!advancedReboot) {
-                confirmDialogBuilder.setMessage(resourceId);
-            } else {
-                confirmDialogBuilder
-                      .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options,
-                              0, null);
->>>>>>> d8e138b... Show reboot dialog using themed resources
-            }
 
             // Set different dialog message based on whether or not we're rebooting
             if (mReboot && !mRebootSafeMode) {
-                sConfirmDialog = new AlertDialog.Builder(context)
+                sConfirmDialog = new AlertDialog.Builder(uiContext)
                         .setTitle(com.android.internal.R.string.reboot_system)
                         .setSingleChoiceItems(com.android.internal.R.array.shutdown_reboot_options, 0, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -290,12 +265,11 @@ public final class ShutdownThread extends Thread {
      * @param confirm true if user confirmation is needed before shutting down.
      */
     public static void reboot(final Context context, String reason, boolean confirm) {
-        final Context uiContext = getUiContext(context);
         mReboot = true;
         mRebootSafeMode = false;
         mRebootUpdate = false;
         mRebootReason = reason;
-        shutdownInner(uiContext, confirm);
+        shutdownInner(context, confirm);
     }
 
     /**

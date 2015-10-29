@@ -6215,7 +6215,7 @@ status_t ResTable::parsePackage(const ResTable_package* const pkg,
                 TypeList& typeList = group->types.editItemAt(typeIndex);
                 if (!typeList.isEmpty()) {
                     const Type* existingType = typeList[0];
-                    if (existingType->entryCount != newEntryCount && idmapIndex < 0) {
+                    if (existingType->entryCount != newEntryCount) {
                         ALOGV("ResTable_typeSpec entry count inconsistent: given %d, previously %d",
                                 (int) newEntryCount, (int) existingType->entryCount);
                         // We should normally abort here, but some legacy apps declare
@@ -6719,8 +6719,6 @@ bool ResTable::getIdmapInfo(const void* idmap, size_t sizeBytes,
     return true;
 }
 
-<<<<<<< HEAD
-=======
 void ResTable::removeAssetsByCookie(const String8& /* packageName */, int32_t cookie)
 {
     mError = NO_ERROR;
@@ -6792,7 +6790,7 @@ bool ResTable::isResTypeAllowed(const char* type) const {
 bool ResTable::isDynamicPackageId(const uint32_t pkgId) const {
     return pkgId != APP_PACKAGE_ID && pkgId != SYS_PACKAGE_ID
             && pkgId != OVERLAY_APP_PACKAGE_ID && pkgId != OVERLAY_SYS_PACKAGE_ID
-            && pkgId != OVERLAY_COMMON_PACKAGE_ID && pkgId != CMSDK_PACKAGE_ID;
+            && pkgId != OVERLAY_COMMON_PACKAGE_ID;
 }
 
 status_t ResTable::removeIdmappedTypesFromPackageGroup(PackageGroup* packageGroup) const {
@@ -6814,7 +6812,6 @@ status_t ResTable::removeIdmappedTypesFromPackageGroup(PackageGroup* packageGrou
     }
     return NO_ERROR;
 }
->>>>>>> 39f7484... Themes: Port to CM13 [1/3]
 
 #define CHAR16_TO_CSTR(c16, len) (String8(String16(c16,len)).string())
 
