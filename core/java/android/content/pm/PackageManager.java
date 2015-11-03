@@ -2229,6 +2229,13 @@ public abstract class PackageManager {
             = "android.hardware.vr.high_performance";
 
     /**
+     * Feature for {@link #getSystemAvailableFeatures} and {@link #hasSystemFeature}:
+     * The device includes the cm performance service.
+     */
+    @SdkConstant(SdkConstantType.FEATURE)
+    public static final String FEATURE_CM_PERFORMANCE = "org.cyanogenmod.performance";
+
+    /**
      * Action to external storage service to clean out removed apps.
      * @hide
      */

@@ -2245,6 +2245,11 @@ final class ActivityStack {
             return false;
         }
 
+        // Some activities may want to alter the system power management
+        if (mStackSupervisor.mService.mPerf != null) {
+            mStackSupervisor.mService.mPerf.activityResumed(next.intent);
+        }
+
         // The activity may be waiting for stop, but that is no longer
         // appropriate for it.
         mStackSupervisor.mStoppingActivities.remove(next);
@@ -2253,9 +2258,6 @@ final class ActivityStack {
         mStackSupervisor.mWaitingVisibleActivities.remove(next);
 
         if (DEBUG_SWITCH) Slog.v(TAG_SWITCH, "Resuming " + next);
-
-        // Some activities may want to alter the system power management
-        mStackSupervisor.mPm.activityResumed(next.intent);
 
         // If we are currently pausing an activity, then don't do anything until that is done.
         if (!mStackSupervisor.allPausedActivitiesComplete()) {
@@ -2373,7 +2375,9 @@ final class ActivityStack {
                             ? TRANSIT_ACTIVITY_CLOSE
                             : TRANSIT_TASK_CLOSE, false);
                     if (prev.task != next.task) {
-                        mStackSupervisor.mPm.cpuBoost(2000 * 1000);
+                        if (mStackSupervisor.mService.mPerf != null) {
+                            mStackSupervisor.mService.mPerf.cpuBoost(2000 * 1000);
+                        }
                     }
                 }
                 mWindowManager.setAppVisibility(prev.appToken, false);
@@ -2390,7 +2394,9 @@ final class ActivityStack {
                                     ? TRANSIT_TASK_OPEN_BEHIND
                                     : TRANSIT_TASK_OPEN, false);
                     if (prev.task != next.task) {
-                        mStackSupervisor.mPm.cpuBoost(2000 * 1000);
+                        if (mStackSupervisor.mService.mPerf != null) {
+                            mStackSupervisor.mService.mPerf.cpuBoost(2000 * 1000);
+                        }
                     }
                 }
             }

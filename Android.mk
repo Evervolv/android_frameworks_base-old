@@ -230,6 +230,7 @@ LOCAL_SRC_FILES += \
 	core/java/android/os/INetworkActivityListener.aidl \
 	core/java/android/os/INetworkManagementService.aidl \
 	core/java/android/os/IPermissionController.aidl \
+	core/java/android/os/IPerformanceManager.aidl \
 	core/java/android/os/IProcessInfoService.aidl \
 	core/java/android/os/IProgressListener.aidl \
 	core/java/android/os/IPowerManager.aidl \
@@ -585,6 +586,7 @@ aidl_files := \
 	frameworks/base/core/java/android/app/admin/DnsEvent.aidl \
 	frameworks/base/core/java/android/app/admin/NetworkEvent.aidl \
 	frameworks/base/core/java/android/app/admin/SystemUpdatePolicy.aidl \
+	frameworks/base/core/java/android/os/PerformanceProfile.aidl \
 	frameworks/base/core/java/android/print/PrintDocumentInfo.aidl \
 	frameworks/base/core/java/android/print/PageRange.aidl \
 	frameworks/base/core/java/android/print/PrintAttributes.aidl \

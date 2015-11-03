@@ -175,6 +175,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
+import android.os.PerformanceManagerInternal;
 import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.os.PowerManagerInternal;
@@ -1239,6 +1240,11 @@ public final class ActivityManagerService extends ActivityManagerNative
      * sleeping while it is active.
      */
     private IVoiceInteractionSession mRunningVoice;
+
+    /**
+     * For boosting the CPU during app launches
+     */
+    PerformanceManagerInternal mPerf;
 
     /**
      * For some direct access we need to power manager.

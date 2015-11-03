@@ -3130,6 +3130,13 @@
         android:description="@string/permdesc_modifyOverlays"
         android:protectionLevel="signatureOrSystem" />
 
+    <!-- Allows low-level access to performance management.
+         @hide  <p>Not for use by third-party applications.</p> -->
+    <permission android:name="android.permission.PERFORMANCE_ACCESS"
+                android:label="@string/permlab_perfAccess"
+                android:description="@string/permdesc_perfAccessDesc"
+                android:protectionLevel="signature|privileged" />
+
     <application android:process="system"
                  android:persistent="true"
                  android:hasCode="false"

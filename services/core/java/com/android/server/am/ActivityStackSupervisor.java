@@ -356,8 +356,6 @@ public final class ActivityStackSupervisor implements DisplayListener {
     /** Set when we have taken too long waiting to go to sleep. */
     boolean mSleepTimeout = false;
 
-    PowerManager mPm;
-
     /**
      * We don't want to allow the device to go to sleep while in the process
      * of launching an activity.  This is primarily to allow alarm intent
@@ -500,9 +498,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
      * initialized.  So we initialize our wakelocks afterwards.
      */
     void initPowerManagement() {
-        mPm = (PowerManager)mService.mContext.getSystemService(Context.POWER_SERVICE);
-        mGoingToSleep = mPm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActivityManager-Sleep");
-        mLaunchingActivity = mPm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "*launch*");
+        PowerManager pm = (PowerManager)mService.mContext.getSystemService(Context.POWER_SERVICE);
+        mGoingToSleep = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActivityManager-Sleep");
+        mLaunchingActivity = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "*launch*");
         mLaunchingActivity.setReferenceCounted(false);
     }
 
@@ -1881,6 +1879,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     void findTaskToMoveToFrontLocked(TaskRecord task, int flags, ActivityOptions options,
             String reason, boolean forceNonResizeable) {
+        ActivityRecord top = task.stack.topRunningActivityLocked();
+        /* App is launching from recent apps and it's a new process */
         if ((flags & ActivityManager.MOVE_TASK_NO_USER_ACTION) == 0) {
             mUserLeaving = true;
         }
@@ -2717,13 +2717,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 // If the match we found was based on root affinity we keep on looking to see if
                 // there is a better match in another stack. We eventually return the match based
                 // on root affinity if we don't find a better match.
-                if (mTmpFindTaskResult.r != null && !mTmpFindTaskResult.matchedByRootAffinity) {
-                    return mTmpFindTaskResult.r;
+                if (mTmpFindTaskResult.r != null) {
+                    if (!mTmpFindTaskResult.matchedByRootAffinity) {
+                        return mTmpFindTaskResult.r;
+                    }
                 }
             }
         }
-
-        mPm.cpuBoost(2000 * 1000);
 
         if (DEBUG_TASKS && mTmpFindTaskResult.r == null) Slog.d(TAG_TASKS, "No task found");
         return mTmpFindTaskResult.r;

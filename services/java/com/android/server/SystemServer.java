@@ -88,6 +88,7 @@ import com.android.server.pm.OtaDexoptService;
 import com.android.server.pm.PackageManagerService;
 import com.android.server.pm.ShortcutService;
 import com.android.server.pm.UserManagerService;
+import com.android.server.power.PerformanceManagerService;
 import com.android.server.power.PowerManagerService;
 import com.android.server.power.ShutdownThread;
 import com.android.server.restrictions.RestrictionsManagerService;
@@ -1137,6 +1138,10 @@ public final class SystemServer {
 
             mOemExService = new OemExService(context);
             ServiceManager.addService("OEMExService", mOemExService);
+
+            if (mPackageManager.hasSystemFeature(PackageManager.FEATURE_CM_PERFORMANCE)) {
+                mSystemServiceManager.startService(PerformanceManagerService.class);
+            }
 
             if (mPackageManager.hasSystemFeature(PackageManager.FEATURE_PRINTING)) {
                 mSystemServiceManager.startService(PRINT_MANAGER_SERVICE_CLASS);

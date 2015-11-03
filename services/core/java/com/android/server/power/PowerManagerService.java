@@ -40,6 +40,7 @@ import android.os.IBinder;
 import android.os.IPowerManager;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PerformanceManagerInternal;
 import android.os.PowerManager;
 import android.os.PowerManagerInternal;
 import android.os.Process;
@@ -68,6 +69,7 @@ import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BackgroundThread;
 import com.android.internal.util.ArrayUtils;
 import com.android.server.EventLogTags;
+import com.android.server.LocalServices;
 import com.android.server.ServiceThread;
 import com.android.server.SystemService;
 import com.android.server.Watchdog;
@@ -184,9 +186,6 @@ public final class PowerManagerService extends SystemService
     private static final int HALT_MODE_REBOOT_SAFE_MODE = 2;
 
     private static final int BUTTON_ON_DURATION = 5 * 1000;
-
-    // Max time (microseconds) to allow a CPU boost for
-    private static final int MAX_CPU_BOOST_TIME = 5000000;
 
     private final Context mContext;
     private final ServiceThread mHandlerThread;
@@ -523,10 +522,9 @@ public final class PowerManagerService extends SystemService
     private static native void nativeSetAutoSuspend(boolean enable);
     private static native void nativeSendPowerHint(int hintId, int data);
     private static native void nativeSetFeature(int featureId, int data);
-    private static native void nativeCpuBoost(int duration);
-    static native void nativeSetPowerProfile(int profile);
+    private static native int nativeGetFeature(int featureId);
 
-    private PerformanceManager mPerformanceManager;
+    private PerformanceManagerInternal mPerf;
 
     public PowerManagerService(Context context) {
         super(context);
@@ -535,7 +533,6 @@ public final class PowerManagerService extends SystemService
                 Process.THREAD_PRIORITY_DISPLAY, false /*allowIo*/);
         mHandlerThread.start();
         mHandler = new PowerManagerHandler(mHandlerThread.getLooper());
-        mPerformanceManager = new PerformanceManager(context);
 
         qcNsrmPowExt = new QCNsrmPowerExtension(this);
         synchronized (mLock) {
@@ -585,6 +582,7 @@ public final class PowerManagerService extends SystemService
                     }
                 }
                 mBootCompletedRunnables = null;
+                mPerf = LocalServices.getService(PerformanceManagerInternal.class);
             }
         }
     }
@@ -679,9 +677,6 @@ public final class PowerManagerService extends SystemService
                     Slog.e(TAG, "Failed to register VR mode state listener: " + e);
                 }
             }
-
-            mPerformanceManager.reset();
-
             // Go.
             readConfigurationLocked();
             updateSettingsLocked();
@@ -850,6 +845,7 @@ public final class PowerManagerService extends SystemService
             // Turn setting off if powered
             Settings.Global.putInt(mContext.getContentResolver(),
                     Settings.Global.LOW_POWER_MODE, 0);
+            // update performance profile
             mLowPowerModeSetting = false;
         }
         final boolean autoLowPowerModeEnabled = !mIsPowered && mAutoLowPowerModeConfigured
@@ -3612,12 +3608,7 @@ public final class PowerManagerService extends SystemService
                     android.Manifest.permission.DEVICE_POWER, null);
             final long ident = Binder.clearCallingIdentity();
             try {
-                boolean changed = setLowPowerModeInternal(mode);
-                if (changed) {
-                    mPerformanceManager.setPowerProfile(mLowPowerModeEnabled ?
-                            PowerManager.PROFILE_POWER_SAVE : PowerManager.PROFILE_BALANCED);
-                }
-                return changed;
+                return setLowPowerModeInternal(mode);
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
@@ -3641,46 +3632,6 @@ public final class PowerManagerService extends SystemService
             } finally {
                 Binder.restoreCallingIdentity(ident);
             }
-        }
-
-        @Override
-        public boolean setPowerProfile(String profile) {
-            mContext.enforceCallingOrSelfPermission(android.Manifest.permission.DEVICE_POWER, null);
-            final long ident = Binder.clearCallingIdentity();
-            try {
-                setLowPowerModeInternal(PowerManager.PROFILE_POWER_SAVE.equals(profile));
-            } finally {
-                Binder.restoreCallingIdentity(ident);
-            }
-            return mPerformanceManager.setPowerProfile(profile);
-        }
-
-        @Override
-        public String getPowerProfile() {
-            return mPerformanceManager.getPowerProfile();
-        }
-
-        /**
-         * Boost the CPU
-         * @param duration Duration to boost the CPU for, in milliseconds.
-         * @hide
-         */
-        @Override
-        public void cpuBoost(int duration) {
-            if (duration > 0 && duration <= MAX_CPU_BOOST_TIME) {
-                // Don't send boosts if we're in another power profile
-                String profile = mPerformanceManager.getPowerProfile();
-                if (profile == null || profile.equals(PowerManager.PROFILE_BALANCED)) {
-                    nativeCpuBoost(duration);
-                }
-            } else {
-                Slog.e(TAG, "Invalid boost duration: " + duration);
-            }
-        }
-
-        @Override
-        public void activityResumed(String componentName) {
-            mPerformanceManager.activityResumed(componentName);
         }
 
         /**
@@ -3887,6 +3838,11 @@ public final class PowerManagerService extends SystemService
         }
 
         @Override // Binder call
+        public void cpuBoost(int duration) {
+            mPerf.cpuBoost(duration);
+        }
+
+        @Override // Binder call
         protected void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
             if (mContext.checkCallingOrSelfPermission(Manifest.permission.DUMP)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -4015,6 +3971,21 @@ public final class PowerManagerService extends SystemService
         @Override
         public void powerHint(int hintId, int data) {
             powerHintInternal(hintId, data);
+        }
+
+        @Override
+        public boolean setPowerSaveMode(boolean mode) {
+            return setLowPowerModeInternal(mode);
+        }
+
+        @Override
+        public int getFeature(int featureId) {
+            return nativeGetFeature(featureId);
+        }
+
+        @Override
+        public void setFeature(int featureId, int data) {
+            nativeSetFeature(featureId, data);
         }
     }
 }

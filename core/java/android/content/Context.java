@@ -3671,6 +3671,12 @@ public abstract class Context {
     public static final String OVERLAY_SERVICE = "overlay";
 
     /**
+     * Performance Service
+     * @hide
+     */
+    public static final String PERFORMANCE_SERVICE = "performance";
+
+    /**
      * Determine whether the given permission is allowed for a particular
      * process and user ID running in the system.
      *
