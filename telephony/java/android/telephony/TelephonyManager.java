@@ -1066,7 +1066,7 @@ public class TelephonyManager {
         case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_LTE:
         case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA:
         case RILConstants.NETWORK_MODE_TD_SCDMA_WCDMA_LTE:
-        case RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA:
+        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA_LTE:
         case RILConstants.NETWORK_MODE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA:
 
             return PhoneConstants.PHONE_TYPE_GSM;
@@ -1074,7 +1074,7 @@ public class TelephonyManager {
         // Use CDMA Phone for the global mode including CDMA
         case RILConstants.NETWORK_MODE_GLOBAL:
         case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_CDMA_EVDO_GSM_WCDMA:
+        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA_CDMA_EVDO:
             return PhoneConstants.PHONE_TYPE_CDMA;
 
         case RILConstants.NETWORK_MODE_LTE_ONLY:
