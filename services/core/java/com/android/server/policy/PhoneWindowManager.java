@@ -65,6 +65,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.PowerManager;
+import android.os.PowerManagerInternal;
 import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -117,6 +118,7 @@ import com.android.internal.R;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.util.ScreenShapeHelper;
 import com.android.internal.widget.PointerLocationView;
+import com.android.server.GestureLauncherService;
 import com.android.server.LocalServices;
 import com.android.server.policy.keyguard.KeyguardServiceDelegate;
 import com.android.server.policy.keyguard.KeyguardServiceDelegate.DrawnListener;
@@ -125,7 +127,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -280,6 +281,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     PowerManager mPowerManager;
     ActivityManagerInternal mActivityManagerInternal;
     DreamManagerInternal mDreamManagerInternal;
+    PowerManagerInternal mPowerManagerInternal;
     IStatusBarService mStatusBarService;
     boolean mPreloadedRecentApps;
     final Object mServiceAquireLock = new Object();
@@ -833,6 +835,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     class MyOrientationListener extends WindowOrientationListener {
+        private final Runnable mUpdateRotationRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // send interaction hint to improve redraw performance
+                mPowerManagerInternal.powerHint(PowerManagerInternal.POWER_HINT_INTERACTION, 0);
+                updateRotation(false);
+            }
+        };
+
         MyOrientationListener(Context context, Handler handler) {
             super(context, handler);
         }
@@ -840,7 +851,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         @Override
         public void onProposedRotationChanged(int rotation) {
             if (localLOGV) Slog.v(TAG, "onProposedRotationChanged, rotation=" + rotation);
-            updateRotation(false);
+            mHandler.post(mUpdateRotationRunnable);
         }
     }
     MyOrientationListener mOrientationListener;
@@ -995,10 +1006,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
 
+        GestureLauncherService gestureService = LocalServices.getService(
+                GestureLauncherService.class);
+        boolean gesturedServiceIntercepted = false;
+        if (gestureService != null) {
+            gesturedServiceIntercepted = gestureService.interceptPowerKeyDown(event, interactive);
+        }
+
         // If the power key has still not yet been handled, then detect short
         // press, long press, or multi press and decide what to do.
         mPowerKeyHandled = hungUp || mScreenshotChordVolumeDownKeyTriggered
-                || mScreenshotChordVolumeUpKeyTriggered;
+                || mScreenshotChordVolumeUpKeyTriggered || gesturedServiceIntercepted;
         if (!mPowerKeyHandled) {
             if (interactive) {
                 // When interactive, we're already awake.
@@ -1387,6 +1405,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mWindowManagerInternal = LocalServices.getService(WindowManagerInternal.class);
         mActivityManagerInternal = LocalServices.getService(ActivityManagerInternal.class);
         mDreamManagerInternal = LocalServices.getService(DreamManagerInternal.class);
+        mPowerManagerInternal = LocalServices.getService(PowerManagerInternal.class);
         mAppOpsManager = (AppOpsManager) mContext.getSystemService(Context.APP_OPS_SERVICE);
 
         // Init display burn-in protection
@@ -1560,6 +1579,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     public void onSwipeFromRight() {
                         if (mNavigationBar != null && !mNavigationBarOnBottom) {
                             requestTransientBars(mNavigationBar);
+                        }
+                    }
+                    @Override
+                    public void onFling(int duration) {
+                        if (mPowerManagerInternal != null) {
+                            mPowerManagerInternal.powerHint(
+                                    PowerManagerInternal.POWER_HINT_INTERACTION, duration);
                         }
                     }
                     @Override
@@ -4469,6 +4495,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (attrs.type == TYPE_STATUS_BAR) {
             if ((attrs.privateFlags & PRIVATE_FLAG_KEYGUARD) != 0) {
                 mForceStatusBarFromKeyguard = true;
+                mShowingLockscreen = true;
             }
             if ((attrs.privateFlags & PRIVATE_FLAG_FORCE_STATUS_BAR_VISIBLE_TRANSPARENT) != 0) {
                 mForceStatusBarTransparent = true;
@@ -4488,9 +4515,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 } else {
                     mForceStatusBar = true;
                 }
-            }
-            if ((attrs.privateFlags & PRIVATE_FLAG_KEYGUARD) != 0) {
-                mShowingLockscreen = true;
             }
             if (attrs.type == TYPE_DREAM) {
                 // If the lockscreen was showing when the dream started then wait
@@ -4515,7 +4539,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     if (mAppsToBeHidden.isEmpty()) {
                         if (dismissKeyguard && !mKeyguardSecure) {
                             mAppsThatDismissKeyguard.add(appToken);
-                        } else {
+                        } else if (win.isDrawnLw() || win.hasAppShownWindows()) {
                             mWinShowWhenLocked = win;
                             mHideLockScreen = true;
                             mForceStatusBarFromKeyguard = false;
@@ -4549,7 +4573,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                         mWinDismissingKeyguard = win;
                         mSecureDismissingKeyguard = mKeyguardSecure;
                         mForceStatusBarFromKeyguard = mShowingLockscreen && mKeyguardSecure;
-                    } else if (mAppsToBeHidden.isEmpty() && showWhenLocked) {
+                    } else if (mAppsToBeHidden.isEmpty() && showWhenLocked
+                            && (win.isDrawnLw() || win.hasAppShownWindows())) {
                         if (DEBUG_LAYOUT) Slog.v(TAG,
                                 "Setting mHideLockScreen to true by win " + win);
                         mHideLockScreen = true;
@@ -6315,6 +6340,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mKeyguardDelegate.bindService(mContext);
             mKeyguardDelegate.onBootCompleted();
         }
+        mSystemGestures.systemReady();
     }
 
     /** {@inheritDoc} */
@@ -6341,6 +6367,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
         startedWakingUp();
         screenTurningOn(null);
+        screenTurnedOn();
     }
 
     ProgressDialog mBootMsgDialog = null;
@@ -7256,6 +7283,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
         if (mBurnInProtectionHelper != null) {
             mBurnInProtectionHelper.dump(prefix, pw);
+        }
+        if (mKeyguardDelegate != null) {
+            mKeyguardDelegate.dump(prefix, pw);
         }
     }
 }

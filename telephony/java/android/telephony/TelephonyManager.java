@@ -1058,6 +1058,7 @@ public class TelephonyManager {
         case RILConstants.NETWORK_MODE_GSM_UMTS:
         case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
         case RILConstants.NETWORK_MODE_LTE_WCDMA:
+        case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
         case RILConstants.NETWORK_MODE_TD_SCDMA_ONLY:
         case RILConstants.NETWORK_MODE_TD_SCDMA_WCDMA:
         case RILConstants.NETWORK_MODE_TD_SCDMA_LTE:
@@ -1065,15 +1066,15 @@ public class TelephonyManager {
         case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_LTE:
         case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA:
         case RILConstants.NETWORK_MODE_TD_SCDMA_WCDMA_LTE:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA_LTE:
+        case RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA:
+        case RILConstants.NETWORK_MODE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA:
+
             return PhoneConstants.PHONE_TYPE_GSM;
 
         // Use CDMA Phone for the global mode including CDMA
         case RILConstants.NETWORK_MODE_GLOBAL:
         case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
-        case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA_CDMA_EVDO:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA:
+        case RILConstants.NETWORK_MODE_TD_SCDMA_CDMA_EVDO_GSM_WCDMA:
             return PhoneConstants.PHONE_TYPE_CDMA;
 
         case RILConstants.NETWORK_MODE_LTE_ONLY:
@@ -3398,13 +3399,7 @@ public class TelephonyManager {
 
     /** @hide */
     public int getSimCount() {
-        // FIXME Need to get it from Telephony Dev Controller when that gets implemented!
-        // and then this method shouldn't be used at all!
-        if(isMultiSimEnabled()) {
-            return 2;
-        } else {
-            return 1;
-        }
+        return getPhoneCount();
     }
 
     /**
@@ -3616,11 +3611,12 @@ public class TelephonyManager {
      *
      * @hide
      */
-    public boolean setNetworkSelectionModeManual(int subId, OperatorInfo operator) {
+    public boolean setNetworkSelectionModeManual(int subId, OperatorInfo operator,
+            boolean persistSelection) {
         try {
             ITelephony telephony = getITelephony();
             if (telephony != null)
-                return telephony.setNetworkSelectionModeManual(subId, operator);
+                return telephony.setNetworkSelectionModeManual(subId, operator, persistSelection);
         } catch (RemoteException ex) {
             Rlog.e(TAG, "setNetworkSelectionModeManual RemoteException", ex);
         } catch (NullPointerException ex) {
@@ -4407,13 +4403,13 @@ public class TelephonyManager {
        }
    }
 
-   /**
-    * Returns the Status of Volte
-    *@hide
-    */
-   public boolean isVolteEnabled() {
+    /**
+     * Returns the Status of Volte
+     * @hide
+     */
+    public boolean isVolteAvailable() {
        try {
-           return getITelephony().isVolteEnabled();
+           return getITelephony().isVolteAvailable();
        } catch (RemoteException ex) {
            return false;
        } catch (NullPointerException ex) {
@@ -4421,13 +4417,27 @@ public class TelephonyManager {
        }
    }
 
-   /**
-    * Returns the Status of Wi-Fi Calling
-    *@hide
-    */
-   public boolean isWifiCallingEnabled() {
+    /**
+     * Returns the Status of video telephony (VT)
+     * @hide
+     */
+    public boolean isVideoTelephonyAvailable() {
+        try {
+            return getITelephony().isVideoTelephonyAvailable();
+        } catch (RemoteException ex) {
+            return false;
+        } catch (NullPointerException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the Status of Wi-Fi Calling
+     * @hide
+     */
+    public boolean isWifiCallingAvailable() {
        try {
-           return getITelephony().isWifiCallingEnabled();
+           return getITelephony().isWifiCallingAvailable();
        } catch (RemoteException ex) {
            return false;
        } catch (NullPointerException ex) {
