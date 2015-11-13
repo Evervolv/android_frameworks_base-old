@@ -14,15 +14,9 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-  <java-symbol type="bool" name="config_useSystemClockforRotationSensor" />
-
-  <!-- Package Manager -->
-  <java-symbol type="array" name="config_disabledComponents" />
-  <java-symbol type="array" name="config_forceEnabledComponents" />
-
-  <!-- Vendor mismatched fingerprint warning -->
-  <java-symbol type="string" name="system_error_vendorprint" />
+    <!-- Vendor mismatched fingerprint warning [CHAR LIMIT=NONE] -->
+    <string name="system_error_vendorprint">It appears your vendor image may be out of date. Please flash the latest vendor image for your device.</string>
 
 </resources>
