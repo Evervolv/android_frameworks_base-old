@@ -45,6 +45,4 @@ oneway interface IInCallService {
     void bringToForeground(boolean showDialpad);
 
     void onCanAddCallChanged(boolean canAddCall);
-
-    void onMergeFailed(in ParcelableCall call);
 }

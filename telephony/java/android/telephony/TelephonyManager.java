@@ -1059,22 +1059,21 @@ public class TelephonyManager {
         case RILConstants.NETWORK_MODE_LTE_GSM_WCDMA:
         case RILConstants.NETWORK_MODE_LTE_WCDMA:
         case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_ONLY:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_WCDMA:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_LTE:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_LTE:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_WCDMA_LTE:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA_LTE:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_LTE_CDMA_EVDO_GSM_WCDMA:
-
+        case RILConstants.NETWORK_MODE_TDSCDMA_ONLY:
+        case RILConstants.NETWORK_MODE_TDSCDMA_WCDMA:
+        case RILConstants.NETWORK_MODE_LTE_TDSCDMA:
+        case RILConstants.NETWORK_MODE_TDSCDMA_GSM:
+        case RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM:
+        case RILConstants.NETWORK_MODE_TDSCDMA_GSM_WCDMA:
+        case RILConstants.NETWORK_MODE_LTE_TDSCDMA_WCDMA:
+        case RILConstants.NETWORK_MODE_LTE_TDSCDMA_GSM_WCDMA:
+        case RILConstants.NETWORK_MODE_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA:
             return PhoneConstants.PHONE_TYPE_GSM;
 
         // Use CDMA Phone for the global mode including CDMA
         case RILConstants.NETWORK_MODE_GLOBAL:
         case RILConstants.NETWORK_MODE_LTE_CDMA_EVDO:
-        case RILConstants.NETWORK_MODE_TD_SCDMA_GSM_WCDMA_CDMA_EVDO:
+        case RILConstants.NETWORK_MODE_TDSCDMA_CDMA_EVDO_GSM_WCDMA:
             return PhoneConstants.PHONE_TYPE_CDMA;
 
         case RILConstants.NETWORK_MODE_LTE_ONLY:
@@ -1163,15 +1162,6 @@ public class TelephonyManager {
                 " product_type='" + productType +
                 "' lteOnCdmaProductType='" + sLteOnCdmaProductType + "'");
         return retVal;
-    }
-
-    /**
-     * Return if the current radio is LTE on GSM
-     * @hide
-     */
-    public static int getLteOnGsmModeStatic() {
-        return SystemProperties.getInt(TelephonyProperties.PROPERTY_LTE_ON_GSM_DEVICE,
-                    0);
     }
 
     //
@@ -1350,12 +1340,11 @@ public class TelephonyManager {
     public static final int NETWORK_TYPE_HSPAP = 15;
     /** Current network is GSM {@hide} */
     public static final int NETWORK_TYPE_GSM = 16;
-    /** Current network is TD_SCDMA {@hide} */
+     /** Current network is TD_SCDMA {@hide} */
     public static final int NETWORK_TYPE_TD_SCDMA = 17;
    /** Current network is IWLAN {@hide} */
     public static final int NETWORK_TYPE_IWLAN = 18;
-    /** Current network is LTE_CA {@hide} */
-    public static final int NETWORK_TYPE_LTE_CA = 19;
+
     /**
      * @return the NETWORK_TYPE_xxxx for current data connection.
      */
@@ -1400,12 +1389,10 @@ public class TelephonyManager {
      * @see #NETWORK_TYPE_LTE
      * @see #NETWORK_TYPE_EHRPD
      * @see #NETWORK_TYPE_HSPAP
-     * @see #NETWORK_TYPE_TD_SCDMA
      *
      * <p>
      * Requires Permission:
      *   {@link android.Manifest.permission#READ_PHONE_STATE READ_PHONE_STATE}
-     * @hide
      */
     /** {@hide} */
    public int getNetworkType(int subId) {
@@ -1525,21 +1512,6 @@ public class TelephonyManager {
         }
     }
 
-    /**
-     * Returns the icc operator numeric for a given subId
-     *
-     */
-    /** {@hide} */
-    public String getIccOperatorNumericForData(int subId) {
-       try{
-            return getITelephony().getIccOperatorNumericForData(subId);
-       } catch (RemoteException ex) {
-           return null;
-       } catch (NullPointerException ex) {
-           return null;
-       }
-    }
-
     /** Unknown network class. {@hide} */
     public static final int NETWORK_CLASS_UNKNOWN = 0;
     /** Class of broadly defined "2G" networks. {@hide} */
@@ -1577,7 +1549,6 @@ public class TelephonyManager {
                 return NETWORK_CLASS_3_G;
             case NETWORK_TYPE_LTE:
             case NETWORK_TYPE_IWLAN:
-            case NETWORK_TYPE_LTE_CA:
                 return NETWORK_CLASS_4_G;
             default:
                 return NETWORK_CLASS_UNKNOWN;
@@ -1641,8 +1612,6 @@ public class TelephonyManager {
                 return "TD_SCDMA";
             case NETWORK_TYPE_IWLAN:
                 return "IWLAN";
-            case NETWORK_TYPE_LTE_CA:
-                return "LTE_CA";
             default:
                 return "UNKNOWN";
         }
@@ -2005,21 +1974,6 @@ public class TelephonyManager {
         } catch (NullPointerException ex) {
             // This could happen before phone restarts due to crashing
             return PhoneConstants.LTE_ON_CDMA_UNKNOWN;
-        }
-    }
-
-    /**
-     * Return if the current radio is LTE on GSM
-     * @hide
-     */
-    public int getLteOnGsmMode() {
-        try {
-            return getITelephony().getLteOnGsmMode();
-        } catch (RemoteException ex) {
-            return 0;
-        } catch (NullPointerException ex) {
-            // This could happen before phone restarts due to crashing
-            return 0;
         }
     }
 
@@ -3399,7 +3353,13 @@ public class TelephonyManager {
 
     /** @hide */
     public int getSimCount() {
-        return getPhoneCount();
+        // FIXME Need to get it from Telephony Dev Controller when that gets implemented!
+        // and then this method shouldn't be used at all!
+        if(isMultiSimEnabled()) {
+            return 2;
+        } else {
+            return 1;
+        }
     }
 
     /**

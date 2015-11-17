@@ -16,7 +16,6 @@
 
 package android.telephony;
 
-import android.util.SparseArray;
 import com.android.i18n.phonenumbers.NumberParseException;
 import com.android.i18n.phonenumbers.PhoneNumberUtil;
 import com.android.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
@@ -26,7 +25,6 @@ import com.android.i18n.phonenumbers.ShortNumberUtil;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.location.Country;
 import android.location.CountryDetector;
 import android.net.Uri;
 import android.os.SystemProperties;
@@ -79,7 +77,6 @@ public class PhoneNumberUtils
     static final String LOG_TAG = "PhoneNumberUtils";
     private static final boolean DBG = false;
 
-    private static Country sCountryDetector = null;
     /*
      * global-phone-number = ["+"] 1*( DIGIT / written-sep )
      * written-sep         = ("-"/".")
@@ -140,55 +137,6 @@ public class PhoneNumberUtils
     /** Returns true if ch is not dialable or alpha char */
     private static boolean isSeparator(char ch) {
         return !isDialable(ch) && !(('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z'));
-    }
-
-    /**
-     * On some CDMA networks +COUNTRYCODE must be rewritten to 0 when making a local
-     * call from within the user's home network.  We maintain a white list of
-     * (country code prefix) -> (rewrite rule) to perform this substitution.
-     *
-     * Since country codes are variable length it is easiest to compile a regex
-     */
-    private static SparseArray<RewriteRule> sCdmaLocalRewriteWhitelist;
-    private static Pattern sCdmaLocalRewritePattern;
-    static {
-        sCdmaLocalRewriteWhitelist = new SparseArray<RewriteRule>();
-        addRewriteRule(62, "ID", "0"); // indonesia
-        addRewriteRule(380, "UA", "0"); // ukraine
-
-        StringBuffer regex = new StringBuffer();
-        regex.append("[+](");
-        for (int i=0; i < sCdmaLocalRewriteWhitelist.size(); ++i) {
-            int countryCode = sCdmaLocalRewriteWhitelist.keyAt(i);
-            if (i > 0) {
-                regex.append("|");
-            }
-            regex.append(countryCode);
-        }
-        regex.append(")");
-        sCdmaLocalRewritePattern = Pattern.compile(regex.toString());
-    }
-
-    private static class RewriteRule {
-        public int countryCodePrefix;
-        public String isoCountryCode;
-        public String replacement;
-
-        public RewriteRule(int countryCodePrefix, String isoCountryCode, String replacement) {
-            this.countryCodePrefix = countryCodePrefix;
-            this.isoCountryCode = isoCountryCode;
-            this.replacement = replacement;
-        }
-
-        public String apply(String dialStr) {
-            return dialStr.replaceFirst("[+]" + countryCodePrefix, replacement);
-        }
-    }
-
-    private static void addRewriteRule(int countryCodePrefix,
-                                       String isoCountryCode, String replacement) {
-        sCdmaLocalRewriteWhitelist.put(countryCodePrefix,
-                new RewriteRule(countryCodePrefix, isoCountryCode, replacement));
     }
 
     /** Extracts the phone number from an Intent.
@@ -2109,37 +2057,18 @@ public class PhoneNumberUtils
     private static boolean isLocalEmergencyNumberInternal(int subId, String number,
                                                           Context context,
                                                           boolean useExactMatch) {
-        String countryIso = getCountryIso(context);
-        Rlog.w(LOG_TAG, "isLocalEmergencyNumberInternal" + countryIso);
-        if (countryIso == null) {
+        String countryIso;
+        CountryDetector detector = (CountryDetector) context.getSystemService(
+                Context.COUNTRY_DETECTOR);
+        if (detector != null && detector.detectCountry() != null) {
+            countryIso = detector.detectCountry().getCountryIso();
+        } else {
             Locale locale = context.getResources().getConfiguration().locale;
             countryIso = locale.getCountry();
             Rlog.w(LOG_TAG, "No CountryDetector; falling back to countryIso based on locale: "
                     + countryIso);
         }
         return isEmergencyNumberInternal(subId, number, countryIso, useExactMatch);
-    }
-
-    private static String getCountryIso(Context context) {
-        Rlog.w(LOG_TAG, "getCountryIso " + sCountryDetector);
-        if (sCountryDetector == null) {
-            CountryDetector detector = (CountryDetector) context.getSystemService(
-                Context.COUNTRY_DETECTOR);
-            if (detector != null) {
-                sCountryDetector = detector.detectCountry();
-            }
-        }
-
-        if (sCountryDetector == null) {
-            return null;
-        } else {
-            return sCountryDetector.getCountryIso();
-        }
-    }
-
-    /** @hide */
-    public static void resetCountryDetectorInfo() {
-        sCountryDetector = null;
     }
 
     /**
@@ -2631,29 +2560,6 @@ public class PhoneNumberUtils
     }
 
     /**
-     * Returns a rewrite rule for the country code prefix if the dial string matches the
-     * whitelist and the user is in their home network
-     *
-     * @param dialStr number being dialed
-     * @param currIso ISO code of currently attached network
-     * @param defaultIso ISO code of user's sim
-     * @return RewriteRule or null if conditions fail
-     */
-    private static RewriteRule getCdmaLocalRewriteRule(String dialStr,
-                                                       String currIso, String defaultIso) {
-        Matcher m = sCdmaLocalRewritePattern.matcher(dialStr);
-        if (m.find()) {
-            String dialPrefix = m.group(1);
-            RewriteRule rule = sCdmaLocalRewriteWhitelist.get(Integer.valueOf(dialPrefix));
-            if (currIso.equalsIgnoreCase(defaultIso) &&
-                    currIso.equalsIgnoreCase(rule.isoCountryCode)) {
-                return rule;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Determines if the specified number is actually a URI
      * (i.e. a SIP address) rather than a regular PSTN phone number,
      * based on whether or not the number contains an "@" character.
@@ -2716,16 +2622,8 @@ public class PhoneNumberUtils
                 // Remove the leading plus sign
                 retStr = newStr;
             } else {
-                RewriteRule rewriteRule =
-                        getCdmaLocalRewriteRule(networkDialStr,
-                                TelephonyManager.getDefault().getNetworkCountryIso(),
-                                TelephonyManager.getDefault().getSimCountryIso());
-                if (rewriteRule != null) {
-                    retStr = rewriteRule.apply(networkDialStr);
-                } else {
-                    // Replaces the plus sign with the default IDP
-                    retStr = networkDialStr.replaceFirst("[+]", getCurrentIdp(useNanp));
-                }
+                // Replaces the plus sign with the default IDP
+                retStr = networkDialStr.replaceFirst("[+]", getCurrentIdp(useNanp));
             }
         }
         if (DBG) log("processPlusCode, retStr=" + retStr);

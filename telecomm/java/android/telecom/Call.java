@@ -206,32 +206,8 @@ public final class Call {
          */
         public static final int CAPABILITY_CAN_PAUSE_VIDEO = 0x00100000;
 
-        /**
-         * Call has voice privacy capability.
-         * @hide
-         */
-        public static final int CAPABILITY_VOICE_PRIVACY = 0x00400000;
-
-        /**
-         * Local device supports downgrading a video call to a voice-only call.
-         * @hide
-         */
-        public static final int CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL = 0x00800000;
-
-        /**
-         * Remote device supports downgrading a video call to a voice-only call.
-         * @hide
-         */
-        public static final int CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE = 0x01000000;
-
-        /**
-         * Add participant in an active or conference call option
-         * @hide
-         */
-        public static final int CAPABILITY_ADD_PARTICIPANT = 0x02000000;
-
         //******************************************************************************************
-        // Next CAPABILITY value: 0x04000000
+        // Next CAPABILITY value: 0x00004000
         //******************************************************************************************
 
         /**
@@ -345,12 +321,6 @@ public final class Call {
             if (can(capabilities, CAPABILITY_SUPPORTS_VT_REMOTE_TX)) {
                 builder.append(" CAPABILITY_SUPPORTS_VT_REMOTE_TX");
             }
-            if (can(capabilities, CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL)) {
-                builder.append(" CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_LOCAL");
-            }
-            if (can(capabilities, CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE)) {
-                builder.append(" CAPABILITY_SUPPORTS_DOWNGRADE_TO_VOICE_REMOTE");
-            }
             if (can(capabilities, CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL)) {
                 builder.append(" CAPABILITY_SUPPORTS_VT_REMOTE_BIDIRECTIONAL");
             }
@@ -362,12 +332,6 @@ public final class Call {
             }
             if (can(capabilities, CAPABILITY_CAN_PAUSE_VIDEO)) {
                 builder.append(" CAPABILITY_CAN_PAUSE_VIDEO");
-            }
-            if (can(capabilities, CAPABILITY_VOICE_PRIVACY)) {
-                builder.append(" CAPABILITY_VOICE_PRIVACY");
-            }
-            if (can(capabilities, CAPABILITY_ADD_PARTICIPANT)) {
-                builder.append(" CAPABILITY_ADD_PARTICIPANT");
             }
             builder.append("]");
             return builder.toString();
@@ -718,28 +682,6 @@ public final class Call {
     private Details mDetails;
 
     /**
-      * when mIsActiveSub True indicates this call belongs to active subscription
-      * Calls belonging to active subscription are shown to user.
-      */
-    private boolean mIsActiveSub = false;
-
-    /**
-     * Set this call object as active subscription.
-     * @hide
-     */
-    public void setActive() {
-        mIsActiveSub = true;
-    }
-
-    /**
-     *  return if this call object belongs to active subscription.
-     * @hide
-     */
-    public boolean isActive() {
-        return mIsActiveSub;
-    }
-
-    /**
      * Obtains the post-dial sequence remaining to be emitted by this {@code Call}, if any.
      *
      * @return The remaining post-dial sequence, or {@code null} if there is no post-dial sequence
@@ -1029,22 +971,11 @@ public final class Call {
     }
 
     /** {@hide} */
-    Call(Phone phone, String telecomCallId, InCallAdapter inCallAdapter, boolean isActiveSub) {
+    Call(Phone phone, String telecomCallId, InCallAdapter inCallAdapter) {
         mPhone = phone;
         mTelecomCallId = telecomCallId;
         mInCallAdapter = inCallAdapter;
         mState = STATE_NEW;
-        mIsActiveSub = isActiveSub;
-    }
-
-    /** {@hide} */
-    Call(Phone phone, String telecomCallId, InCallAdapter inCallAdapter, int state,
-             boolean isActiveSub) {
-        mPhone = phone;
-        mTelecomCallId = telecomCallId;
-        mInCallAdapter = inCallAdapter;
-        mState = state;
-        mIsActiveSub = isActiveSub;
     }
 
     /** {@hide} */
@@ -1097,10 +1028,9 @@ public final class Call {
         }
 
         int state = parcelableCall.getState();
-        boolean stateChanged = (mState != state) || (mIsActiveSub != parcelableCall.isActive());
+        boolean stateChanged = mState != state;
         if (stateChanged) {
             mState = state;
-            mIsActiveSub = parcelableCall.isActive();
         }
 
         String parentId = parcelableCall.getParentCallId();
@@ -1175,11 +1105,6 @@ public final class Call {
             fireStateChanged(mState);
             fireCallDestroyed();
         }
-    }
-
-    /** {@hide} */
-    final void onMergeFailed() {
-        fireStateChanged(mState);
     }
 
     private void fireStateChanged(final int newState) {

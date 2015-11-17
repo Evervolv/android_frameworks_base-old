@@ -187,7 +187,6 @@ public class ImsCallProfile implements Parcelable {
     public static final String EXTRA_CODEC = "Codec";
     public static final String EXTRA_DISPLAY_TEXT = "DisplayText";
     public static final String EXTRA_ADDITIONAL_CALL_INFO = "AdditionalCallInfo";
-    public static final String EXTRA_IS_CALL_PULL = "CallPull";
 
     public int mServiceType;
     public int mCallType;

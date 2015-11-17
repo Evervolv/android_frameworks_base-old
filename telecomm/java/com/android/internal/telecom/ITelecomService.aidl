@@ -232,14 +232,4 @@ interface ITelecomService {
      * @see TelecomServiceImpl#setDefaultDialer
      */
     boolean setDefaultDialer(in String packageName);
-
-    /**
-     * @see TelecommManager#getActiveSubscription
-     */
-    int getActiveSubscription();
-
-    /**
-     * @see TelecommManager#switchToOtherActiveSub
-     */
-    void switchToOtherActiveSub(int subId);
 }

@@ -71,8 +71,4 @@ oneway interface IConnectionService {
     void swapConference(String conferenceCallId);
 
     void onPostDialContinue(String callId, boolean proceed);
-
-    void setLocalCallHold(String callId, boolean lchState);
-
-    void addParticipantWithConference(String callId, String recipients);
 }

@@ -160,10 +160,7 @@ public abstract class Conference extends Conferenceable {
      * @hide
      */
     public void removeCapability(int capability) {
-        int newCapabilities = mConnectionCapabilities;
-        newCapabilities &= ~capability;
-
-        setConnectionCapabilities(newCapabilities);
+        mConnectionCapabilities &= ~capability;
     }
 
     /**
@@ -173,10 +170,7 @@ public abstract class Conference extends Conferenceable {
      * @hide
      */
     public void addCapability(int capability) {
-        int newCapabilities = mConnectionCapabilities;
-        newCapabilities |= capability;
-
-        setConnectionCapabilities(newCapabilities);
+        mConnectionCapabilities |= capability;
     }
 
     /**
@@ -226,14 +220,6 @@ public abstract class Conference extends Conferenceable {
      * @param connection The connection to separate.
      */
     public void onSeparate(Connection connection) {}
-
-    /**
-     * Invoked when the conference adds a participant to the conference call.
-     *
-     * @param participant The participant to be added with conference call.
-     * @hide
-     */
-    public void onAddParticipant(String participant) {}
 
     /**
      * Invoked when the specified {@link Connection} should merged with the conference call.
@@ -573,7 +559,6 @@ public abstract class Conference extends Conferenceable {
 
     private void setState(int newState) {
         if (newState != Connection.STATE_ACTIVE &&
-                newState != Connection.STATE_DIALING &&
                 newState != Connection.STATE_HOLDING &&
                 newState != Connection.STATE_DISCONNECTED) {
             Log.w(this, "Unsupported state transition for Conference call.",

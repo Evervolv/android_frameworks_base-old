@@ -86,6 +86,4 @@ oneway interface IConnectionServiceAdapter {
     void addExistingConnection(String callId, in ParcelableConnection connection);
 
     void setExtras(String callId, in Bundle extras);
-
-    void resetCdmaConnectionTime(String callId);
 }
