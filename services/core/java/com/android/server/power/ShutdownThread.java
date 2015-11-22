@@ -49,6 +49,7 @@ import android.os.Vibrator;
 import android.os.SystemVibrator;
 import android.os.storage.IMountService;
 import android.os.storage.IMountShutdownObserver;
+import android.provider.Settings;
 import android.system.ErrnoException;
 import android.system.Os;
 
@@ -305,6 +306,16 @@ public final class ShutdownThread extends Thread {
         shutdownInner(context, confirm);
     }
 
+    private static boolean showHiddenMenuOptions(Context context) {
+        final boolean mHiddenMenuOptions;
+        final boolean mDisableToolbox;
+        mHiddenMenuOptions = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.HIDDEN_POWER_MENU_OPTIONS, 0) == 0;
+        mDisableToolbox = Settings.System.getInt(context.getContentResolver(),
+                Settings.System.DISABLE_TOOLBOX, 0) == 1;
+        return mHiddenMenuOptions && !mDisableToolbox;
+    }
+
     private static void beginShutdownSequence(Context context) {
         synchronized (sIsStartedGuard) {
             if (sIsStarted) {
@@ -338,7 +349,7 @@ public final class ShutdownThread extends Thread {
         // Path 3: Regular reboot / shutdown
         //   Condition: Otherwise
         //   UI: spinning circle only (no progress bar)
-        if (PowerManager.REBOOT_RECOVERY_UPDATE.equals(mReason)) {
+        if (PowerManager.REBOOT_RECOVERY_UPDATE.equals(mReason) && !showHiddenMenuOptions(context)) {
             // We need the progress bar if uncrypt will be invoked during the
             // reboot, which might be time-consuming.
             mRebootHasProgressBar = RecoverySystem.UNCRYPT_PACKAGE_FILE.exists()
