@@ -44,4 +44,7 @@
   <!-- Package Manager -->
   <java-symbol type="array" name="config_disabledComponents" />
   <java-symbol type="array" name="config_forceEnabledComponents" />
+
+  <!-- System clock for legacy sensors -->
+  <java-symbol type="bool" name="config_useSystemClockforRotationSensor" />
 </resources>
