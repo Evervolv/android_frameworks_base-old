@@ -58,4 +58,6 @@
     <!-- Expanded Status Bar Battery Level Text Color -->
     <color name="status_bar_battery_level_text_color">#ffffff</color>
 
+    <!-- SystemUI Tuner Icon Tint Color -->
+    <color name="tuner_icon_tint">#4dffffff</color>
 </resources>
