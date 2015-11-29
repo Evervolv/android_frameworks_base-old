@@ -2104,7 +2104,8 @@ public class PackageManagerService extends IPackageManager.Stub {
             }
 
             final VersionInfo ver = mSettings.getInternalVersion();
-            mIsUpgrade = !Build.FINGERPRINT.equals(ver.fingerprint);
+            mIsUpgrade = !Build.FINGERPRINT.equals(ver.fingerprint) ||
+                    !Build.DISPLAY.equals(ver.displayversion);
             // when upgrading from pre-M, promote system app permissions from install to runtime
             mPromoteSystemApps =
                     mIsUpgrade && ver.sdkVersion <= Build.VERSION_CODES.LOLLIPOP_MR1;
@@ -2366,7 +2367,7 @@ public class PackageManagerService extends IPackageManager.Stub {
             // If this is first boot after an OTA, and a normal boot, then
             // we need to clear code cache directories.
             if (mIsUpgrade && !onlyCore) {
-                Slog.i(TAG, "Build fingerprint changed; clearing code caches");
+                Slog.i(TAG, "Build fingerprint or displayversion changed; clearing code caches");
                 for (int i = 0; i < mSettings.mPackages.size(); i++) {
                     final PackageSetting ps = mSettings.mPackages.valueAt(i);
                     if (Objects.equals(StorageManager.UUID_PRIVATE_INTERNAL, ps.volumeUuid)) {
@@ -2374,6 +2375,7 @@ public class PackageManagerService extends IPackageManager.Stub {
                     }
                 }
                 ver.fingerprint = Build.FINGERPRINT;
+                ver.displayversion = Build.DISPLAY;
             }
 
             // Disable components marked for disabling at build-time
@@ -16348,7 +16350,8 @@ public class PackageManagerService extends IPackageManager.Stub {
                     Slog.w(TAG, "Failed to scan " + ps.codePath + ": " + e.getMessage());
                 }
 
-                if (!Build.FINGERPRINT.equals(ver.fingerprint)) {
+                if ((!Build.FINGERPRINT.equals(ver.fingerprint)) ||
+                        (!Build.DISPLAY.equals(ver.displayversion))) {
                     deleteCodeCacheDirsLI(ps.volumeUuid, ps.name);
                 }
             }
