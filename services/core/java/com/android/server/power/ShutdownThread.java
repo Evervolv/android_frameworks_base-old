@@ -150,13 +150,25 @@ public final class ShutdownThread extends Thread {
             }
         }
 
+        boolean showRebootOption = false;
+        String[] defaultActions = context.getResources().getStringArray(
+                com.android.internal.R.array.config_globalActionsList);
+        for (int i = 0; i < defaultActions.length; i++) {
+            if (defaultActions[i].equals("reboot")) {
+                showRebootOption = true;
+                break;
+            }
+        }
         final int longPressBehavior = context.getResources().getInteger(
                         com.android.internal.R.integer.config_longPressOnPowerBehavior);
-        final int resourceId = mRebootSafeMode
+        int resourceId = mRebootSafeMode
                 ? com.android.internal.R.string.reboot_safemode_confirm
                 : (longPressBehavior == 2
                         ? com.android.internal.R.string.shutdown_confirm_question
                         : com.android.internal.R.string.shutdown_confirm);
+        if (showRebootOption && !mRebootSafeMode) {
+            resourceId = com.android.internal.R.string.reboot_confirm;
+        }
 
         Log.d(TAG, "Notifying thread to start shutdown longPressBehavior=" + longPressBehavior);
 
