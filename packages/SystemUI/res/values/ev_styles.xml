@@ -28,4 +28,6 @@
         <item name="android:textColor">@color/status_bar_temperature_location_text_color</item>
     </style>
 
+    <color name="keyguard_sim_view_divider">#28FFFFFF</color>
+
 </resources>
