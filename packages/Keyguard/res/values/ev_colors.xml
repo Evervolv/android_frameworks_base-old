@@ -14,6 +14,5 @@
      limitations under the License.
 -->
 <resources>
-
     <color name="keyguard_sim_view_divider">#28FFFFFF</color>
 </resources>
