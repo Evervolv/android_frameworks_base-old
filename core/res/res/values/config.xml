@@ -2376,6 +2376,10 @@
          is non-interactive. -->
     <bool name="config_cameraDoubleTapPowerGestureEnabled">true</bool>
 
+    <!-- The BT name of the keyboard packaged with the device. If this is defined, SystemUI will
+         automatically try to pair with it when the device exits tablet mode. -->
+    <string translatable="false" name="config_packagedKeyboardName"></string>
+
     <!-- Older sensors are not setting event.timestamp correctly.  Setting to
           true will use SystemClock.elapsedRealtimeNanos() to set timestamp-->
     <bool name="config_useSystemClockforSensors">false</bool>
@@ -2383,4 +2387,5 @@
     <!-- Support in Surfaceflinger for blur layers.
          NOTE: This requires additional hardware-specific code. -->
     <bool name="config_ui_blur_enabled">false</bool>
+
 </resources>

@@ -2095,6 +2095,7 @@
   <java-symbol type="string" name="zen_mode_default_events_name" />
   <java-symbol type="array" name="config_system_condition_providers" />
   <java-symbol type="string" name="muted_by" />
+  <java-symbol type="string" name="zen_mode_alarm" />
 
   <java-symbol type="string" name="select_day" />
   <java-symbol type="string" name="select_year" />
@@ -2356,5 +2357,9 @@
   <java-symbol type="bool" name="config_protocol_errors_perm_failure" />
 
   <java-symbol type="drawable" name="platlogo_m" />
+
+  <java-symbol type="string" name="config_packagedKeyboardName" />
+
   <java-symbol type="bool" name="config_useSystemClockforSensors" />
+
 </resources>
