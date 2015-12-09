@@ -34,6 +34,7 @@ import com.android.systemui.qs.tiles.CellularTile;
 import com.android.systemui.qs.tiles.ColorInversionTile;
 import com.android.systemui.qs.tiles.DataSaverTile;
 import com.android.systemui.qs.tiles.DndTile;
+import com.android.systemui.qs.tiles.ExpandedDesktopTile;
 import com.android.systemui.qs.tiles.FlashlightTile;
 import com.android.systemui.qs.tiles.HotspotTile;
 import com.android.systemui.qs.tiles.IntentTile;
@@ -64,6 +65,7 @@ public class QSFactoryImpl implements QSFactory {
     private final Provider<AirplaneModeTile> mAirplaneModeTileProvider;
     private final Provider<WorkModeTile> mWorkModeTileProvider;
     private final Provider<RotationLockTile> mRotationLockTileProvider;
+    private final Provider<ExpandedDesktopTile> mExpandedDesktopTileProvider;
     private final Provider<FlashlightTile> mFlashlightTileProvider;
     private final Provider<LocationTile> mLocationTileProvider;
     private final Provider<CastTile> mCastTileProvider;
@@ -97,7 +99,8 @@ public class QSFactoryImpl implements QSFactory {
             Provider<NightDisplayTile> nightDisplayTileProvider,
             Provider<NfcTile> nfcTileProvider,
             Provider<GarbageMonitor.MemoryTile> memoryTileProvider,
-            Provider<UiModeNightTile> uiModeNightTileProvider) {
+            Provider<UiModeNightTile> uiModeNightTileProvider,
+            Provider<ExpandedDesktopTile> expandedDesktopTileProvider) {
         mWifiTileProvider = wifiTileProvider;
         mBluetoothTileProvider = bluetoothTileProvider;
         mCellularTileProvider = cellularTileProvider;
@@ -117,6 +120,7 @@ public class QSFactoryImpl implements QSFactory {
         mNfcTileProvider = nfcTileProvider;
         mMemoryTileProvider = memoryTileProvider;
         mUiModeNightTileProvider = uiModeNightTileProvider;
+        mExpandedDesktopTileProvider = expandedDesktopTileProvider;
     }
 
     public void setHost(QSTileHost host) {
@@ -170,6 +174,8 @@ public class QSFactoryImpl implements QSFactory {
                 return mNfcTileProvider.get();
             case "dark":
                 return mUiModeNightTileProvider.get();
+            case "expanded_desktop":
+                return mExpandedDesktopTileProvider.get();
         }
 
         // Intent tiles.
