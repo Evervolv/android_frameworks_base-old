@@ -28,6 +28,7 @@ import com.android.systemui.qs.tiles.CellularTile;
 import com.android.systemui.qs.tiles.ColorInversionTile;
 import com.android.systemui.qs.tiles.DataSaverTile;
 import com.android.systemui.qs.tiles.DndTile;
+import com.android.systemui.qs.tiles.ExpandedDesktopTile;
 import com.android.systemui.qs.tiles.FlashlightTile;
 import com.android.systemui.qs.tiles.HotspotTile;
 import com.android.systemui.qs.tiles.IntentTile;
@@ -67,6 +68,7 @@ public class QSFactoryImpl implements QSFactory {
         else if (tileSpec.equals("saver")) return new DataSaverTile(mHost);
         else if (tileSpec.equals("night")) return new NightDisplayTile(mHost);
         else if (tileSpec.equals("nfc")) return new NfcTile(mHost);
+        else if (tileSpec.equals("expanded_desktop")) return new ExpandedDesktopTile(mHost);
         // Intent tiles.
         else if (tileSpec.startsWith(IntentTile.PREFIX)) return IntentTile.create(mHost, tileSpec);
         else if (tileSpec.startsWith(CustomTile.PREFIX)) return CustomTile.create(mHost, tileSpec);
