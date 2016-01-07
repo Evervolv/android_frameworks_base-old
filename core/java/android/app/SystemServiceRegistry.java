@@ -151,6 +151,8 @@ import com.android.internal.appwidget.IAppWidgetService;
 import com.android.internal.os.IDropBoxManagerService;
 import com.android.internal.policy.PhoneLayoutInflater;
 
+import com.oneplus.os.ThreeKeyManager;
+
 import java.util.HashMap;
 
 /**
@@ -822,6 +824,13 @@ final class SystemServiceRegistry {
             @Override
             public RadioManager createService(ContextImpl ctx) throws ServiceNotFoundException {
                 return new RadioManager(ctx);
+            }});
+
+        registerService(Context.THREEKEY_SERVICE, ThreeKeyManager.class,
+                new CachedServiceFetcher<ThreeKeyManager>() {
+            @Override
+            public ThreeKeyManager createService(ContextImpl ctx) {
+                return new ThreeKeyManager(ctx);
             }});
 
         registerService(Context.HARDWARE_PROPERTIES_SERVICE, HardwarePropertiesManager.class,
