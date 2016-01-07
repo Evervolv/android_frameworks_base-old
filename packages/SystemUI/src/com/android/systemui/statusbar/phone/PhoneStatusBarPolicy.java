@@ -247,19 +247,22 @@ public class PhoneStatusBarPolicy implements Callback, RotationLockController.Ro
         int volumeIconId = 0;
         String volumeDescription = null;
 
-        if (DndTile.isVisible(mContext) || DndTile.isCombinedIcon(mContext)) {
-            zenVisible = mZen != Global.ZEN_MODE_OFF;
-            zenIconId = mZen == Global.ZEN_MODE_NO_INTERRUPTIONS
-                    ? R.drawable.stat_sys_dnd_total_silence : R.drawable.stat_sys_dnd;
-            zenDescription = mContext.getString(R.string.quick_settings_dnd_label);
-        } else if (mZen == Global.ZEN_MODE_NO_INTERRUPTIONS) {
-            zenVisible = true;
-            zenIconId = R.drawable.stat_sys_zen_none;
-            zenDescription = mContext.getString(R.string.interruption_level_none);
-        } else if (mZen == Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS) {
-            zenVisible = true;
-            zenIconId = R.drawable.stat_sys_zen_important;
-            zenDescription = mContext.getString(R.string.interruption_level_priority);
+        switch (mZen) {
+            case Global.ZEN_MODE_ALARMS:
+                zenVisible = true;
+                zenIconId = R.drawable.stat_sys_dnd_total_silence;
+                zenDescription = mContext.getString(R.string.interruption_level_none);
+                break;
+            case Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS:
+                zenVisible = true;
+                zenIconId = R.drawable.stat_sys_dnd;
+                zenDescription = mContext.getString(R.string.interruption_level_priority);
+                break;
+            default:
+                zenVisible = false;
+                zenIconId = R.drawable.ic_zen_all;
+                zenDescription = mContext.getString(R.string.quick_settings_dnd_label);
+                break;
         }
 
         if (DndTile.isVisible(mContext) && !DndTile.isCombinedIcon(mContext)

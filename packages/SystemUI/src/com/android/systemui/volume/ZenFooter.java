@@ -27,6 +27,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.systemui.R;
+import com.android.systemui.SystemUI;
+import com.android.systemui.statusbar.phone.PhoneStatusBar;
 import com.android.systemui.statusbar.policy.ZenModeController;
 
 import java.util.Objects;
@@ -41,12 +43,12 @@ public class ZenFooter extends LinearLayout {
     private final SpTexts mSpTexts;
 
     private ImageView mIcon;
+    private ImageView mSettingsIcon;
     private TextView mSummaryLine1;
-    private TextView mSummaryLine2;
-    private TextView mEndNowButton;
     private int mZen = -1;
     private ZenModeConfig mConfig;
-    private ZenModeController mController;
+    private SystemUI mSysui;
+    private VolumeDialog mDialog;
 
     public ZenFooter(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -61,30 +63,26 @@ public class ZenFooter extends LinearLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
         mIcon = (ImageView) findViewById(R.id.volume_zen_icon);
+        mSettingsIcon = (ImageView) findViewById(R.id.volume_zen_settings_icon);
         mSummaryLine1 = (TextView) findViewById(R.id.volume_zen_summary_line_1);
-        mSummaryLine2 = (TextView) findViewById(R.id.volume_zen_summary_line_2);
-        mEndNowButton = (TextView) findViewById(R.id.volume_zen_end_now);
         mSpTexts.add(mSummaryLine1);
-        mSpTexts.add(mSummaryLine2);
-        mSpTexts.add(mEndNowButton);
     }
 
-    public void init(final ZenModeController controller) {
-        mEndNowButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                controller.setZen(Global.ZEN_MODE_OFF, null, TAG);
-            }
-        });
+    public void init(VolumeDialog dialog, final ZenModeController controller, SystemUI sysui) {
+        mDialog = dialog;
+        mSysui = sysui;
         mZen = controller.getZen();
         mConfig = controller.getConfig();
-        mController = controller;
-        mController.addCallback(mZenCallback);
-        update();
-    }
+        mSettingsIcon.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mSysui.getComponent(PhoneStatusBar.class).startActivityDismissingKeyguard(
+                        ZenModePanel.ZEN_PRIORITY_SETTINGS, true , true);
+                mDialog.dismissWaitForRipple(Events.DISMISS_REASON_SETTINGS_CLICKED);
+            }
 
-    public void cleanup() {
-        mController.removeCallback(mZenCallback);
+        });
+        update();
     }
 
     private void setZen(int zen) {
@@ -99,39 +97,27 @@ public class ZenFooter extends LinearLayout {
         update();
     }
 
-    public boolean isZen() {
-        return isZenPriority() || isZenAlarms() || isZenNone();
-    }
-
-    private boolean isZenPriority() {
-        return mZen == Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS;
-    }
-
-    private boolean isZenAlarms() {
-        return mZen == Global.ZEN_MODE_ALARMS;
-    }
-
-    private boolean isZenNone() {
-        return mZen == Global.ZEN_MODE_NO_INTERRUPTIONS;
-    }
-
     public void update() {
-        mIcon.setImageResource(isZenNone() ? R.drawable.ic_dnd_total_silence : R.drawable.ic_dnd);
-        final String line1 =
-                isZenPriority() ? mContext.getString(R.string.interruption_level_priority)
-                : isZenAlarms() ? mContext.getString(R.string.interruption_level_alarms)
-                : isZenNone() ? mContext.getString(R.string.interruption_level_none)
-                : null;
-        Util.setText(mSummaryLine1, line1);
-
-        final CharSequence line2 = ZenModeConfig.getConditionSummary(mContext, mConfig,
-                                mController.getCurrentUser(), true /*shortVersion*/);
-        Util.setText(mSummaryLine2, line2);
+        String text = mContext.getString(R.string.zen_interruption_level_all);
+        int iconRes = R.drawable.ic_zen_all_24;
+        switch (mZen) {
+            case Global.ZEN_MODE_ALARMS:
+                text = mContext.getString(R.string.zen_no_interruptions);
+                iconRes = R.drawable.stat_sys_dnd_total_silence_24;
+                break;
+            case Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS:
+                text = mContext.getString(R.string.zen_important_interruptions);
+                iconRes = R.drawable.stat_sys_dnd_24;
+                break;
+        }
+        mIcon.setImageResource(iconRes);
+        Util.setText(mSummaryLine1, text);
+        mSettingsIcon.setVisibility(mZen == Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS ?
+                View.VISIBLE : View.GONE);
     }
 
     public void onConfigurationChanged() {
-        Util.setText(mEndNowButton, mContext.getString(R.string.volume_zen_end_now));
-        mSpTexts.update();
+        // Empty
     }
 
     private final ZenModeController.Callback mZenCallback = new ZenModeController.Callback() {

@@ -70,6 +70,7 @@ import android.widget.TextView;
 import com.android.settingslib.Utils;
 import com.android.systemui.Interpolators;
 import com.android.systemui.R;
+import com.android.systemui.SystemUI;
 import com.android.systemui.statusbar.policy.ZenModeController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.tuner.TunerZenModePanel;
@@ -96,8 +97,10 @@ public class VolumeDialog implements TunerService.Tunable {
     public static final String SHOW_FULL_ZEN = "sysui_show_full_zen";
 
     private static final long USER_ATTEMPT_GRACE_PERIOD = 1000;
+    private static final int WAIT_FOR_RIPPLE = 200;
     private static final int UPDATE_ANIMATION_DURATION = 80;
 
+    private SystemUI mSysUI;
     private final Context mContext;
     private final H mHandler = new H();
     private final VolumeDialogController mController;
@@ -144,8 +147,10 @@ public class VolumeDialog implements TunerService.Tunable {
     private boolean mShowFullZen;
     private TunerZenModePanel mZenPanel;
 
-    public VolumeDialog(Context context, int windowType, VolumeDialogController controller,
-            ZenModeController zenModeController, Callback callback) {
+    public VolumeDialog(SystemUI sysui, Context context, int windowType,
+            VolumeDialogController controller, ZenModeController zenModeController,
+            Callback callback) {
+        mSysUI = sysui;
         mContext = context;
         mController = controller;
         mCallback = callback;
@@ -253,7 +258,7 @@ public class VolumeDialog implements TunerService.Tunable {
         }
         mExpandButtonAnimationDuration = res.getInteger(R.integer.volume_expand_animation_duration);
         mZenFooter = (ZenFooter) mDialog.findViewById(R.id.volume_zen_footer);
-        mZenFooter.init(mZenModeController);
+        mZenFooter.init(this, mZenModeController, mSysUI);
         mZenPanel = (TunerZenModePanel) mDialog.findViewById(R.id.tuner_zen_mode_panel);
         mZenPanel.init(mZenModeController);
         mZenPanel.setCallback(mZenPanelCallback);
@@ -454,6 +459,15 @@ public class VolumeDialog implements TunerService.Tunable {
         mHandler.obtainMessage(H.DISMISS, reason, 0).sendToTarget();
     }
 
+    public void dismissWaitForRipple(final int reason) {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mHandler.obtainMessage(H.DISMISS, reason, 0).sendToTarget();
+            }
+        }, WAIT_FOR_RIPPLE);
+    }
+
     private void showH(int reason) {
         if (D.BUG) Log.d(TAG, "showH r=" + Events.DISMISS_REASONS[reason]);
         mHandler.removeMessages(H.SHOW);
@@ -547,7 +561,6 @@ public class VolumeDialog implements TunerService.Tunable {
         mExpandButtonAnimationRunning = isAttached();
         if (D.BUG) Log.d(TAG, "updateExpandedH " + expanded);
         updateExpandButtonH();
-        updateFooterH();
         TransitionManager.endTransitions(mDialogView);
         final VolumeRow activeRow = getActiveRow();
         if (!dismissing) {
@@ -686,37 +699,6 @@ public class VolumeDialog implements TunerService.Tunable {
         }
         for (VolumeRow row : mRows) {
             updateVolumeRowH(row);
-        }
-        updateFooterH();
-    }
-
-    private void updateFooterH() {
-        if (D.BUG) Log.d(TAG, "updateFooterH");
-        final boolean wasVisible = mZenFooter.getVisibility() == View.VISIBLE;
-        final boolean visible = mState.zenMode != Global.ZEN_MODE_OFF
-                && (mAudioManager.isStreamAffectedByRingerMode(mActiveStream) || mExpanded)
-                && !mZenPanel.isEditing();
-        if (wasVisible != visible && !visible) {
-            prepareForCollapse();
-        }
-        Util.setVisOrGone(mZenFooter, visible);
-        mZenFooter.update();
-
-        final boolean fullWasVisible = mZenPanel.getVisibility() == View.VISIBLE;
-        final boolean fullVisible = mShowFullZen && !visible;
-        if (fullWasVisible != fullVisible && !fullVisible) {
-            prepareForCollapse();
-        }
-        Util.setVisOrGone(mZenPanel, fullVisible);
-        if (fullVisible) {
-            mZenPanel.setZenState(mState.zenMode);
-            mZenPanel.setDoneListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    prepareForCollapse();
-                    mHandler.sendEmptyMessage(H.UPDATE_FOOTER);
-                }
-            });
         }
     }
 
@@ -979,7 +961,6 @@ public class VolumeDialog implements TunerService.Tunable {
             final int density = newConfig.densityDpi;
             if (density != mDensity) {
                 mDialog.dismiss();
-                mZenFooter.cleanup();
                 initDialog();
                 mDensity = density;
             }
@@ -1061,7 +1042,6 @@ public class VolumeDialog implements TunerService.Tunable {
                 case RESCHEDULE_TIMEOUT: rescheduleTimeoutH(); break;
                 case STATE_CHANGED: onStateChangedH(mState); break;
                 case UPDATE_BOTTOM_MARGIN: updateDialogBottomMarginH(); break;
-                case UPDATE_FOOTER: updateFooterH(); break;
             }
         }
     }

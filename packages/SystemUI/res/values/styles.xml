@@ -285,6 +285,7 @@
     <style name="TextAppearance.Volume.ZenSummary">
         <item name="android:textSize">14sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/segmented_button_unselected</item>
     </style>
 
     <style name="TextAppearance.Volume.ZenDetail">
@@ -357,6 +358,15 @@
 
     <style name="edit_theme" parent="@*android:style/Theme.DeviceDefault.Settings.Dark">
         <item name="android:colorBackground">?android:attr/colorSecondary</item>
+    </style>
+
+    <style name="TextAppearance.QS.ZenToast">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ZenToastAnimations">
+        <item name="android:windowEnterAnimation">@anim/zen_toast_enter</item>
+        <item name="android:windowExitAnimation">@anim/zen_toast_exit</item>
     </style>
 
 </resources>

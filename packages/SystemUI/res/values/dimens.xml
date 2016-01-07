@@ -227,6 +227,12 @@
     <!-- Zen mode panel: bottom padding, a bit less than qs_panel_padding -->
     <dimen name="zen_mode_condition_detail_bottom_padding">4dp</dimen>
 
+    <!-- Explicit width of the zen toast window -->
+    <dimen name="zen_toast_width">224dp</dimen>
+
+    <!-- Zen toast z depth -->
+    <dimen name="zen_toast_z">3dp</dimen>
+
     <!-- used by DessertCase -->
     <dimen name="dessert_case_cell_size">192dp</dimen>
 
@@ -540,7 +546,7 @@
     <dimen name="volume_button_size">48dp</dimen>
 
     <!-- Volume dialog root view bottom margin, at rest -->
-    <dimen name="volume_dialog_margin_bottom">4dp</dimen>
+    <dimen name="volume_dialog_margin_bottom">8dp</dimen>
     <dimen name="volume_dialog_collapsed_padding_top">8dp</dimen>
     <dimen name="volume_dialog_expanded_spacer">14dp</dimen>
     <dimen name="volume_dialog_padding_end">40dp</dimen>
@@ -673,4 +679,7 @@
 
     <!-- The alpha to apply to the recents row when it doesn't have focus -->
     <item name="recents_recents_row_dim_alpha" format="float" type="dimen">0.5</item>
+
+    <!-- radius of the corners of the material rounded rect background -->
+    <dimen name="notification_material_rounded_rect_radius">2dp</dimen>
 </resources>
