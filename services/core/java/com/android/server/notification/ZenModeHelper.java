@@ -737,7 +737,7 @@ public class ZenModeHelper {
         final boolean muteCalls = zen && !mConfig.allowCalls && !mConfig.allowRepeatCallers
                 || (mSuppressedEffects & SUPPRESSED_EFFECT_CALLS) != 0;
         // total silence restrictions
-        final boolean muteEverything = mZenMode == Global.ZEN_MODE_NO_INTERRUPTIONS;
+        final boolean muteEverything = false;
 
         for (int usage : AudioAttributes.SDK_USAGES) {
             final int suppressionBehavior = AudioAttributes.SUPPRESSIBLE_USAGES.get(usage);
@@ -1049,8 +1049,10 @@ public class ZenModeHelper {
 
         public void update(Uri uri) {
             if (ZEN_MODE.equals(uri)) {
-                if (mZenMode != getZenModeSetting()) {
+                int zen = getZenModeSetting();
+                if (mZenMode != zen) {
                     if (DEBUG) Log.d(TAG, "Fixing zen mode setting");
+                    mZenMode = zen;
                     setZenModeSetting(mZenMode);
                 }
             }

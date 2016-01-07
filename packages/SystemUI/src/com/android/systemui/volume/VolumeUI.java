@@ -16,6 +16,8 @@
 
 package com.android.systemui.volume;
 
+import static com.oneplus.Actions.TRI_STATE_KEY_INTENT;
+import static com.oneplus.Actions.TRI_STATE_KEY_INTENT_EXTRA;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -31,6 +33,7 @@ import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.media.session.MediaSessionManager;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -63,10 +66,14 @@ public class VolumeUI extends SystemUI {
 
     private VolumeDialogComponent mVolumeComponent;
 
+    private Vibrator mVibrator;
+    private ZenToast mZenToast;
+
     @Override
     public void start() {
         mEnabled = mContext.getResources().getBoolean(R.bool.enable_volume_ui);
         if (!mEnabled) return;
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         mNotificationManager =
                 (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -74,6 +81,7 @@ public class VolumeUI extends SystemUI {
                 .getSystemService(Context.MEDIA_SESSION_SERVICE);
         final ZenModeController zenController = new ZenModeControllerImpl(mContext, mHandler);
         mVolumeComponent = new VolumeDialogComponent(this, mContext, null, zenController);
+        mZenToast = new ZenToast(mContext);
         putComponent(VolumeComponent.class, getVolumeComponent());
         mReceiver.start();
         mVolumeControllerService = new ServiceMonitor(TAG, LOGD,
@@ -177,6 +185,7 @@ public class VolumeUI extends SystemUI {
             filter.addAction(ENABLE);
             filter.addAction(DISABLE);
             filter.addAction(PREF);
+            filter.addAction(TRI_STATE_KEY_INTENT);
             mContext.registerReceiver(this, filter, null, mHandler);
         }
 
@@ -196,6 +205,19 @@ public class VolumeUI extends SystemUI {
                     } else if (value instanceof Long) {
                         Prefs.putLong(mContext, key, (Long) value);
                     }
+                }
+                return;
+            }
+            if (TRI_STATE_KEY_INTENT.equals(action)) {
+                int state = intent.getIntExtra(TRI_STATE_KEY_INTENT_EXTRA, -1);
+                final boolean provisioned = Settings.Global.getInt(
+                        mContext.getContentResolver(), Settings.Global.DEVICE_PROVISIONED, 0) != 0;
+                if (Settings.Global.isValidZenMode(state) && provisioned) {
+                    if (mBootCompleted) {
+                        mVibrator.vibrate(50);
+                        mZenToast.show(state);
+                    }
+                    mVolumeComponent.getZenController().setZen(state, null, "");
                 }
                 return;
             }

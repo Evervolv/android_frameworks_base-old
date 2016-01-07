@@ -264,6 +264,12 @@
     <!-- Maximum number of total conditions to display in the zen mode selection panel -->
     <integer name="zen_mode_max_conditions">5</integer>
 
+    <!-- Zen toast visibility duration -->
+    <integer name="zen_toast_visible_duration">500</integer>
+
+    <!-- Zen toast fade in/out duration -->
+    <integer name="zen_toast_animation_duration">500</integer>
+
     <!-- Enable the default volume dialog -->
     <bool name="enable_volume_ui">true</bool>
 

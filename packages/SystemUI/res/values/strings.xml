@@ -1462,6 +1462,11 @@
     <!-- SysUI Tuner: Switch to control volume up behavior [CHAR LIMIT=60] -->
     <string name="volume_up_silent">Exit do not disturb on volume up</string>
 
+    <!-- Zen interruptions -->
+    <string name="zen_interruption_level_all">All notifications</string>
+    <string name="zen_no_interruptions">No interruptions</string>
+    <string name="zen_important_interruptions">Priority interruptions only</string>
+
     <!-- Name of the battery icon in status bar [CHAR LIMIT=30] -->
     <string name="battery">Battery</string>
 

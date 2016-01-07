@@ -25,7 +25,7 @@
         android:id="@+id/zen_embedded_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
         android:background="@color/qs_tile_divider" />
 
@@ -39,47 +39,28 @@
             android:id="@+id/volume_zen_icon"
             android:layout_width="@dimen/volume_button_size"
             android:layout_height="@dimen/volume_button_size"
-            android:layout_marginEnd="7dp"
-            android:scaleType="center" />
+            android:scaleType="center"
+            android:tint="@color/segmented_button_unselected" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/volume_zen_summary_line_1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical" >
+            android:layout_marginStart="7dp"
+            android:layout_marginEnd="7dp"
+            android:textDirection="locale"
+            android:textAppearance="@style/TextAppearance.Volume.ZenSummary" />
 
-            <TextView
-                android:id="@+id/volume_zen_summary_line_1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textDirection="locale"
-                android:textAppearance="@style/TextAppearance.Volume.ZenSummary" />
-
-            <TextView
-                android:id="@+id/volume_zen_summary_line_2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:textDirection="locale"
-                android:textAppearance="@style/TextAppearance.Volume.ZenDetail" />
-
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/volume_zen_settings_icon"
+            android:layout_width="@dimen/volume_button_size"
+            android:layout_height="@dimen/volume_button_size"
+            android:scaleType="center"
+            android:src="@drawable/ic_settings_small"
+            android:background="@drawable/btn_borderless_rect"
+            android:clickable="true" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/volume_zen_end_now"
-        style="@style/QSBorderlessButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginEnd="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:paddingStart="15dp"
-        android:paddingEnd="15dp"
-        android:text="@string/volume_zen_end_now"
-        android:textColor="?android:attr/colorAccent"
-        android:textAppearance="@style/TextAppearance.QS.DetailButton" />
 
 </com.android.systemui.volume.ZenFooter>

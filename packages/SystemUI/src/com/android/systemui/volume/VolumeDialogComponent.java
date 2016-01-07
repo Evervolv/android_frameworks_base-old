@@ -72,7 +72,7 @@ public class VolumeDialogComponent implements VolumeComponent, TunerService.Tuna
             }
         };
         mZenModeController = zen;
-        mDialog = new VolumeDialog(context, WindowManager.LayoutParams.TYPE_VOLUME_OVERLAY,
+        mDialog = new VolumeDialog(sysui, context, WindowManager.LayoutParams.TYPE_VOLUME_OVERLAY,
                 mController, zen, mVolumeDialogCallback);
         applyConfiguration();
         TunerService.get(mContext).addTunable(this, VOLUME_DOWN_SILENT, VOLUME_UP_SILENT,

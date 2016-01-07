@@ -8753,10 +8753,10 @@ public final class Settings {
          */
         public static final String ZEN_MODE = "zen_mode";
 
-        /** @hide */ public static final int ZEN_MODE_OFF = 0;
-        /** @hide */ public static final int ZEN_MODE_IMPORTANT_INTERRUPTIONS = 1;
-        /** @hide */ public static final int ZEN_MODE_NO_INTERRUPTIONS = 2;
-        /** @hide */ public static final int ZEN_MODE_ALARMS = 3;
+        /** @hide */ public static final int ZEN_MODE_OFF = 3;
+        /** @hide */ public static final int ZEN_MODE_IMPORTANT_INTERRUPTIONS = 2;
+        /** @hide */ public static final int ZEN_MODE_NO_INTERRUPTIONS = 4;
+        /** @hide */ public static final int ZEN_MODE_ALARMS = 1;
 
         /** @hide */ public static String zenModeToString(int mode) {
             if (mode == ZEN_MODE_IMPORTANT_INTERRUPTIONS) return "ZEN_MODE_IMPORTANT_INTERRUPTIONS";
