@@ -3344,6 +3344,11 @@ public final class Settings {
          */
         public static final String STATUS_BAR_QUICK_QS_PULLDOWN = "status_bar_quick_qs_pulldown";
 
+        /**
+         * Disable/Enable Settings menu switches
+         * @hide
+         */
+        public static final String SETTINGS_SWITCH = "settings_switch";
         /* END Constants for Evervolv Toolbox */
 
         /**
