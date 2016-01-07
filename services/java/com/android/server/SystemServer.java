@@ -688,6 +688,8 @@ public final class SystemServer {
         MmsServiceBroker mmsService = null;
         HardwarePropertiesManagerService hardwarePropertiesService = null;
 
+        OemExService mOemExService = null;
+
         boolean disableStorage = SystemProperties.getBoolean("config.disable_storage", false);
         boolean disableBluetooth = SystemProperties.getBoolean("config.disable_bluetooth", false);
         boolean disableLocation = SystemProperties.getBoolean("config.disable_location", false);
@@ -1401,6 +1403,9 @@ public final class SystemServer {
                 traceEnd();
             }
 
+            mOemExService = new OemExService(context);
+            ServiceManager.addService("OEMExService", mOemExService);
+
             if (mPackageManager.hasSystemFeature(PackageManager.FEATURE_PRINTING)) {
                 traceBeginAndSlog("StartPrintManager");
                 mSystemServiceManager.startService(PRINT_MANAGER_SERVICE_CLASS);
@@ -1637,6 +1642,7 @@ public final class SystemServer {
         final MediaRouterService mediaRouterF = mediaRouter;
         final MmsServiceBroker mmsServiceF = mmsService;
         final WindowManagerService windowManagerF = wm;
+        final OemExService mOemExServiceF = mOemExService;
 
         // We now tell the activity manager it is okay to run third party
         // code.  It will call back into us once it has gotten to the state
@@ -1818,6 +1824,16 @@ public final class SystemServer {
                 if (incident != null) incident.systemRunning();
             } catch (Throwable e) {
                 reportWtf("Notifying incident daemon running", e);
+            }
+            traceEnd();
+
+            traceBeginAndSlog("MakeOemExServiceReady");
+            try {
+                if (mOemExServiceF != null) {
+                        mOemExServiceF.systemRunning();
+                    }
+            } catch (Throwable e) {
+                    reportWtf("Notifying mOemExService running", e);
             }
             traceEnd();
         }, BOOT_TIMINGS_TRACE_LOG);

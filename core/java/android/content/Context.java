@@ -2947,6 +2947,7 @@ public abstract class Context {
             MEDIA_PROJECTION_SERVICE,
             MIDI_SERVICE,
             RADIO_SERVICE,
+            THREEKEY_SERVICE,
             HARDWARE_PROPERTIES_SERVICE,
             //@hide: SOUND_TRIGGER_SERVICE,
             SHORTCUT_SERVICE,
@@ -3900,6 +3901,13 @@ public abstract class Context {
      * @hide
      */
     public static final String RADIO_SERVICE = "radio";
+
+    /**
+     * add support for threekey manager
+     *
+     * @hide
+     */
+    public static final String THREEKEY_SERVICE = "threekey";
 
     /**
      * Use with {@link #getSystemService} to retrieve a
