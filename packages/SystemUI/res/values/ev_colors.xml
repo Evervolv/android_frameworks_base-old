@@ -107,4 +107,6 @@
     <color name="zen_ic_close_tint_color">@android:color/white</color>
     <color name="header_debug_info_text_color">#00A040</color>
 
+    <!-- Active color for volume slider -->
+    <color name="volume_slider_active">@color/system_accent_color</color>
 </resources>
