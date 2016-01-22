@@ -70,6 +70,8 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.app.AlarmManager.RTC_WAKEUP;
 import static android.app.AlarmManager.RTC;
@@ -116,6 +118,7 @@ class AlarmManagerService extends SystemService {
 
     private final ArrayList<Integer> mTriggeredUids = new ArrayList<Integer>();
     private final ArrayList<Integer> mBlockedUids = new ArrayList<Integer>();
+    private static final int BLOCKED_UID_CHECK_INTERVAL = 1000; // 1 sec.
 
     long mNativeData;
     private long mNextWakeup;
@@ -1221,16 +1224,9 @@ class AlarmManagerService extends SystemService {
             synchronized(mLock) {
                 if(isBlocked) {
                     mBlockedUids.add(new Integer(uid));
-                    if (checkReleaseWakeLock()) {
-                        /* all the uids for which the alarms are triggered
-                         * are either blocked or have called onSendFinished.
-                         */
-                        if (mWakeLock.isHeld()) {
-                            mWakeLock.release();
-                            if (localLOGV)
-                                Slog.v(TAG, "AM WakeLock Released Internally in updateBlockedUids");
-                        }
-                    }
+                    Timer checkBlockedUidTimer = new Timer();
+                    checkBlockedUidTimer.schedule( new CheckBlockedUidTimerTask(uid),
+                                                   BLOCKED_UID_CHECK_INTERVAL);
                 } else {
                     mBlockedUids.clear();
                 }
@@ -1238,6 +1234,24 @@ class AlarmManagerService extends SystemService {
         }
     };
 
+    class CheckBlockedUidTimerTask extends TimerTask {
+        private int mUid;
+        CheckBlockedUidTimerTask(int uid) {
+            mUid = uid;
+        }
+        @Override
+        public void run(){
+            if (mBlockedUids.contains(mUid) && mTriggeredUids.contains(mUid)) {
+                if (mWakeLock.isHeld()) {
+                    mWakeLock.release();
+                    if (localLOGV)
+                        Slog.v(TAG, "AM WakeLock Released Internally!!");
+                    return;
+                }
+            }
+            return;
+        }
+    }
     void dumpImpl(PrintWriter pw) {
         synchronized (mLock) {
             pw.println("Current Alarm Manager state:");
@@ -1710,20 +1724,6 @@ class AlarmManagerService extends SystemService {
             mNextNonWakeup = nextNonWakeup;
             setLocked(ELAPSED_REALTIME, nextNonWakeup);
         }
-    }
-
-    boolean checkReleaseWakeLock() {
-        if (mTriggeredUids.size() == 0 || mBlockedUids.size() == 0)
-            return false;
-
-        int uid;
-        for (int i = 0; i <  mTriggeredUids.size(); i++) {
-            uid = mTriggeredUids.get(i);
-            if (!mBlockedUids.contains(uid)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void removeLocked(PendingIntent operation) {
@@ -2690,13 +2690,6 @@ class AlarmManagerService extends SystemService {
                 }
                 mBroadcastRefCount--;
                 mTriggeredUids.remove(new Integer(uid));
-
-                if (checkReleaseWakeLock()) {
-                    if (mWakeLock.isHeld()) {
-                        mWakeLock.release();
-                        if (localLOGV) Slog.v(TAG, "AM WakeLock Released Internally onSendFinish");
-                    }
-                }
 
                 if (mBroadcastRefCount == 0) {
                     if (mWakeLock.isHeld()) {
