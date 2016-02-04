@@ -39,4 +39,6 @@
 
     <dimen name="dir_elevation">8dp</dimen>
 
+    <dimen name="toolbar_elevation">8dp</dimen>
+
 </resources>
