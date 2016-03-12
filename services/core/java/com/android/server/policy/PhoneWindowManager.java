@@ -266,6 +266,7 @@ import android.view.animation.AnimationUtils;
 import android.view.autofill.AutofillManagerInternal;
 import android.view.inputmethod.InputMethodManagerInternal;
 
+import evervolv.hardware.HardwareManager;
 import evervolv.provider.EVSettings;
 
 import com.android.internal.R;
@@ -505,6 +506,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private ScreenshotHelper mScreenshotHelper;
     private boolean mHasFeatureWatch;
     private boolean mHasFeatureLeanback;
+    private HardwareManager mHardwareManager;
 
     // Assigned on main thread, accessed on UI thread
     volatile VrManagerInternal mVrManagerInternal;
@@ -2454,6 +2456,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 });
         mScreenshotHelper = new ScreenshotHelper(mContext);
 
+        mHardwareManager = HardwareManager.getInstance(mContext);
+
         final Resources res = mContext.getResources();
         final String[] deviceKeyHandlerLibs = res.getStringArray(
                 com.evervolv.platform.internal.R.array.config_deviceKeyHandlerLibs);
@@ -2745,6 +2749,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0) == 1;
             if (devForceNavbar != mDevForceNavbar) {
                 mDevForceNavbar = devForceNavbar;
+                if (mHardwareManager.isSupported(HardwareManager.FEATURE_KEY_DISABLE)) {
+                    mHardwareManager.set(HardwareManager.FEATURE_KEY_DISABLE, mDevForceNavbar);
+                }
             }
 
             updateKeyAssignments();
