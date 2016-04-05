@@ -1433,7 +1433,6 @@ class WindowStateAnimator {
                 if (mSurfaceControlBlur != null) {
                     mSurfaceControlBlur.setPosition(left, top);
                 }
-                updateSurfaceWindowCrop(recoveringMemory);
             } catch (RuntimeException e) {
                 Slog.w(TAG, "Error positioning surface of " + w
                         + " pos=(" + left + "," + top + ")", e);
@@ -1459,7 +1458,6 @@ class WindowStateAnimator {
                 mSurfaceControl.setMatrix(
                         mDsDx * w.mHScale, mDtDx * w.mVScale,
                         mDsDy * w.mHScale, mDtDy * w.mVScale);
-                updateSurfaceWindowCrop(recoveringMemory);
                 mAnimator.setPendingLayoutChanges(w.getDisplayId(),
                         WindowManagerPolicy.FINISH_LAYOUT_REDO_WALLPAPER);
                 if ((w.mAttrs.flags & LayoutParams.FLAG_DIM_BEHIND) != 0) {
@@ -1486,7 +1484,7 @@ class WindowStateAnimator {
             }
         }
 
-        //updateSurfaceWindowCrop(recoveringMemory);
+        updateSurfaceWindowCrop(recoveringMemory);
     }
 
     public void prepareSurfaceLocked(final boolean recoveringMemory) {
