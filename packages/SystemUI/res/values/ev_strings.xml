@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  Copyright (C) 2014-2016 The Dirty Unicorns Project
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Path data for portrait battery -->
+    <string name="battery_portrait_path_full" translatable="false">M 5 2 H 19 V 21 H 5 V 2 Z</string>
+    <string name="battery_portrait_path_empty" translatable="false">M 5 21 H 19 V 21 H 5 V 21 Z</string>
+    <string name="battery_portrait_clip_path" translatable="false">M6,21V4h3V2h6v2h3v17H6z</string>
+
+    <!-- Path data for landscape battery -->
+    <string name="battery_landscape_path_full" translatable="false">M 1 4 H 25 V 20 H 1 V 4 Z</string>
+    <string name="battery_landscape_path_empty" translatable="false">M 1 4 H 1 V 20 H 1 V 4 Z</string>
+    <string name="battery_landscape_clip_path" translatable="false">M25,16h-2v4H1V4h22v4h2V16z</string>
+
+    <!-- Path data for circle battery -->
+    <string name="battery_circle_path" translatable="false">M 12 3.5 C 16.6944203736 3.5 20.5 7.30557962644 20.5 12 C 20.5 16.6944203736 16.6944203736 20.5 12 20.5 C 7.30557962644 20.5 3.5 16.6944203736 3.5 12 C 3.5 7.30557962644 7.30557962644 3.5 12 3.5 Z</string>
+</resources>
