@@ -212,6 +212,9 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -1371,6 +1374,9 @@ public final class SystemServer implements Dumpable {
             throw new RuntimeException();
         }
 
+        String externalServer = context.getResources().getString(
+                com.evervolv.platform.internal.R.string.config_externalSystemServer);
+
         try {
             final String SECONDARY_ZYGOTE_PRELOAD = "SecondaryZygotePreload";
             // We start the preload ~1s before the webview factory preparation, to
@@ -2529,6 +2535,24 @@ public final class SystemServer implements Dumpable {
         t.traceBegin("startTracingServiceProxy");
         mSystemServiceManager.startService(TracingServiceProxy.class);
         t.traceEnd();
+
+        final Class<?> serverClazz;
+        try {
+            serverClazz = Class.forName(externalServer);
+            final Constructor<?> constructor = serverClazz.getDeclaredConstructor(Context.class);
+            constructor.setAccessible(true);
+            final Object baseObject = constructor.newInstance(mSystemContext);
+            final Method method = baseObject.getClass().getDeclaredMethod("run");
+            method.setAccessible(true);
+            method.invoke(baseObject);
+        } catch (ClassNotFoundException
+                | IllegalAccessException
+                | InvocationTargetException
+                | InstantiationException
+                | NoSuchMethodException e) {
+            Slog.wtf(TAG, "Unable to start " + externalServer);
+            Slog.wtf(TAG, e);
+        }
 
         // It is now time to start up the app processes...
 
