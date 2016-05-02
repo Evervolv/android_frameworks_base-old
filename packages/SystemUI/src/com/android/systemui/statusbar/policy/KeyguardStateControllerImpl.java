@@ -37,6 +37,8 @@ import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.keyguard.KeyguardUnlockAnimationController;
 
+import evervolv.provider.EVSettings;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -77,6 +79,7 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
     private boolean mTrusted;
     private boolean mDebugUnlocked = false;
     private boolean mFaceAuthEnabled;
+    private boolean mKeyguardRotationEnabled;
 
     private float mDismissAmount = 0f;
     private boolean mDismissingFromTouch = false;
@@ -238,15 +241,22 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
         boolean trustManaged = mKeyguardUpdateMonitor.getUserTrustIsManaged(user);
         boolean trusted = mKeyguardUpdateMonitor.getUserHasTrust(user);
         boolean faceAuthEnabled = mKeyguardUpdateMonitor.isFaceAuthEnabledForUser(user);
+            // update the state
+        boolean keyguardRotationDefault =
+                mContext.getResources().getBoolean(R.bool.config_enableLockScreenRotation);
+        boolean keyguardRotationEnabled =
+                EVSettings.System.getInt(mContext.getContentResolver(),
+                EVSettings.System.LOCKSCREEN_ROTATION, keyguardRotationDefault ? 1 : 0) != 0;
         boolean changed = secure != mSecure || canDismissLockScreen != mCanDismissLockScreen
                 || trustManaged != mTrustManaged || mTrusted != trusted
-                || mFaceAuthEnabled != faceAuthEnabled;
+                || mFaceAuthEnabled != faceAuthEnabled || mKeyguardRotationEnabled != keyguardRotationEnabled;
         if (changed || updateAlways) {
             mSecure = secure;
             mCanDismissLockScreen = canDismissLockScreen;
             mTrusted = trusted;
             mTrustManaged = trustManaged;
             mFaceAuthEnabled = faceAuthEnabled;
+            mKeyguardRotationEnabled = keyguardRotationEnabled;
             notifyUnlockedChanged();
         }
         Trace.endSection();
@@ -260,7 +270,7 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
     @Override
     public boolean isKeyguardScreenRotationAllowed() {
         return SystemProperties.getBoolean("lockscreen.rot_override", false)
-                || mContext.getResources().getBoolean(R.bool.config_enableLockScreenRotation);
+                || mKeyguardRotationEnabled;
     }
 
     @Override
