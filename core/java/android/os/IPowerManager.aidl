@@ -72,4 +72,7 @@ interface IPowerManager
     String getPowerProfile();
 
     void activityResumed(String componentName);
+
+    // update the uids being synchronized by network socket request manager
+    void updateBlockedUids(int uid, boolean isBlocked);
 }
