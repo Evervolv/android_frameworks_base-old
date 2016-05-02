@@ -21,10 +21,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.hardware.biometrics.BiometricSourceType;
 import android.os.Build;
+import android.os.Handler;
 import android.os.SystemProperties;
 import android.os.Trace;
+import android.provider.Settings;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -37,6 +40,8 @@ import com.android.systemui.R;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dump.DumpManager;
 import com.android.systemui.keyguard.KeyguardUnlockAnimationController;
+
+import evervolv.provider.EVSettings;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -78,6 +83,8 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
     private boolean mTrusted;
     private boolean mDebugUnlocked = false;
     private boolean mFaceAuthEnabled;
+    private boolean mRotationEnabled;
+    private boolean mLockScreenRotationEnabled;
 
     private float mDismissAmount = 0f;
     private boolean mDismissingFromTouch = false;
@@ -119,6 +126,9 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
         mUnlockAnimationControllerLazy = keyguardUnlockAnimationController;
 
         dumpManager.registerDumpable(getClass().getSimpleName(), this);
+
+        SettingsObserver observer = new SettingsObserver(new Handler());
+        observer.observe(mContext);
 
         update(true /* updateAlways */);
         if (Build.IS_DEBUGGABLE && DEBUG_AUTH_WITH_ADB) {
@@ -241,15 +251,23 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
         boolean trustManaged = mKeyguardUpdateMonitor.getUserTrustIsManaged(user);
         boolean trusted = mKeyguardUpdateMonitor.getUserHasTrust(user);
         boolean faceAuthEnabled = mKeyguardUpdateMonitor.isFaceAuthEnabledForUser(user);
+        boolean rotationEnabled = Settings.System.getInt(mContext.getContentResolver(),
+                Settings.System.ACCELEROMETER_ROTATION, 0) != 0;
+        boolean lockScreenRotationEnabled = EVSettings.System.getInt(mContext.getContentResolver(),
+                EVSettings.System.LOCKSCREEN_ROTATION, 0) != 0;
         boolean changed = secure != mSecure || canDismissLockScreen != mCanDismissLockScreen
                 || trustManaged != mTrustManaged || mTrusted != trusted
-                || mFaceAuthEnabled != faceAuthEnabled;
+                || mFaceAuthEnabled != faceAuthEnabled
+                || mRotationEnabled != rotationEnabled
+                || mLockScreenRotationEnabled != lockScreenRotationEnabled;
         if (changed || updateAlways) {
             mSecure = secure;
             mCanDismissLockScreen = canDismissLockScreen;
             mTrusted = trusted;
             mTrustManaged = trustManaged;
             mFaceAuthEnabled = faceAuthEnabled;
+            mRotationEnabled = rotationEnabled;
+            mLockScreenRotationEnabled = lockScreenRotationEnabled;
             mLogger.logKeyguardStateUpdate(
                     mSecure, mCanDismissLockScreen, mTrusted, mTrustManaged);
             notifyUnlockedChanged();
@@ -265,7 +283,7 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
     @Override
     public boolean isKeyguardScreenRotationAllowed() {
         return SystemProperties.getBoolean("lockscreen.rot_override", false)
-                || mContext.getResources().getBoolean(R.bool.config_enableLockScreenRotation);
+                || (mRotationEnabled && mLockScreenRotationEnabled);
     }
 
     @Override
@@ -450,6 +468,31 @@ public class KeyguardStateControllerImpl implements KeyguardStateController, Dum
 
         @Override
         public void onBiometricsCleared() {
+            update(false /* alwaysUpdate */);
+        }
+    }
+
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        public void observe(Context context) {
+            context.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION),
+                    false, this);
+            context.getContentResolver().registerContentObserver(
+                    EVSettings.System.getUriFor(EVSettings.System.LOCKSCREEN_ROTATION),
+                    false, this);
+        }
+
+        public void unobserve(Context context) {
+            context.getContentResolver().unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            // update the state
             update(false /* alwaysUpdate */);
         }
     }
