@@ -1,5 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
+<<<<<<< HEAD:packages/SystemUI/res/values/ev_config.xml
      Copyright (C) 2018-2022 The LineageOS Project
+=======
+     Copyright (C) 2018-2021 The LineageOS Project
+>>>>>>> d4b9a48213a9 (Keyguard: Allow disabling fingerprint wake-and-unlock):packages/SystemUI/res/values/lineage_config.xml
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -34,5 +39,11 @@
 
     <!-- Udfps HBM provider class name -->
     <string name="config_udfpsHbmProviderComponent">com.android.systemui.biometrics.DummyUdfpsHbmProvider</string>
+
+    <!-- Should we listen for fingerprints when the screen is off?  Devices
+         with a rear-mounted sensor want this, but certain devices have
+         the sensor embedded in the power key and listening all the time
+         causes a poor experience. -->
+    <bool name="config_fingerprintWakeAndUnlock">true</bool>
 
 </resources>
