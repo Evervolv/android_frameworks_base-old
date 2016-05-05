@@ -18,6 +18,18 @@
 */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Exposed styles for framework activities -->
+    <style name="Theme.Material.Light.Dialog.HeavyWeightSwitcherActivity" />
+    <style name="Theme.Material.Light.Dialog.ChooseAccountActivity" />
+    <style name="Theme.Material.Light.Dialog.ChooseTypeAndAccountActivity" />
+    <style name="Theme.Material.Light.Dialog.ChooseAccountTypeActivity" />
+    <style name="Theme.Material.Light.Dialog.NoActionBar.CantAddAccountActivity" />
+    <style name="Theme.Material.Light.DialogWhenLarge.GrantCredentialsPermissionActivity" />
+    <style name="Theme.Material.Light.Dialog.SyncActivityTooManyDeletes" />
+    <style name="Theme.Material.Light.Dialog.Alert.NetInitiatedActivity" />
+
     <!-- Exposed Java styles for power menu  -->
     <style name="Theme.Power.Dialog" parent="@style/Theme.DeviceDefault.Light.DarkActionBar" />
+
 </resources>
