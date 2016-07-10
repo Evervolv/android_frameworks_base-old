@@ -55,4 +55,6 @@
   <!-- Boolean to enable stk functionality on Samsung phones -->
   <java-symbol type="bool" name="config_samsung_stk" />
 
+  <!-- Wether device has dash charging support -->
+  <java-symbol type="bool" name="config_hasDashCharger" />
 </resources>
