@@ -18,7 +18,6 @@ LOCAL_SHARED_LIBRARIES := \
     libandroidfw \
     libutils \
     libbinder \
-    libhardware \
     libui \
     libskia \
     libEGL \
