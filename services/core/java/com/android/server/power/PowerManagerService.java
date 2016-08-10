@@ -499,7 +499,7 @@ public final class PowerManagerService extends SystemService
     // Set of app ids that are temporarily allowed to acquire wakelocks due to high-pri message
     int[] mDeviceIdleTempWhitelist = new int[0];
 
-    private QCNsrmPowerExtension qcNsrmPowExt = new QCNsrmPowerExtension(this);
+    private QCNsrmPowerExtension qcNsrmPowExt;
 
     private final SparseIntArray mUidState = new SparseIntArray();
 
@@ -537,6 +537,7 @@ public final class PowerManagerService extends SystemService
         mHandler = new PowerManagerHandler(mHandlerThread.getLooper());
         mPerformanceManager = new PerformanceManager(context);
 
+        qcNsrmPowExt = new QCNsrmPowerExtension(this);
         synchronized (mLock) {
             mWakeLockSuspendBlocker = createSuspendBlockerLocked("PowerManagerService.WakeLocks");
             mDisplaySuspendBlocker = createSuspendBlockerLocked("PowerManagerService.Display");
