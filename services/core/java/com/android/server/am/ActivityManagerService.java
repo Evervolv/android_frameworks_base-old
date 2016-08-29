@@ -216,7 +216,6 @@ import android.util.Slog;
 import android.util.SparseArray;
 import android.util.TimeUtils;
 import android.util.Xml;
-import android.util.BoostFramework;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -554,22 +553,6 @@ public final class ActivityManagerService extends ActivityManagerNative
     private static native int nativeMigrateFromBoost();
     private boolean mIsBoosted = false;
     private long mBoostStartTime = 0;
-
-    /* Freq Aggr boost objects */
-    public static BoostFramework sFreqAggr_init = null;
-    public static BoostFramework sFreqAggr = null;
-    public static boolean sIsFreqAggrBoostSet = false;
-    private boolean mIsFreqAggrEnabled = false;
-    private int lFreqAggr_TimeOut = 0;
-    private int lFreqAggr_Init_ParamVal[];
-    private int lFreqAggr_ParamVal[];
-
-    /* Launch boost v2 objects */
-    public static BoostFramework sPerfBoost_v2 = null;
-    public static boolean sIsLaunchBoostv2_set = false;
-    private boolean mIsLaunchBoostv2_enabled = false;
-    private int lBoost_v2_TimeOut = 0;
-    private int lBoost_v2_ParamVal[];
 
     /** All system services */
     SystemServiceManager mSystemServiceManager;
@@ -2729,28 +2712,6 @@ public final class ActivityManagerService extends ActivityManagerNative
 
         Watchdog.getInstance().addMonitor(this);
         Watchdog.getInstance().addThread(mHandler);
-
-        mIsFreqAggrEnabled = mContext.getResources().getBoolean(
-                   com.android.internal.R.bool.config_enableFreqAggr);
-
-        if(mIsFreqAggrEnabled) {
-           lFreqAggr_TimeOut = mContext.getResources().getInteger(
-                   com.android.internal.R.integer.freqaggr_timeout_param);
-           lFreqAggr_Init_ParamVal = mContext.getResources().getIntArray(
-                   com.android.internal.R.array.freqaggr_init_param_value);
-           lFreqAggr_ParamVal = mContext.getResources().getIntArray(
-                   com.android.internal.R.array.freqaggr_param_value);
-        }
-
-        mIsLaunchBoostv2_enabled = mContext.getResources().getBoolean(
-                   com.android.internal.R.bool.config_enableLaunchBoostv2);
-
-        if(mIsLaunchBoostv2_enabled) {
-           lBoost_v2_TimeOut = mContext.getResources().getInteger(
-                   com.android.internal.R.integer.lboostv2_timeout_param);
-           lBoost_v2_ParamVal = mContext.getResources().getIntArray(
-                   com.android.internal.R.array.lboostv2_param_value);
-        }
     }
 
     public void setSystemServiceManager(SystemServiceManager mgr) {
@@ -3876,45 +3837,6 @@ public final class ActivityManagerService extends ActivityManagerNative
                 buf.append(hostingNameStr);
             }
             Slog.i(TAG, buf.toString());
-
-            if(hostingType.equals("activity")) {
-                BoostFramework perf = new BoostFramework();
-
-                if (perf != null) {
-                    perf.perfIOPrefetchStart(startResult.pid,app.processName);
-                }
-
-                // Start Freq Aggregation boost
-                if (mIsFreqAggrEnabled == true && sFreqAggr_init == null
-                    && sFreqAggr == null) {
-                   sFreqAggr_init = new BoostFramework();
-                   sFreqAggr = new BoostFramework();
-                }
-                if (sFreqAggr_init != null && sFreqAggr != null) {
-                   sFreqAggr_init.perfLockAcquire(lFreqAggr_TimeOut, lFreqAggr_Init_ParamVal);
-                   sIsFreqAggrBoostSet = true;
-                   // Frequency Aggr perflock can only be passed one opcode-pair
-                   if (lFreqAggr_ParamVal.length == 2) {
-                       lFreqAggr_ParamVal[1] = startResult.pid;
-                       sFreqAggr.perfLockAcquire(lFreqAggr_TimeOut, lFreqAggr_ParamVal);
-                   } else {
-                       //Opcodes improperly defined. Disable Perflock FA support.
-                       sFreqAggr = null;
-                       sFreqAggr_init.perfLockRelease();
-                       sIsFreqAggrBoostSet = false;
-                   }
-                }
-
-                // Start launch boost v2
-                if (mIsLaunchBoostv2_enabled == true && sPerfBoost_v2 == null) {
-                    sPerfBoost_v2 = new BoostFramework();
-                }
-                if (sPerfBoost_v2 != null) {
-                   sPerfBoost_v2.perfLockAcquire(lBoost_v2_TimeOut, lBoost_v2_ParamVal);
-                   sIsLaunchBoostv2_set = true;
-                }
-            }
-
             app.setPid(startResult.pid);
             app.usingWrapper = startResult.usingWrapper;
             app.removed = false;
@@ -20284,18 +20206,6 @@ public final class ActivityManagerService extends ActivityManagerNative
         boolean success = true;
 
         if (app.curRawAdj != app.setRawAdj) {
-            String seempStr = "app_uid=" + app.uid
-                + ",app_pid=" + app.pid + ",oom_adj=" + app.curAdj
-                + ",setAdj=" + app.setAdj + ",hasShownUi=" + (app.hasShownUi ? 1 : 0)
-                + ",cached=" + (app.cached ? 1 : 0)
-                + ",fA=" + (app.foregroundActivities ? 1 : 0)
-                + ",fS=" + (app.foregroundServices ? 1 : 0)
-                + ",systemNoUi=" + (app.systemNoUi ? 1 : 0)
-                + ",curSchedGroup=" + app.curSchedGroup
-                + ",curProcState=" + app.curProcState + ",setProcState=" + app.setProcState
-                + ",killed=" + (app.killed ? 1 : 0) + ",killedByAm=" + (app.killedByAm ? 1 : 0)
-                + ",debugging=" + (app.debugging ? 1 : 0);
-            android.util.SeempLog.record_str(385, seempStr);
             app.setRawAdj = app.curRawAdj;
         }
 

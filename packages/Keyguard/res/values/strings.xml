@@ -48,9 +48,6 @@
          to unlock the keyguard.  Displayed in one line in a large font.  -->
     <string name="keyguard_password_wrong_pin_code">Incorrect PIN code.</string>
 
-    <!-- Shown in the lock screen when there is SIM card IO error. -->
-    <string name="lockscreen_sim_error_message_short">Invalid Card.</string>
-
     <!-- When the lock screen is showing, the phone is plugged in and the battery is fully
          charged, say that it is charged. -->
     <string name="keyguard_charged">Charged</string>
@@ -382,21 +379,5 @@
 
     <!-- Fingerprint hint message when finger was not recognized.-->
     <string name="fingerprint_not_recognized">Not recognized</string>
-
-    <!-- Instructions telling the user remaining times when enter SIM PIN view.  -->
-    <plurals name="kg_password_default_pin_message">
-        <item quantity="one">Enter SIM<xliff:g id="slotid">%d</xliff:g> PIN, you have <xliff:g id="number">%d</xliff:g> remaining
-attempt before you must contact your carrier to unlock your device.</item>
-        <item quantity="other">Enter SIM<xliff:g id="slotid">%d</xliff:g> PIN, you have <xliff:g id="number">%d</xliff:g> remaining
-attempts.</item>
-    </plurals>
-
-    <!-- Instructions telling the user remaining times when enter SIM PUK view.  -->
-    <plurals name="kg_password_default_puk_message">
-        <item quantity="one">SIM is now disabled. Enter PUK code to continue. You have <xliff:g id="
-number">%d</xliff:g> remaining attempt before SIM becomes permanently unusable. Contact carrier for details.</item>
-        <item quantity="other">SIM is now disabled. Enter PUK code to continue. You have <xliff:g id="
-number">%d</xliff:g> remaining attempts before SIM becomes permanently unusable. Contact carrier for details.</item>
-    </plurals>
 
 </resources>

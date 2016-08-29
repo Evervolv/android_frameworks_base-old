@@ -228,19 +228,9 @@ interface INetworkManagementService
     void startAccessPoint(in WifiConfiguration wifiConfig, String iface);
 
     /**
-     * Start Wigig Access Point
-     */
-    void startWigigAccessPoint();
-
-    /**
      * Stop Wifi Access Point
      */
     void stopAccessPoint(String iface);
-
-    /**
-     * Stop Wigig Access Point
-     */
-    void stopWigigAccessPoint();
 
     /**
      * Set Access Point config
@@ -448,13 +438,4 @@ interface INetworkManagementService
     void removeInterfaceFromLocalNetwork(String iface);
 
     void setAllowOnlyVpnForUids(boolean enable, in UidRange[] uidRanges);
-    /**
-     * Create SoftAp Interface
-     */
-    void createSoftApInterface(String wlanIface);
-
-     /**
-     * Delete SoftAp Interface
-     */
-    void deleteSoftApInterface(String wlanIface);
 }
