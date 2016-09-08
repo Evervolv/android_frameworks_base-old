@@ -1147,13 +1147,8 @@ class BluetoothManagerService extends IBluetoothManager.Stub {
                         recoverBluetoothServiceFromError();
                     }
                     if ((prevState == BluetoothAdapter.STATE_TURNING_ON) &&
-                            (newState == BluetoothAdapter.STATE_OFF) &&
+                            (newState == BluetoothAdapter.STATE_BLE_ON) &&
                             (mBluetooth != null) && mEnable) {
-                         persistBluetoothSetting(BLUETOOTH_OFF);
-                    }
-                    if ((prevState == BluetoothAdapter.STATE_TURNING_ON) &&
-                           (newState == BluetoothAdapter.STATE_BLE_ON) &&
-                           (mBluetooth != null) && mEnable) {
                         recoverBluetoothServiceFromError();
                     }
                     // If we tried to enable BT while BT was in the process of shutting down,
