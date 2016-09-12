@@ -39,8 +39,10 @@ public class TunerActivity extends SettingsDrawerActivity implements
             final String action = getIntent().getAction();
             boolean showDemoMode = action != null && action.equals(
                     "com.android.settings.action.DEMO_MODE");
+            boolean showNavBar = action != null && action.equals(
+                    "com.android.settings.action.NAV_BAR_TUNER");
             final PreferenceFragment fragment = showDemoMode ? new DemoModeFragment()
-                    : new TunerFragment();
+                    : showNavBar ? new NavBarTuner() : new TunerFragment();
             getFragmentManager().beginTransaction().replace(R.id.content_frame,
                     fragment, TAG_TUNER).commit();
         }
