@@ -165,10 +165,4 @@ interface IAudioService {
     oneway void unregisterRecordingCallback(in IRecordingConfigDispatcher rcdb);
 
     List<AudioRecordingConfiguration> getActiveRecordingConfigurations();
-
-    void updateRemoteControllerOnExistingMediaPlayers();
-
-    void addMediaPlayerAndUpdateRemoteController(String packageName);
-
-    void removeMediaPlayerAndUpdateRemoteController(String packageName);
 }
