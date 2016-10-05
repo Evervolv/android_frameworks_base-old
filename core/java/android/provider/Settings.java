@@ -6372,6 +6372,12 @@ public final class Settings {
         public static final String APP_PERFORMANCE_PROFILES_ENABLED = "app_perf_profiles_enabled";
 
         /**
+         * Holds comma separated list of ordering of QS tiles.
+         * @hide
+         */
+        public static final String QS_TILES = "sysui_qs_tiles";
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
@@ -6445,7 +6451,8 @@ public final class Settings {
             ENHANCED_VOICE_PRIVACY_ENABLED,
             TTY_MODE_ENABLED,
             INCALL_POWER_BUTTON_BEHAVIOR,
-            WIFI_DISCONNECT_DELAY_DURATION
+            WIFI_DISCONNECT_DELAY_DURATION,
+            QS_TILES,
         };
 
         /**
