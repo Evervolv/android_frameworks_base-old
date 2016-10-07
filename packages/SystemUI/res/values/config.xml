@@ -286,7 +286,4 @@
     <string name="config_navBarLayout" translatable="false">space,back;home;recent,menu_ime</string>
 
     <bool name="quick_settings_show_full_alarm">false</bool>
-
-    <!-- When true, show charging animation -->
-    <bool name="config_show_battery_charging_anim">false</bool>
 </resources>
