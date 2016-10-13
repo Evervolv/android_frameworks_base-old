@@ -90,8 +90,12 @@ public class StopMotionVectorDrawable extends DrawableWrapper {
         try {
             Field _mAnimatorSet = AnimatedVectorDrawable.class.getDeclaredField("mAnimatorSet");
             _mAnimatorSet.setAccessible(true);
-            mAnimatorSet = (AnimatorSet) _mAnimatorSet.get(mDrawable);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Class<?> innerClazz = Class.forName("android.graphics.drawable.AnimatedVectorDrawable$VectorDrawableAnimatorUI");
+            Object _inner = _mAnimatorSet.get(mDrawable);
+            Field _mSet = innerClazz.getDeclaredField("mSet");
+            _mSet.setAccessible(true);
+            mAnimatorSet = (AnimatorSet) _mSet.get(_inner);
+        } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
             Log.e(TAG, "Could not get mAnimatorSet via reflection", e);
         }
     }
