@@ -82,7 +82,7 @@ public class MediaFile {
 
     // More video file types
     public static final int FILE_TYPE_MP2PS   = 200;
-    public static final int FILE_TYPE_DIVX    = 201;
+    public static final int FILE_TYPE_QT      = 201;
     public static final int FILE_TYPE_FLV     = 202;
     private static final int FIRST_VIDEO_FILE_TYPE2 = FILE_TYPE_MP2PS;
     private static final int LAST_VIDEO_FILE_TYPE2 = FILE_TYPE_FLV;
@@ -227,6 +227,8 @@ public class MediaFile {
         addFileType("MPG", FILE_TYPE_MP4, "video/mpeg", MtpConstants.FORMAT_MPEG);
         addFileType("MP4", FILE_TYPE_MP4, "video/mp4", MtpConstants.FORMAT_MPEG);
         addFileType("M4V", FILE_TYPE_M4V, "video/mp4", MtpConstants.FORMAT_MPEG);
+        addFileType("MOV", FILE_TYPE_QT, "video/quicktime", MtpConstants.FORMAT_MPEG);
+
         addFileType("3GP", FILE_TYPE_3GPP, "video/3gpp",  MtpConstants.FORMAT_3GP_CONTAINER);
         addFileType("3GPP", FILE_TYPE_3GPP, "video/3gpp", MtpConstants.FORMAT_3GP_CONTAINER);
         addFileType("3G2", FILE_TYPE_3GPP2, "video/3gpp2", MtpConstants.FORMAT_3GP_CONTAINER);
@@ -281,7 +283,7 @@ public class MediaFile {
         addFileType("ZIP", FILE_TYPE_ZIP, "application/zip");
         addFileType("MPG", FILE_TYPE_MP2PS, "video/mp2p");
         addFileType("MPEG", FILE_TYPE_MP2PS, "video/mp2p");
-        addFileType("DIVX", FILE_TYPE_DIVX, "video/divx");
+        addFileType("DIVX", FILE_TYPE_QT, "video/divx");
         addFileType("FLV", FILE_TYPE_FLV, "video/flv");
         addFileType("MPD", FILE_TYPE_DASH, "application/dash+xml");
         addFileType("QCP", FILE_TYPE_QCP, "audio/qcelp");
