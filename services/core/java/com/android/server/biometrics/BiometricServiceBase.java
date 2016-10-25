@@ -899,7 +899,12 @@ public abstract class BiometricServiceBase extends SystemService
                             + ", fromClient: " + fromClient);
                     // If cancel was from BiometricService, it means the dialog was dismissed
                     // and authentication should be canceled.
-                    client.stop(client.getToken() == token);
+                    final boolean notifyClient = mContext.getResources().getBoolean(
+                        com.android.internal.R.bool.config_notifyClientOnFingerprintCancelSuccess);
+                    final int stopResult = client.stop(client.getToken() == token);
+                    if (notifyClient && (stopResult == 0)) {
+                        handleError(getHalDeviceId(), BiometricConstants.BIOMETRIC_ERROR_CANCELED, 0 /*vendorCode */);
+                    }
                 } else {
                     if (DEBUG) Slog.v(getTag(), "Can't stop client " + client.getOwnerString()
                             + " since tokens don't match. fromClient: " + fromClient);
