@@ -91,6 +91,7 @@ public class StopMotionVectorDrawable extends DrawableWrapper {
             Field _mAnimatorSet = AnimatedVectorDrawable.class.getDeclaredField("mAnimatorSet");
             _mAnimatorSet.setAccessible(true);
             Class<?> innerClazz = Class.forName("android.graphics.drawable.AnimatedVectorDrawable$VectorDrawableAnimatorUI");
+            mDrawable.forceAnimationOnUI();
             Object _inner = _mAnimatorSet.get(mDrawable);
             Field _mSet = innerClazz.getDeclaredField("mSet");
             _mSet.setAccessible(true);
