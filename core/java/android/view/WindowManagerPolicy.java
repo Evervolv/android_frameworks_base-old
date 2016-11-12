@@ -484,8 +484,8 @@ public interface WindowManagerPolicy {
         public void switchInputMethod(boolean forwardDirection);
 
         public void shutdown(boolean confirm);
-        public void rebootSafeMode(boolean confirm);
         public void reboot(String reason);
+        public void rebootSafeMode(boolean confirm);
 
         /**
          * Return the window manager lock needed to correctly call "Lw" methods.

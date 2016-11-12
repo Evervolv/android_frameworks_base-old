@@ -5755,14 +5755,14 @@ public class WindowManagerService extends IWindowManager.Stub
 
     // Called by window manager policy.  Not exposed externally.
     @Override
-    public void rebootSafeMode(boolean confirm) {
-        ShutdownThread.rebootSafeMode(mContext, confirm);
+    public void reboot(String reason) {
+        ShutdownThread.reboot(mContext, reason, true);
     }
 
     // Called by window manager policy.  Not exposed externally.
     @Override
-    public void reboot(String reason) {
-        ShutdownThread.reboot(mContext, reason, true);
+    public void rebootSafeMode(boolean confirm) {
+        ShutdownThread.rebootSafeMode(mContext, confirm);
     }
 
     public void setCurrentProfileIds(final int[] currentProfileIds) {
