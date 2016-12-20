@@ -45,4 +45,7 @@
     <color name="screenshot_background_color">@android:color/black</color>
     <!-- Separate QS text label tint from icon tint -->
     <color name="qs_tile_label_tint_unavailable">@color/qs_tile_tint_unavailable</color>
+
+    <!-- Pixel theme -->
+    <color name="pixel_primary_color">@color/system_primary_color</color>
 </resources>

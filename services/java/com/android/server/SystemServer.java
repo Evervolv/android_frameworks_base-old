@@ -55,6 +55,7 @@ import com.android.internal.os.SamplingProfilerIntegration;
 import com.android.internal.os.ZygoteInit;
 import com.android.internal.policy.EmergencyAffordanceManager;
 import com.android.internal.widget.ILockSettings;
+import com.android.server.ThemeService;
 import com.android.server.accessibility.AccessibilityManagerService;
 import com.android.server.am.ActivityManagerService;
 import com.android.server.audio.AudioService;
@@ -544,8 +545,8 @@ public final class SystemServer {
         ConsumerIrService consumerIr = null;
         MmsServiceBroker mmsService = null;
         HardwarePropertiesManagerService hardwarePropertiesService = null;
-
         OemExService mOemExService = null;
+        ThemeService themeService = null;
 
         boolean disableStorage = SystemProperties.getBoolean("config.disable_storage", false);
         boolean disableBluetooth = SystemProperties.getBoolean("config.disable_bluetooth", false);
@@ -610,6 +611,11 @@ public final class SystemServer {
 
             traceBeginAndSlog("InstallSystemProviders");
             mActivityManagerService.installSystemProviders();
+            Trace.traceEnd(Trace.TRACE_TAG_SYSTEM_SERVER);
+
+            traceBeginAndSlog("ThemeService");
+            themeService = new ThemeService(context);
+            ServiceManager.addService(Context.THEME_SERVICE, themeService);
             Trace.traceEnd(Trace.TRACE_TAG_SYSTEM_SERVER);
 
             traceBeginAndSlog("StartVibratorService");

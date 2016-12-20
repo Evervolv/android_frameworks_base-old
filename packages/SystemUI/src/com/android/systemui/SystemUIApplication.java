@@ -17,6 +17,8 @@
 package com.android.systemui;
 
 import android.app.Application;
+import android.app.IThemeCallback;
+import android.app.ThemeManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +27,7 @@ import android.content.res.Configuration;
 import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.android.systemui.stackdivider.Divider;
@@ -39,6 +42,8 @@ public class SystemUIApplication extends Application {
 
     private static final String TAG = "SystemUIService";
     private static final boolean DEBUG = false;
+
+    private ThemeManager mThemeManager;
 
     /**
      * The classes of the stuff to start.
@@ -111,6 +116,11 @@ public class SystemUIApplication extends Application {
             // components which require the SystemUI component to be initialized per-user, we
             // start those components now for the current non-system user.
             startServicesIfNeeded(SERVICES_PER_USER);
+        }
+
+        mThemeManager = (ThemeManager) getSystemService(Context.THEME_SERVICE);
+        if (mThemeManager != null) {
+            mThemeManager.addCallback(mThemeCallback);
         }
     }
 
@@ -197,4 +207,27 @@ public class SystemUIApplication extends Application {
     public SystemUI[] getServices() {
         return mServices;
     }
+
+    private final IThemeCallback mThemeCallback = new IThemeCallback.Stub() {
+
+        @Override
+        public void onThemeChanged(int themeMode, int color) {
+            onCallbackAdded(themeMode, color);
+        }
+
+        @Override
+        public void onCallbackAdded(int themeMode, int color) {
+            final boolean defaultTheme = Settings.Secure.getInt(getContentResolver(),
+                    Settings.Secure.THEME_ACCENT_COLOR, 1) == 0;
+            if (themeMode == 0 && defaultTheme) {
+                getTheme().applyStyle(R.style.systemui_theme, true);
+            } else {
+                getTheme().applyStyle(color, true);
+                getTheme().applyStyle(R.style.systemui_light_theme, true);
+            }
+            if (themeMode == 2) {
+                getTheme().applyStyle(R.style.systemui_pixel_theme, true);
+            }
+        }
+    };
 }
