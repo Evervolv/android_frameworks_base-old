@@ -44,7 +44,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 
@@ -53,17 +52,15 @@ import com.android.systemui.statusbar.policy.BatteryController;
 public class BatteryMeterDrawable extends Drawable implements
         BatteryController.BatteryStateChangeCallback {
 
-    private static final float ASPECT_RATIO = 9.5f / 14.5f;
     public static final String TAG = BatteryMeterDrawable.class.getSimpleName();
-    public static final String SHOW_PERCENT_SETTING = Settings.Secure.STATUS_BAR_SHOW_BATTERY_PERCENT;
+    private static final String STATUS_BAR_SHOW_BATTERY_PERCENT =
+            Settings.Secure.STATUS_BAR_SHOW_BATTERY_PERCENT;
     private static final String STATUS_BAR_CHARGE_COLOR =
             Settings.Secure.STATUS_BAR_CHARGE_COLOR;
-
-    private static final boolean SINGLE_DIGIT_PERCENT = false;
-
-    private static final int FULL = 96;
-
-    private static final float BOLT_LEVEL_THRESHOLD = 0.3f;  // opaque bolt below this fraction
+    private static final String FORCE_CHARGE_BATTERY_TEXT =
+            Settings.Secure.FORCE_CHARGE_BATTERY_TEXT;
+    private static final String TEXT_CHARGING_SYMBOL =
+            Settings.Secure.TEXT_CHARGING_SYMBOL;
 
     // Values for the different battery styles
     public static final int BATTERY_STYLE_PORTRAIT  = 0;
@@ -76,10 +73,7 @@ public class BatteryMeterDrawable extends Drawable implements
     private final int mIntrinsicWidth;
     private final int mIntrinsicHeight;
 
-    private boolean mShowPercent;
-    private float mButtonHeightFraction;
-    private float mSubpixelSmoothingLeft;
-    private float mSubpixelSmoothingRight;
+    private int mShowPercent;
     private int mIconTint = Color.WHITE;
     private float mOldDarkIntensity = 0f;
 
@@ -89,18 +83,7 @@ public class BatteryMeterDrawable extends Drawable implements
     private final int mCriticalLevel;
     private int mChargeColor;
     private int mStyle;
-    private boolean mBoltOverlay;
-    private final Path mBoltPath = new Path();
-    private final Path mPlusPath = new Path();
-
-    private final RectF mFrame = new RectF();
-    private final RectF mButtonFrame = new RectF();
-    private final RectF mBoltFrame = new RectF();
-    private final RectF mPlusFrame = new RectF();
-
-    private final Path mShapePath = new Path();
-    private final Path mClipPath = new Path();
-    private final Path mTextPath = new Path();
+    private boolean mIsBatteryTile; //if true, we are in the tile, if false, we are in the statusbar icon
 
     private BatteryController mBatteryController;
     private boolean mPowerSaveEnabled;
@@ -118,9 +101,9 @@ public class BatteryMeterDrawable extends Drawable implements
 
     private int mLevel = -1;
     private boolean mPluggedIn;
+    private boolean mForceChargeBatteryText;
+    private int  mTextChargingSymbol;
     private boolean mListening;
-
-    private boolean mIsAnimating; // stores charge-animation status to remove callbacks
 
     private float mTextX, mTextY; // precalculated position for drawText() to appear centered
 
@@ -133,35 +116,32 @@ public class BatteryMeterDrawable extends Drawable implements
     private Drawable mFrameDrawable;
     private StopMotionVectorDrawable mLevelDrawable;
     private Drawable mBoltDrawable;
+    private Drawable mPlusDrawable;
 
     private int mTextGravity;
 
     private int mCurrentBackgroundColor = 0;
     private int mCurrentFillColor = 0;
 
-    private int mSystemPrimary = 0;
+    private boolean isPctToBeWhiteOrRed;
 
-    public BatteryMeterDrawable(Context context, Handler handler, int frameColor) {
+    public BatteryMeterDrawable(Context context, Handler handler) {
         // Portrait is the default drawable style
-        this(context, handler, frameColor, BATTERY_STYLE_PORTRAIT, false);
+        this(context, handler, BATTERY_STYLE_PORTRAIT, false);
     }
 
-    public BatteryMeterDrawable(Context context, Handler handler, int frameColor, int style) {
-        this(context, handler, frameColor, style, false);
+    public BatteryMeterDrawable(Context context, Handler handler, int style) {
+        this(context, handler, style, false);
     }
 
-    public BatteryMeterDrawable(Context context, Handler handler, int frameColor, int style, boolean boltOverlay) {
+    public BatteryMeterDrawable(Context context, Handler handler, int style, boolean isBatteryTile) {
         mContext = context;
         mHandler = handler;
         mStyle = style;
-        mBoltOverlay = boltOverlay;
+        mIsBatteryTile = isBatteryTile;
         final Resources res = context.getResources();
         TypedArray levels = res.obtainTypedArray(R.array.batterymeter_color_levels);
         TypedArray colors = res.obtainTypedArray(R.array.batterymeter_color_values);
-        TypedValue typedValue = new TypedValue();
-        TypedArray primary = context.obtainStyledAttributes(typedValue.data, new int[] { R.attr.colorPrimary });
-
-        mSystemPrimary = primary.getColor(0, 0);
 
         final int N = levels.length();
         mColors = new int[2*N];
@@ -171,34 +151,22 @@ public class BatteryMeterDrawable extends Drawable implements
         }
         levels.recycle();
         colors.recycle();
-        primary.recycle();
         updateShowPercent();
-        updateChargeColor();
+        updateForceChargeBatteryText();
+        updateCustomChargingSymbol();
         mWarningString = context.getString(R.string.battery_meter_very_low_overlay_symbol);
         mCriticalLevel = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_criticalBatteryWarningLevel);
-        mButtonHeightFraction = context.getResources().getFraction(
-                R.fraction.battery_button_height_fraction, 1, 1);
-        mSubpixelSmoothingLeft = context.getResources().getFraction(
-                R.fraction.battery_subpixel_smoothing_left, 1, 1);
-        mSubpixelSmoothingRight = context.getResources().getFraction(
-                R.fraction.battery_subpixel_smoothing_right, 1, 1);
         mChargeColor = mContext.getResources().getColor(R.color.batterymeter_charge_color);
 
         loadBatteryDrawables(res, style);
 
-        // Load text gravity and blend mode
+        // Load text gravity
         final int[] attrs = new int[] { android.R.attr.gravity, R.attr.blendMode };
         final int resId = getBatteryDrawableStyleResourceForStyle(style);
-        PorterDuff.Mode xferMode = PorterDuff.Mode.XOR;
         if (resId != 0) {
             TypedArray a = mContext.obtainStyledAttributes(resId, attrs);
             mTextGravity = a.getInt(0, Gravity.CENTER);
-            if (mBoltOverlay) {
-                xferMode = PorterDuff.Mode.OVERLAY;
-            } else {
-                xferMode = PorterDuff.intToMode(a.getInt(1, PorterDuff.modeToInt(PorterDuff.Mode.XOR)));
-            }
             a.recycle();
         } else {
             mTextGravity = Gravity.CENTER;
@@ -208,8 +176,7 @@ public class BatteryMeterDrawable extends Drawable implements
         Typeface font = Typeface.create("sans-serif-condensed", Typeface.BOLD);
         mTextAndBoltPaint.setTypeface(font);
         mTextAndBoltPaint.setTextAlign(getPaintAlignmentFromGravity(mTextGravity));
-        mTextAndBoltPaint.setXfermode(new PorterDuffXfermode(xferMode));
-        mTextAndBoltPaint.setColor(mBoltOverlay || mCurrentFillColor == 0 ? getBoltColor() : mCurrentFillColor);
+        mTextAndBoltPaint.setColor(mIsBatteryTile || mCurrentFillColor == 0 ? getBoltColor() : mCurrentFillColor);
 
         mClearPaint = new Paint();
         mClearPaint.setColor(0);
@@ -238,13 +205,21 @@ public class BatteryMeterDrawable extends Drawable implements
     public void startListening() {
         mListening = true;
         mContext.getContentResolver().registerContentObserver(
-                Settings.Secure.getUriFor(SHOW_PERCENT_SETTING),
+                Settings.Secure.getUriFor(STATUS_BAR_SHOW_BATTERY_PERCENT),
                 false, mSettingObserver);
         mContext.getContentResolver().registerContentObserver(
-                Settings.Secure.getUriFor(Settings.Secure.STATUS_BAR_CHARGE_COLOR),
+                Settings.Secure.getUriFor(STATUS_BAR_CHARGE_COLOR),
+                false, mSettingObserver);
+        mContext.getContentResolver().registerContentObserver(
+                Settings.Secure.getUriFor(FORCE_CHARGE_BATTERY_TEXT),
+                false, mSettingObserver);
+        mContext.getContentResolver().registerContentObserver(
+                Settings.Secure.getUriFor(TEXT_CHARGING_SYMBOL),
                 false, mSettingObserver);
         updateShowPercent();
         updateChargeColor();
+        updateForceChargeBatteryText();
+        updateCustomChargingSymbol();
         mBatteryController.addStateChangedCallback(this);
     }
 
@@ -255,7 +230,7 @@ public class BatteryMeterDrawable extends Drawable implements
     }
 
     public void disableShowPercent() {
-        mShowPercent = false;
+        mShowPercent = 0;
         postInvalidate();
     }
 
@@ -277,7 +252,9 @@ public class BatteryMeterDrawable extends Drawable implements
     public void onBatteryLevelChanged(int level, boolean pluggedIn, boolean charging) {
         mLevel = level;
         mPluggedIn = pluggedIn;
-
+        if (level <31) {
+            isPctToBeWhiteOrRed = true;
+        }
         postInvalidate();
     }
 
@@ -285,36 +262,6 @@ public class BatteryMeterDrawable extends Drawable implements
     public void onPowerSaveChanged(boolean isPowerSave) {
         mPowerSaveEnabled = isPowerSave;
         invalidateSelf();
-    }
-
-    private static float[] loadBoltPoints(Resources res) {
-        final int[] pts = res.getIntArray(R.array.batterymeter_bolt_points);
-        int maxX = 0, maxY = 0;
-        for (int i = 0; i < pts.length; i += 2) {
-            maxX = Math.max(maxX, pts[i]);
-            maxY = Math.max(maxY, pts[i + 1]);
-        }
-        final float[] ptsF = new float[pts.length];
-        for (int i = 0; i < pts.length; i += 2) {
-            ptsF[i] = (float)pts[i] / maxX;
-            ptsF[i + 1] = (float)pts[i + 1] / maxY;
-        }
-        return ptsF;
-    }
-
-    private static float[] loadPlusPoints(Resources res) {
-        final int[] pts = res.getIntArray(R.array.batterymeter_plus_points);
-        int maxX = 0, maxY = 0;
-        for (int i = 0; i < pts.length; i += 2) {
-            maxX = Math.max(maxX, pts[i]);
-            maxY = Math.max(maxY, pts[i + 1]);
-        }
-        final float[] ptsF = new float[pts.length];
-        for (int i = 0; i < pts.length; i += 2) {
-            ptsF[i] = (float) pts[i] / maxX;
-            ptsF[i + 1] = (float) pts[i + 1] / maxY;
-        }
-        return ptsF;
     }
 
     @Override
@@ -326,13 +273,23 @@ public class BatteryMeterDrawable extends Drawable implements
 
     private void updateShowPercent() {
         mShowPercent = Settings.Secure.getInt(mContext.getContentResolver(),
-                SHOW_PERCENT_SETTING, 0) == 1;
+                STATUS_BAR_SHOW_BATTERY_PERCENT, 0);
     }
 
     private void updateChargeColor() {
         mChargeColor = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.STATUS_BAR_CHARGE_COLOR,
+                STATUS_BAR_CHARGE_COLOR,
                         mContext.getResources().getColor(R.color.batterymeter_charge_color));
+    }
+
+    private void updateForceChargeBatteryText() {
+        mForceChargeBatteryText = Settings.Secure.getInt(mContext.getContentResolver(),
+                FORCE_CHARGE_BATTERY_TEXT, 0) == 1 ? true : false;
+    }
+
+    private void updateCustomChargingSymbol() {
+        mTextChargingSymbol = Settings.Secure.getInt(mContext.getContentResolver(),
+                TEXT_CHARGING_SYMBOL, 0);
     }
 
     private int getColorForLevel(int percent) {
@@ -340,17 +297,17 @@ public class BatteryMeterDrawable extends Drawable implements
     }
 
     private int getColorForLevel(int percent, boolean isChargeLevel) {
-        if (mBoltOverlay) {
+        if (mIsBatteryTile) {
             if (mPowerSaveEnabled || percent > mColors[0]) {
                 if (isChargeLevel) {
                     return mColors[mColors.length-1];
                 } else {
                     return getBoltColor();
                 }
-            } else {
-                if (mStyle == BATTERY_STYLE_CIRCLE && !mPluggedIn) {
+            } else if (mStyle == BATTERY_STYLE_CIRCLE) {
+                if (!mPluggedIn) {
                     return mColors[1];
-                } else if (!isChargeLevel) {
+                } else {
                     return getBoltColor();
                 }
             }
@@ -389,11 +346,16 @@ public class BatteryMeterDrawable extends Drawable implements
         mCurrentBackgroundColor = getBackgroundColor(darkIntensity);
         mCurrentFillColor = getFillColor(darkIntensity);
         mIconTint = mCurrentFillColor;
-        mChargeColor = mCurrentFillColor;
-        // Make bolt fully opaque for increased visibility
-        mBoltDrawable.setTint(0xff000000 | mCurrentFillColor);
+        if (darkIntensity == 0f) {
+            updateChargeColor();
+            mBoltDrawable.setTint(0xff000000 | mChargeColor);
+        } else {
+            mChargeColor = mCurrentFillColor;
+            mBoltDrawable.setTint(0xff000000 | mCurrentFillColor);
+        }
         mFrameDrawable.setTint(mCurrentBackgroundColor);
         updateBoltDrawableLayer(mBatteryDrawable, mBoltDrawable);
+        updatePlusDrawableLayer(mBatteryDrawable, mPlusDrawable);
         invalidateSelf();
         mOldDarkIntensity = darkIntensity;
     }
@@ -445,6 +407,8 @@ public class BatteryMeterDrawable extends Drawable implements
             super.onChange(selfChange, uri);
             updateShowPercent();
             updateChargeColor();
+            updateForceChargeBatteryText();
+            updateCustomChargingSymbol();
             postInvalidate();
         }
     }
@@ -465,6 +429,8 @@ public class BatteryMeterDrawable extends Drawable implements
         mLevelDrawable = new StopMotionVectorDrawable(levelDrawable);
         mBoltDrawable = mBatteryDrawable.findDrawableByLayerId(R.id.battery_charge_indicator);
         mBoltDrawable.setTint(getBoltColor());
+        mPlusDrawable = mBatteryDrawable.findDrawableByLayerId(R.id.battery_powersave_indicator);
+        mPlusDrawable.setTint(getPlusColor());
     }
 
     private void checkBatteryMeterDrawableValid(Resources res, int style) {
@@ -487,6 +453,7 @@ public class BatteryMeterDrawable extends Drawable implements
         final Drawable frame = layerDrawable.findDrawableByLayerId(R.id.battery_frame);
         final Drawable level = layerDrawable.findDrawableByLayerId(R.id.battery_fill);
         final Drawable bolt = layerDrawable.findDrawableByLayerId(R.id.battery_charge_indicator);
+        final Drawable plus = layerDrawable.findDrawableByLayerId(R.id.battery_powersave_indicator);
         // Now, check that the required layers exist and are of the correct type
         if (frame == null) {
             throw new BatteryMeterDrawableException("Missing battery_frame drawble");
@@ -494,6 +461,10 @@ public class BatteryMeterDrawable extends Drawable implements
         if (bolt == null) {
             throw new BatteryMeterDrawableException(
                     "Missing battery_charge_indicator drawable");
+        }
+        if (plus == null) {
+            throw new BatteryMeterDrawableException(
+                    "Missing battery_powersave_indicator drawable");
         }
         if (level != null) {
             // Check that the level drawable is an AnimatedVectorDrawable
@@ -541,17 +512,31 @@ public class BatteryMeterDrawable extends Drawable implements
     }
 
     private int getBoltColor() {
-        if (mBoltOverlay) {
-            return mContext.getResources().getColor(mStyle == BATTERY_STYLE_CIRCLE
-                                                        ? R.color.batterymeter_bolt_color
-                                                        : mSystemPrimary);
+        if (mIsBatteryTile) {
+            if (mStyle == BATTERY_STYLE_CIRCLE) {
+                return mContext.getResources().getColor(R.color.batterymeter_bolt_color);
+            }
+            return (isPctToBeWhiteOrRed ? Color.WHITE : mContext.getResources().getColor(R.color.system_primary_color));
         }
         if (mStyle == BATTERY_STYLE_CIRCLE) {
             updateChargeColor();
             int chargeColor = mChargeColor;
             return chargeColor;
         }
-        return mContext.getResources().getColor(R.color.batterymeter_bolt_color);
+        return (isPctToBeWhiteOrRed ? Color.WHITE : mContext.getResources().getColor(R.color.batterymeter_bolt_color));
+    }
+
+    private int getPlusColor() {
+        if (mIsBatteryTile) {
+            if (mStyle == BATTERY_STYLE_CIRCLE) {
+                return mContext.getResources().getColor(R.color.batterymeter_bolt_color);
+            }
+            return (isPctToBeWhiteOrRed ? Color.WHITE : mContext.getResources().getColor(R.color.system_primary_color));
+        }
+        if (mStyle == BATTERY_STYLE_CIRCLE) {
+            return mIconTint;
+        }
+        return (isPctToBeWhiteOrRed ? Color.WHITE : mContext.getResources().getColor(R.color.batterymeter_bolt_color));
     }
 
     /**
@@ -608,6 +593,7 @@ public class BatteryMeterDrawable extends Drawable implements
         }
 
         updateBoltDrawableLayer(mBatteryDrawable, mBoltDrawable);
+        updatePlusDrawableLayer(mBatteryDrawable, mPlusDrawable);
 
         mInitialized = true;
     }
@@ -619,7 +605,7 @@ public class BatteryMeterDrawable extends Drawable implements
         if (boltDrawable instanceof BitmapDrawable) {
             newBoltDrawable = (BitmapDrawable) boltDrawable.mutate();
         } else {
-            Bitmap boltBitmap = createBoltBitmap(boltDrawable);
+            Bitmap boltBitmap = createBoltPlusBitmap(boltDrawable);
             if (boltBitmap == null) {
                 // Not much to do with a null bitmap so keep original bolt for now
                 return;
@@ -629,13 +615,13 @@ public class BatteryMeterDrawable extends Drawable implements
             newBoltDrawable.setBounds(bounds);
         }
         newBoltDrawable.getPaint().set(mTextAndBoltPaint);
-        if (mBoltOverlay) {
+        if (mIsBatteryTile) {
             newBoltDrawable.setTint(getBoltColor());
         }
         batteryDrawable.setDrawableByLayerId(R.id.battery_charge_indicator, newBoltDrawable);
     }
 
-    private Bitmap createBoltBitmap(Drawable boltDrawable) {
+    private Bitmap createBoltPlusBitmap(Drawable boltDrawable) {
         // Not much we can do with zero width or height, we'll get another pass later
         if (mWidth <= 0 || mHeight <= 0) return null;
 
@@ -652,30 +638,60 @@ public class BatteryMeterDrawable extends Drawable implements
         } else {
             bolt = ((BitmapDrawable) boltDrawable).getBitmap();
         }
-
         return bolt;
+    }
+
+    private void updatePlusDrawableLayer(LayerDrawable batteryDrawable, Drawable plusDrawable) {
+        BitmapDrawable newPlusDrawable;
+        if (plusDrawable instanceof BitmapDrawable) {
+            newPlusDrawable = (BitmapDrawable) plusDrawable.mutate();
+        } else {
+            Bitmap plusBitmap = createBoltPlusBitmap(plusDrawable);
+            if (plusBitmap == null) {
+                // Not much to do with a null bitmap so keep original plus for now
+                return;
+            }
+            Rect bounds = plusDrawable.getBounds();
+            newPlusDrawable = new BitmapDrawable(mContext.getResources(), plusBitmap);
+            newPlusDrawable.setBounds(bounds);
+        }
+        newPlusDrawable.getPaint().set(mTextAndBoltPaint);
+        if (mIsBatteryTile) {
+            newPlusDrawable.setTint(getPlusColor());
+        }
+        batteryDrawable.setDrawableByLayerId(R.id.battery_powersave_indicator, newPlusDrawable);
+    }
+
+    private void updatePortDuffMode() {
+        final int level = mLevel;
+        if (level >15 && level <31 && mStyle != BATTERY_STYLE_CIRCLE) {
+            mTextAndBoltPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
+            mTextAndBoltPaint.setColor(mIsBatteryTile ? Color.WHITE : mIconTint); //mIconTint so when darkintensity enabled the pct is dark and more visible
+        } else if (level <=15 && mStyle != BATTERY_STYLE_CIRCLE){
+            mTextAndBoltPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
+            mTextAndBoltPaint.setColor(getColorForLevel(level));
+        } else {
+            if (mIsBatteryTile) {
+                mTextAndBoltPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
+            } else  {
+                //have to recreate the typedarray here otherwise the XOR mode doesn't apply well
+                final int[] attrs = new int[] { android.R.attr.gravity, R.attr.blendMode };
+                final int resId = getBatteryDrawableStyleResourceForStyle(mStyle);
+                if (resId != 0) {
+                    TypedArray a = mContext.obtainStyledAttributes(resId, attrs);
+                    mTextAndBoltPaint.setXfermode(new PorterDuffXfermode(PorterDuff.intToMode(a.getInt(1, PorterDuff.modeToInt(PorterDuff.Mode.XOR)))));
+                    a.recycle();
+                }
+            }
+            mTextAndBoltPaint.setColor(getColorForLevel(level));
+        }
     }
 
     private void drawBattery(Canvas canvas) {
         final int level = mLevel;
-
-        mTextAndBoltPaint.setColor(getColorForLevel(level));
-
-        // Make sure we don't draw the charge indicator if not plugged in
-        final Drawable d = mBatteryDrawable.findDrawableByLayerId(R.id.battery_charge_indicator);
-        if (d instanceof BitmapDrawable) {
-            // In case we are using a BitmapDrawable, which we should be unless something bad
-            // happened, we need to change the paint rather than the alpha in case the blendMode
-            // has been set to clear.  Clear always clears regardless of alpha level ;)
-            final BitmapDrawable bd = (BitmapDrawable) d;
-            bd.getPaint().set(mPluggedIn ? mTextAndBoltPaint : mClearPaint);
-            if (mBoltOverlay) {
-                mBoltDrawable.setTint(getBoltColor());
-            }
-        } else {
-            d.setAlpha(mPluggedIn ? 255 : 0);
-        }
-
+        updatePortDuffMode();
+        handleBoltVisibility();
+        handlePlusVisibility();
         // Now draw the level indicator
         // Set the level and tint color of the fill drawable
         mLevelDrawable.setCurrentFraction(level / 100f);
@@ -684,25 +700,61 @@ public class BatteryMeterDrawable extends Drawable implements
 
         // If chosen by options, draw percentage text in the middle
         // Always skip percentage when 100, so layout doesnt break
-        if (!mPluggedIn) {
+        if (!mPluggedIn || (mPluggedIn && !mForceChargeBatteryText)) {
             drawPercentageText(canvas);
+        }
+    }
+
+    private void handleBoltVisibility() {
+        final Drawable d = mBatteryDrawable.findDrawableByLayerId(R.id.battery_charge_indicator);
+        if (d instanceof BitmapDrawable) {
+            // In case we are using a BitmapDrawable, which we should be unless something bad
+                // happened, we need to change the paint rather than the alpha in case the blendMode
+            // has been set to clear.  Clear always clears regardless of alpha level ;)
+            final BitmapDrawable bd = (BitmapDrawable) d;
+            bd.getPaint().set(!mPluggedIn || (mPluggedIn && mShowPercent == 1 && (!mForceChargeBatteryText
+                                                                    || (mForceChargeBatteryText && mTextChargingSymbol != 0)))
+                                            || (mPluggedIn && mShowPercent == 2 && mTextChargingSymbol != 0)
+                                            || (mPluggedIn && mShowPercent == 0  && (mForceChargeBatteryText && mTextChargingSymbol != 0))
+                                            ? mClearPaint : mTextAndBoltPaint);
+            if (mIsBatteryTile) {
+                mBoltDrawable.setTint(getBoltColor());
+            }
+        } else {
+            d.setAlpha(!mPluggedIn || (mPluggedIn && mShowPercent == 1 && (!mForceChargeBatteryText
+                                                            || (mForceChargeBatteryText && mTextChargingSymbol != 0)))
+                                    || (mPluggedIn && mShowPercent == 2 && mTextChargingSymbol != 0)
+                                    || (mPluggedIn && mShowPercent == 0  && (mForceChargeBatteryText && mTextChargingSymbol != 0)) ? 0 : 255);
+        }
+    }
+
+    private void handlePlusVisibility() {
+        final Drawable p = mBatteryDrawable.findDrawableByLayerId(R.id.battery_powersave_indicator);
+        if (p instanceof BitmapDrawable) {
+            final BitmapDrawable bpd = (BitmapDrawable) p;
+            bpd.getPaint().set(!mPowerSaveEnabled || (mPowerSaveEnabled && mShowPercent == 1)
+                                            ? mClearPaint : mTextAndBoltPaint);
+            if (mIsBatteryTile) {
+                mPlusDrawable.setTint(getPlusColor());
+            }
+        } else {
+            p.setAlpha(!mPowerSaveEnabled || (mPowerSaveEnabled && mShowPercent == 1) ? 0 : 255);
         }
     }
 
     private void drawPercentageText(Canvas canvas) {
         final int level = mLevel;
-        if (mShowPercent == true && level != 100) {
+        if (level > mCriticalLevel && mShowPercent == 1 && level != 100) {
             // Draw the percentage text
-            String pctText = String.valueOf(SINGLE_DIGIT_PERCENT ? (level / 10) : level);
-            mTextAndBoltPaint.setColor(getColorForLevel(level));
-            if (level > mCriticalLevel) {
-                canvas.drawText(pctText, mTextX, mTextY, mTextAndBoltPaint);
-            } else {
-                canvas.drawText(mWarningString, mTextX, mTextY, mTextAndBoltPaint);
-            }
-            if (mBoltOverlay) {
+            String pctText = String.valueOf(level);
+            canvas.drawText(pctText, mTextX, mTextY, mTextAndBoltPaint);
+            if (mIsBatteryTile) {
                 mBoltDrawable.setTint(getBoltColor());
+                mPlusDrawable.setTint(getPlusColor());
             }
+        } else if (level <= mCriticalLevel) {
+            // Draw the warning text
+            canvas.drawText(mWarningString, mTextX, mTextY, mTextAndBoltPaint);
         }
     }
 
