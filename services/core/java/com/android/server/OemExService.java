@@ -17,13 +17,6 @@
 
 package com.android.server;
 
-import static android.provider.Settings.Global.ZEN_MODE_ALARMS;
-import static android.provider.Settings.Global.ZEN_MODE_IMPORTANT_INTERRUPTIONS;
-import static android.provider.Settings.Global.ZEN_MODE_OFF;
-import static com.oneplus.Actions.TRI_STATE_KEY_INTENT;
-import static com.oneplus.Actions.TRI_STATE_KEY_BOOT_INTENT;
-import static com.oneplus.Actions.TRI_STATE_KEY_INTENT_EXTRA;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -34,6 +27,10 @@ import java.util.Locale;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.IPackageInstallObserver;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -42,31 +39,43 @@ import android.os.PowerManager.WakeLock;
 import android.os.RemoteException;
 import android.os.UEventObserver;
 import android.os.UserHandle;
+import android.os.Vibrator;
 import android.provider.Settings;
-import android.service.notification.ZenModeConfig;
 import android.util.Slog;
 
+import com.android.internal.os.BackgroundThread;
 import com.android.server.input.InputManagerService;
-import com.oneplus.os.IOemExService;
+import com.android.server.wm.WindowManagerService;
 
+import com.oneplus.os.IOemExInputCallBack;
+import com.oneplus.os.IOemExService;
+import com.oneplus.os.IOemUeventCallback;
+import com.oneplus.os.IThreeKeyPolicy;
+import com.oneplus.threekey.ThreeKey;
+import com.oneplus.threekey.ThreeKeyAudioPolicy;
+import com.oneplus.threekey.ThreeKeyBase;
+import com.oneplus.threekey.ThreeKeyHw;
+import com.oneplus.threekey.ThreeKeyHw.ThreeKeyUnsupportException;
+import com.oneplus.threekey.ThreeKeyVibratorPolicy;
+
+import java.io.File;
 
 public final class OemExService extends IOemExService.Stub {
     private static final String TAG = "OemExService";
     static final boolean DEBUG = true;
     static final boolean DEBUG_OEM_OBSERVER = DEBUG | false;
-    static final boolean DEBUG_OEM_ZENMODE = DEBUG | false;
+    public static boolean DEBUG_ONEPLUS =  true;
+
+    private static final String ACTION_BACK_COVER = "com.oem.intent.action.THREE_BACK_COVER";
+    private static final String ACTION_BLACK_MODE_INIT = "android.settings.OEM_THEME_MODE.init";
+    private static final String ACTION_OXYGEN_DARK_MODE_INIT = "com.oneplus.oxygen.changetheme.init";
 
     // For message handler
     private static final int MSG_SYSTEM_READY = 1;
-    private static final int MSG_ZENMODE = 2;
+    private static final int MSG_DELAY_COVER = 2;
 
     // For udevice name
-    private static final String UDEV_NAME_ZENMODE = "tri-state-key";
-
-    // For H2 Zen mode state
-    private static final int ZENMODE_NO_INTERRUPTIONS = 1;
-    private static final int ZENMODE_IMPORTANT_INTERRUPTIONS = 2;
-    private static final int ZENMODE_OFF = 3;
+    private static final String UDEV_NAME_BACKCOVER = "switch-theme";
 
     private final Object mLock = new Object();
     private Context mContext;
@@ -74,12 +83,23 @@ public final class OemExService extends IOemExService.Stub {
     // held while there is a pending state change.
     private final WakeLock mWakeLock;
 
-    private static int sZenModeState = 0;
-
-    // Observe the oem uevent
-    private final OemUEventObserver mObserver;
+    private static int sBackcoverState = 0;
 
     private volatile boolean mSystemReady = false;
+
+    private ThreeKeyHw threekeyhw;
+    private ThreeKey threekey;
+    private IThreeKeyPolicy mThreeKeyAudioPolicy;
+    private IThreeKeyPolicy mThreeKeyVibratorPolicy;
+
+    private static final int MSG_INSTALL_COMPLETE = 3;
+    // The key value of Settings.Secure.IN_APP_INSTALLED in Settings Provider
+    // Here we use the private string instead with Settings.Secure.IN_APP_INSTALLED to avoid build error between projects.
+    private static final String IN_APP_INSTALLED = "in_app_installed";
+    // store the original settings of Settings.Global.PACKAGE_VERIFIER_ENABLE
+    private static int mPackageVerifierEnable = 0;
+    // The apk install state. 0: no apk is on install; 1: 1 apk is on installing; 2: 2 apks are on installing; etc.
+    private static int mPackageInstallState = 0;
 
     private final Handler mHandler = new Handler(Looper.myLooper(), null, true) {
         @Override
@@ -94,29 +114,103 @@ public final class OemExService extends IOemExService.Stub {
                         mWakeLock.release();
                     }
                     break;
-                case MSG_ZENMODE:
-                    handleZenModeChanged(newState, oldState);
+                case MSG_DELAY_COVER:
+                    if (newState != oldState) {
+                        sBackcoverState = newState;
+                        sendBroadcastForChangeTheme(newState);
+                    }
                     if (mWakeLock.isHeld()) {
                         mWakeLock.release();
                     }
                     break;
-            }
 
+                case MSG_INSTALL_COMPLETE:
+                    if ((msg.arg1 == PackageManager.INSTALL_SUCCEEDED) && (msg.obj != null)) {
+                        String packageName = msg.obj.toString();
+                        String strAppInstalled = Settings.Secure.getString(mContext.getContentResolver(), IN_APP_INSTALLED);
+                        // Update the post-installed apk names into Setting Providers.
+                        if (strAppInstalled == null) {
+                            strAppInstalled = packageName + ", ";
+                        } else {
+                            strAppInstalled = strAppInstalled + packageName + ", ";
+                        }
+                        Settings.Secure.putString(mContext.getContentResolver(), IN_APP_INSTALLED, strAppInstalled);
+                        Slog.d(TAG, "[" + packageName + "] has been installed.");
+                        mPackageInstallState--;
+                        if (DEBUG_ONEPLUS) Slog.d(TAG, "done: mPackageInstallState = " + mPackageInstallState);
+                    }
+                    if (mPackageInstallState == 0) { // indicate all of the installing actions were finished.
+                        // restore original settings of Settings.Global.PACKAGE_VERIFIER_ENABLE
+                        Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.PACKAGE_VERIFIER_ENABLE, mPackageVerifierEnable);
+                        if (DEBUG_ONEPLUS) Slog.d(TAG, "All Done : " + Settings.Secure.getString(mContext.getContentResolver(), IN_APP_INSTALLED));
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
     };
+
+    // Observer for the apk installation.
+    class PackageInstallObserver extends IPackageInstallObserver.Stub {
+        public void packageInstalled(String packageName, int returnCode) {
+            Message msg = mHandler.obtainMessage(MSG_INSTALL_COMPLETE);
+            msg.arg1 = returnCode;
+            msg.obj = packageName;
+            mHandler.sendMessage(msg);
+        }
+    }
+
+    private void installAPKs() {
+        PackageManager pm = (PackageManager) mContext.getPackageManager();
+        final File path = new File("/system/vendor/etc/in_apps");
+        if (path.isDirectory()) {
+            File[] apkFiles = path.listFiles();
+            // backup original settings of Settings.Global.PACKAGE_VERIFIER_ENABLE
+            mPackageVerifierEnable = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.PACKAGE_VERIFIER_ENABLE, 1);
+            for (int i=0; i< apkFiles.length; i++) {
+                if (apkFiles[i].exists()) {
+                    if (apkFiles[i].isFile()) {
+                        PackageInfo info = pm.getPackageArchiveInfo(apkFiles[i].getAbsolutePath(), 0);
+
+                        // The custom post-installed apk names will be stored in Setting Providers.
+                        String strAppInstalled = Settings.Secure.getString(mContext.getContentResolver(), IN_APP_INSTALLED);
+                        if (DEBUG_ONEPLUS) Slog.v(TAG, "Settings[IN_APP_INSTALLED] = " + strAppInstalled);
+
+                        // Check if apk is installed via Package Manager
+                        if (DEBUG_ONEPLUS) Slog.d(TAG, "["+ info.packageName + "] = " + (pm.isPackageAvailable(info.packageName)?1:0));
+                        if (((strAppInstalled == null) || !strAppInstalled.contains(info.packageName)) && !pm.isPackageAvailable(info.packageName)) {
+                            // disable Settings.Global.PACKAGE_VERIFIER_ENABLE for package installations
+                            Settings.Global.putInt(mContext.getContentResolver(), Settings.Global.PACKAGE_VERIFIER_ENABLE, 0);
+
+                            mPackageInstallState++;
+                            if (DEBUG_ONEPLUS) Slog.d(TAG, "start install: mPackageInstallState = " + mPackageInstallState);
+
+                            // installl apks
+                            pm.installPackage(Uri.parse("file://" + apkFiles[i].getAbsolutePath()),
+                                    new PackageInstallObserver(),
+                                    PackageManager.INSTALL_REPLACE_EXISTING|PackageManager.INSTALL_GRANT_RUNTIME_PERMISSIONS,
+                                    info.packageName);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     public OemExService(Context context) {
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mContext = context;
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OemExService");
-        mObserver = new OemUEventObserver();
-
     }
 
     public void systemRunning() {
         synchronized (mLock) {
             // This wakelock will be released by handler
-            mWakeLock.acquire();
+            if (!mWakeLock.isHeld()) {
+                mWakeLock.acquire();
+            }
 
             // Use message to aovid blocking system server
             Message msg = mHandler.obtainMessage(MSG_SYSTEM_READY, 0, 0, null);
@@ -128,204 +222,144 @@ public final class OemExService extends IOemExService.Stub {
         Slog.d(TAG, "systemReady");
         mSystemReady = true;
 
-        mObserver.init();
+        // Send broadcast for OPSkin to change black mode
+        sendBroadcastForChangeBlackMode();
 
-        // Send initial states
-        sendBroadcastForZenModeChanged(sZenModeState);
-    }
-
-    private void sendBroadcastForZenModeChanged(int state) {
-        Intent intentZenMode;
-        intentZenMode = new Intent(TRI_STATE_KEY_INTENT);
-        intentZenMode.putExtra(TRI_STATE_KEY_INTENT_EXTRA, state);
-        mContext.sendBroadcastAsUser(intentZenMode, UserHandle.ALL);
-    }
-
-    class OemUEventObserver extends UEventObserver {
-        private final List<UEventInfo> mUEventInfo;
-
-        public OemUEventObserver() {
-            mUEventInfo = makeObservedUEventList();
+        threekeyhw = new ThreeKeyHw(mContext);
+        if(!threekeyhw.isSupportThreeKey()) {
+            // it happen in 14001 such device has no threekey
+            // do some thing instead with a software-threekey
+            return;
         }
+        threekeyhw.init();
 
-        void init() {
-            synchronized (mLock) {
-                if (DEBUG_OEM_OBSERVER) {
-                    Slog.d(TAG, "init()");
-                }
-                char[] buffer = new char[1024];
+        mThreeKeyAudioPolicy = new ThreeKeyAudioPolicy(mContext);
+        mThreeKeyVibratorPolicy = new ThreeKeyVibratorPolicy(mContext);
 
-                for (int i=0; i<mUEventInfo.size(); ++i) {
-                    UEventInfo uei = mUEventInfo.get(i);
-                    try {
-                        int curState;
-                        FileReader file = new FileReader(uei.getSwitchStatePath());
-                        int len = file.read(buffer, 0, 1024);
-                        file.close();
-                        curState = Integer.valueOf(new String(buffer, 0, len).trim());
-
-                        if (curState > 0) {
-                            // Be sure that the initial state is set correctly
-                            // Otherwise we get a state change that is not real
-                            sZenModeState = curState;
-                            updateStateLocked(uei.getDevPath(), uei.getDevName(), curState);
-                        }
-
-                    } catch(FileNotFoundException e) {
-                        Slog.w(TAG, uei.getSwitchStatePath() +
-                                "not found while attempting to determine initial switch state.");
-                    } catch (Exception e) {
-                        Slog.e(TAG, "", e);
-                    }
-                }
-            }
-
-
-            // Observer OEM UEvent devices
-            for (int i=0; i < mUEventInfo.size(); ++i) {
-                UEventInfo uei = mUEventInfo.get(i);
-                startObserving("DEVPATH=" + uei.getDevPath());
-            }
-        }
-
-        private List<UEventInfo> makeObservedUEventList() {
-            List<UEventInfo> retVal = new ArrayList<UEventInfo>();
-            UEventInfo uei;
-
-            // Monitor zen mode state
-            uei = new UEventInfo(UDEV_NAME_ZENMODE);
-            if (uei.checkSwitchExists()) {
-                retVal.add(uei);
-            } else {
-                Slog.w(TAG, "This kernel does not have tri-key support");
-            }
-
-            return retVal;
-        }
-
-        @Override
-        public void onUEvent(UEventObserver.UEvent event) {
-            if (DEBUG_OEM_OBSERVER) {
-                Slog.d(TAG, "OEM UEVENT: " + event.toString());
-            }
-
-            try {
-                String devPath = event.get("DEVPATH");
-                String name = event.get("SWITCH_NAME");
-                int state = Integer.parseInt(event.get("SWITCH_STATE"));
-                synchronized(mLock) {
-                    updateStateLocked(devPath, name, state);
-                }
-            } catch (NumberFormatException e) {
-                Slog.e(TAG, "Could not parse switch state from event " + event);
-            }
-
-
-        }
-
-        private void updateStateLocked(String devPath, String name, int state) {
-            if (!mSystemReady) {
-                return;
-            }
-
-            Message msg;
-
-            // This wakelock will be released by handler
-            mWakeLock.acquire();
-            switch(name) {
-                case UDEV_NAME_ZENMODE:
-                    msg = mHandler.obtainMessage(MSG_ZENMODE, state, sZenModeState, null);
-                    /* trigger state update only if it changes */
-                    if (state != sZenModeState) {
-                        sZenModeState = state;
-                        mHandler.sendMessage(msg);
-                    } else {
-                        if (mWakeLock.isHeld()) {
-                            mWakeLock.release();
-                        }
-                    }
-                    break;
-                default:
-                    if (mWakeLock.isHeld()) {
-                        mWakeLock.release();
-                    }
-                    break;
-            }
-        }
-
-        private final class UEventInfo {
-            private final String mDevName;
-
-            public UEventInfo(String devName) {
-                mDevName = devName;
-            }
-
-            public String getDevName() {
-                return mDevName;
-            }
-
-            public String getDevPath() {
-                return String.format(Locale.US, "/devices/virtual/switch/%s", mDevName);
-            }
-
-            public String getSwitchStatePath() {
-                return String.format(Locale.US, "/sys/class/switch/%s/state", mDevName);
-            }
-
-            public boolean checkSwitchExists() {
-                File f = new File(getSwitchStatePath());
-                return f.exists();
-            }
-        }
-    }
-
-    void handleZenModeChanged(int newState, int oldState) {
-        if (DEBUG_OEM_ZENMODE) {
-            Slog.d(TAG, "handleZenModeChanged: " + "newState: " + newState
-                    + ", oldState: " + oldState);
-        }
-
-        // Update Zen mode configuration to notification manager
-        ZenModeConfig configZenMode = getZenModeConfig();
-        configZenMode.allowMessages = true;
-        configZenMode.allowEvents = true;
-        configZenMode.allowCalls = true;
-
-        switch (newState) {
-            case ZEN_MODE_ALARMS:
-                Settings.Global.putInt(mContext.getContentResolver(),
-                        Settings.Global.ZEN_MODE, ZEN_MODE_ALARMS);
-                configZenMode.allowCallsFrom = ZenModeConfig.SOURCE_CONTACT;
-                configZenMode.allowMessagesFrom = ZenModeConfig.SOURCE_CONTACT;
-                break;
-            case ZEN_MODE_IMPORTANT_INTERRUPTIONS:
-                Settings.Global.putInt(mContext.getContentResolver(),
-                        Settings.Global.ZEN_MODE, ZEN_MODE_IMPORTANT_INTERRUPTIONS);
-                configZenMode.allowCallsFrom = ZenModeConfig.SOURCE_STAR;
-                configZenMode.allowMessagesFrom = ZenModeConfig.SOURCE_STAR;
-                break;
-            case ZEN_MODE_OFF:
-                Settings.Global.putInt(mContext.getContentResolver(),
-                        Settings.Global.ZEN_MODE, ZEN_MODE_OFF);
-                configZenMode.allowCallsFrom = ZenModeConfig.SOURCE_ANYONE;
-                configZenMode.allowMessagesFrom = ZenModeConfig.SOURCE_ANYONE;
-                break;
-            default:
-                break;
-        }
-
-        if (oldState != 0) {
-            sendBroadcastForZenModeChanged(newState);
-        }
-    }
-
-    private ZenModeConfig getZenModeConfig() {
-        final NotificationManager nm = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         try {
-            return nm.getZenModeConfig();
-        } catch (Exception e) {
-            Slog.w(TAG, "Error calling NoMan", e);
-            return new ZenModeConfig();
+            threekey= new ThreeKey(mContext);
+            threekey.addThreeKeyPolicy(mThreeKeyAudioPolicy);
+            threekey.addThreeKeyPolicy(mThreeKeyVibratorPolicy);
+            threekey.init(threekeyhw.getState());
+        } catch (ThreeKeyUnsupportException e) {
+            Slog.e(TAG,"device is not support threekey");
+            threekey = null;
         }
+    }
+
+    private void sendBroadcastForChangeTheme(int state) {
+        Intent backCover = new Intent(ACTION_BACK_COVER);
+        backCover.putExtra("switch_state", String.valueOf(state));
+        mContext.sendBroadcastAsUser(backCover, UserHandle.ALL);
+    }
+
+    // For Hydrogen to init black mode
+    private void sendBroadcastForChangeBlackMode() {
+        Intent blackModeIntent = new Intent(ACTION_BLACK_MODE_INIT);
+        mContext.sendBroadcast(blackModeIntent);
+    }
+
+    public void startApkInstall() {
+        if (mPackageInstallState == 0) {
+            BackgroundThread.getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        installAPKs();
+                    } catch (Exception ex) {
+                        Slog.w(TAG, "installAPKs error.", ex);
+                    }
+                }
+            });
+        }
+    }
+
+    public boolean registerInputEvent(IOemExInputCallBack callBackAdd, int keycode) {
+        return true;
+    }
+
+    public void unregisterInputEvent(IOemExInputCallBack callBackRemove) {
+    }
+
+    public void pauseExInputEvent() throws RemoteException {
+    }
+
+    public void resumeExInputEvent() throws RemoteException {
+    }
+
+    public boolean startUevent(String patch, IOemUeventCallback callback) throws RemoteException {
+        return true;
+    }
+
+    public boolean stopUevent(IOemUeventCallback callback) throws RemoteException {
+        return true;
+    }
+
+    public boolean setInteractive(boolean interactive, long delayMillis) {
+        return true;
+    }
+
+    public boolean setSystemProperties(String key, String value) {
+        return true;
+    }
+
+    public boolean setKeyMode(int keyMode) {
+        return true;
+    }
+
+    public boolean setHomeUpLock() {
+        android.util.Log.d(TAG,"[setHomeUpLock]");
+        return true;
+    }
+
+    public void setGammaData(int val) {
+        setLCDGammaData(val);
+    }
+
+    public void setLaserSensorOffset(int val) {
+        setLaserOffset(val);
+    }
+
+    public void setLaserSensorCrossTalk(int val) {
+        setLaserCrossTalk(val);
+    }
+
+    private native void setLCDGammaData(int val);
+    private native void setLaserOffset(int val);
+    private native void setLaserCrossTalk(int val);
+
+    public void disableDefaultThreeKey() {
+        threekey.removeThreeKeyPolicy(mThreeKeyAudioPolicy);
+        Slog.d(TAG,"[disableDefaultThreeKey]");
+    }
+
+    public void enalbeDefaultThreeKey() {
+        threekey.addThreeKeyPolicy(mThreeKeyAudioPolicy);
+        Slog.d(TAG,"[enableDefaultThreeKey]");
+    }
+
+    public void addThreeKeyPolicy(IThreeKeyPolicy policy) {
+        Slog.d(TAG,"[setThreeKeyPolicy]");
+        threekey.addThreeKeyPolicy(policy);
+    }
+
+    public void removeThreeKeyPolicy(IThreeKeyPolicy policy) {
+        Slog.d(TAG,"[removeThreeKeyPolicy]");
+        threekey.removeThreeKeyPolicy(policy);
+    }
+
+    public void resetThreeKey() {
+        Slog.d(TAG,"[resetThreeKey]");
+        threekey.reset();
+    }
+
+    public int getThreeKeyStatus() {
+	Slog.d(TAG,"[getThreeKeyStatus]");
+        try {
+            return threekeyhw.getState();
+        } catch (ThreeKeyUnsupportException e) {
+            Slog.e(TAG,"system unsupport for threekey");
+        }
+        return 0;
     }
 }
