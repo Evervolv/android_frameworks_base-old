@@ -276,22 +276,11 @@ public class PerformanceManagerService extends SystemService {
 
         boolean isProfileSame = profile == mActiveProfile;
 
-        if (!isProfileSame) {
-            if (profile == PerformanceManager.PROFILE_POWER_SAVE) {
-                // Handle the case where toggle power saver mode failed
-                long token = Binder.clearCallingIdentity();
-                try {
-                    if (!mPm.setPowerSaveMode(true)) {
-                        return false;
-                    }
-                } finally {
-                    Binder.restoreCallingIdentity(token);
-                }
-            } else if (mActiveProfile == PerformanceManager.PROFILE_POWER_SAVE) {
-                long token = Binder.clearCallingIdentity();
-                mPm.setPowerSaveMode(false);
-                Binder.restoreCallingIdentity(token);
-            }
+        if (!isProfileSame && profile != PerformanceManager.PROFILE_POWER_SAVE &&
+                mActiveProfile == PerformanceManager.PROFILE_POWER_SAVE) {
+            long token = Binder.clearCallingIdentity();
+            mPm.setPowerSaveMode(false);
+            Binder.restoreCallingIdentity(token);
         }
 
         /**
