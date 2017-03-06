@@ -180,6 +180,7 @@ public class PerformanceManagerService extends SystemService {
                 mBoostEnabled = boost;
                 if (mUserProfile < 0) {
                     mUserProfile = profile;
+                    setPowerProfileLocked(mUserProfile, false);
                 }
             }
         }
@@ -227,13 +228,7 @@ public class PerformanceManagerService extends SystemService {
                 mSystemReady = true;
 
                 if (hasProfiles()) {
-                    if (mUserProfile == PerformanceManager.PROFILE_HIGH_PERFORMANCE) {
-                        Slog.w(TAG, "Reverting profile HIGH_PERFORMANCE to BALANCED");
-                        setPowerProfileLocked(PerformanceManager.PROFILE_BALANCED, true);
-                    } else {
-                        setPowerProfileLocked(mUserProfile, true);
-                    }
-
+                    setPowerProfileLocked(mUserProfile, false);
                     mPm.registerLowPowerModeObserver(mLowPowerModeListener);
                     mContext.registerReceiver(mLocaleChangedReceiver,
                             new IntentFilter(Intent.ACTION_LOCALE_CHANGED));
@@ -351,7 +346,7 @@ public class PerformanceManagerService extends SystemService {
         }
     }
 
-    private void applyAppProfileLocked(boolean fromUser) {
+    private void applyAppProfileLocked() {
         if (!hasProfiles()) {
             // don't have profiles, bail.
             return;
@@ -361,16 +356,13 @@ public class PerformanceManagerService extends SystemService {
         if (mLowPowerModeEnabled) {
             // LPM always wins
             profile = PerformanceManager.PROFILE_POWER_SAVE;
-        } else if (fromUser && mActiveProfile == PerformanceManager.PROFILE_POWER_SAVE) {
-            // leaving LPM
-            profile = PerformanceManager.PROFILE_BALANCED;
         } else if (hasAppProfiles()) {
             profile = getProfileForActivity(mCurrentActivityName);
         } else {
             profile = mUserProfile;
         }
 
-        setPowerProfileLocked(profile, fromUser);
+        setPowerProfileLocked(profile, false);
     }
 
     private final IBinder mBinder = new IPerformanceManager.Stub() {
@@ -480,7 +472,7 @@ public class PerformanceManagerService extends SystemService {
 
             synchronized (mLock) {
                 mCurrentActivityName = activityName;
-                applyAppProfileLocked(false);
+                applyAppProfileLocked();
             }
         }
     }
@@ -568,7 +560,7 @@ public class PerformanceManagerService extends SystemService {
                             Slog.d(TAG, "low power mode enabled: " + enabled);
                         }
                         mLowPowerModeEnabled = enabled;
-                        applyAppProfileLocked(true);
+                        applyAppProfileLocked();
                     }
                 }
             };
