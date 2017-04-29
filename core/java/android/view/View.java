@@ -103,6 +103,7 @@ import static android.os.Build.VERSION_CODES.*;
 import static java.lang.Math.max;
 
 import com.android.internal.R;
+import com.android.internal.util.Predicate;
 import com.android.internal.view.menu.MenuBuilder;
 import com.android.internal.widget.ScrollBarUtils;
 import com.google.android.collect.Lists;
@@ -125,7 +126,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 
 /**
  * <p>
@@ -8778,7 +8778,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 final int id = mID;
                 return root.findViewByPredicateInsideOut(this, new Predicate<View>() {
                     @Override
-                    public boolean test(View t) {
+                    public boolean apply(View t) {
                         return t.mNextFocusForwardId == id;
                     }
                 });
@@ -19349,7 +19349,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
      * @return The first view that matches the predicate or null.
      */
     protected View findViewByPredicateTraversal(Predicate<View> predicate, View childToSkip) {
-        if (predicate.test(this)) {
+        if (predicate.apply(this)) {
             return this;
         }
         return null;
@@ -23639,20 +23639,20 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         }
     }
 
-    private static class MatchIdPredicate implements Predicate<View> {
+    private class MatchIdPredicate implements Predicate<View> {
         public int mId;
 
         @Override
-        public boolean test(View view) {
+        public boolean apply(View view) {
             return (view.mID == mId);
         }
     }
 
-    private static class MatchLabelForPredicate implements Predicate<View> {
+    private class MatchLabelForPredicate implements Predicate<View> {
         private int mLabeledId;
 
         @Override
-        public boolean test(View view) {
+        public boolean apply(View view) {
             return (view.mLabelForId == mLabeledId);
         }
     }
