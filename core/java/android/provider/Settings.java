@@ -6431,13 +6431,6 @@ public final class Settings {
         public static final String BATTERY_TILE_STYLE = "battery_tile_style";
 
         /**
-         * Battery icon color while charging
-         *
-         * @hide
-         */
-        public static final String STATUS_BAR_CHARGE_COLOR = "status_bar_charge_color";
-
-        /**
          * Whether to force percentage text out of the battery icon while charging
          *
          * @hide
