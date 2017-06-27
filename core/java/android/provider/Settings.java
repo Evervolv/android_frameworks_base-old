@@ -6448,6 +6448,13 @@ public final class Settings {
         public static final String TEXT_CHARGING_SYMBOL = "text_charging_symbol";
 
         /**
+         * Whether to pulse the battery icon when charging
+         *
+         * @hide
+         */
+        public static final String STATUS_BAR_PULSE_CHARGING_BATTERY = "status_bar_pulse_charging_battery";
+
+        /**
          * Twilight mode always off.
          * @hide
          */
