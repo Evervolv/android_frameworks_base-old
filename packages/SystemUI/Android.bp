@@ -177,6 +177,7 @@ android_library {
         "lottie",
         "LowLightDreamLib",
         "motion_tool_lib",
+        "com.evervolv.platform.internal",
     ],
     manifest: "AndroidManifest.xml",
 
@@ -311,6 +312,7 @@ android_library {
         "motion_tool_lib",
         "androidx.core_core-animation-testing-nodeps",
         "androidx.compose.ui_ui",
+        "com.evervolv.platform.internal",
     ],
 }
 
