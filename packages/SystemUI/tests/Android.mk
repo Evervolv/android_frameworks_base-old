@@ -63,6 +63,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
     SystemUI-tags \
     testables \
     truth-prebuilt \
+    com.evervolv.platform.internal
 
 LOCAL_MULTILIB := both
 
