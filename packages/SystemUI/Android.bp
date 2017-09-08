@@ -119,6 +119,7 @@ android_library {
         "dagger2",
         "jsr330",
         "lottie",
+        "com.evervolv.platform.internal",
     ],
     manifest: "AndroidManifest.xml",
 
@@ -208,6 +209,7 @@ android_library {
         "dagger2",
         "jsr330",
         "WindowManager-Shell",
+        "com.evervolv.platform.internal",
     ],
     libs: [
         "android.test.runner",
