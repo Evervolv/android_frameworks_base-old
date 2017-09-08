@@ -125,6 +125,7 @@ android_library {
         "jsr330",
         "lottie",
         "LowLightDreamLib",
+        "com.evervolv.platform.internal",
     ],
     manifest: "AndroidManifest.xml",
 
@@ -229,6 +230,7 @@ android_library {
         "jsr330",
         "WindowManager-Shell",
         "LowLightDreamLib",
+        "com.evervolv.platform.internal",
     ],
     libs: [
         "android.test.runner",
