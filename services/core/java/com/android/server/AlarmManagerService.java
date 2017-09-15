@@ -2672,14 +2672,18 @@ class AlarmManagerService extends SystemService {
                     // now trigger the alarms without the lock held
                     for (int i=0; i<triggerList.size(); i++) {
                         Alarm alarm = triggerList.get(i);
-                        try {
-                            alarm.operation.send();
-                        } catch (PendingIntent.CanceledException e) {
-                            if (alarm.repeatInterval > 0) {
-                                // This IntentSender is no longer valid, but this
-                                // is a repeating alarm, so toss the hoser.
-                                removeImpl(alarm.operation);
+                        if (alarm.operation != null) {
+                            try {
+                                alarm.operation.send();
+                            } catch (PendingIntent.CanceledException e) {
+                                if (alarm.repeatInterval > 0) {
+                                    // This IntentSender is no longer valid, but this
+                                    // is a repeating alarm, so toss the hoser.
+                                    removeImpl(alarm.operation);
+                                }
                             }
+                        } else {
+                            removeImpl(alarm.operation);
                         }
                     }
                     break;
