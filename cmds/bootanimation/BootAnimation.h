@@ -39,12 +39,6 @@ class SurfaceControl;
 class BootAnimation : public Thread, public IBinder::DeathRecipient
 {
 public:
-    enum {
-        eOrientationDefault     = 0,
-        eOrientation90          = 1,
-        eOrientation180         = 2,
-        eOrientation270         = 3,
-    };
     BootAnimation();
 
     sp<SurfaceComposerClient> session() const;

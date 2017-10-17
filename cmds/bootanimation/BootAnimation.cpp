@@ -28,8 +28,6 @@
 #include <utils/misc.h>
 #include <signal.h>
 #include <time.h>
-#include <pthread.h>
-#include <sys/select.h>
 
 #include <cutils/properties.h>
 
@@ -107,57 +105,6 @@ static const std::vector<std::string> PLAY_SOUND_BOOTREASON_BLACKLIST {
 };
 
 // ---------------------------------------------------------------------------
-
-static unsigned long getFreeMemory(void)
-{
-    int fd = open("/proc/meminfo", O_RDONLY);
-    const char* const sums[] = { "MemFree:", "Cached:", NULL };
-    const size_t sumsLen[] = { strlen("MemFree:"), strlen("Cached:"), 0 };
-    unsigned int num = 2;
-
-    if (fd < 0) {
-        ALOGW("Unable to open /proc/meminfo");
-        return -1;
-    }
-
-    char buffer[256];
-    const int len = read(fd, buffer, sizeof(buffer)-1);
-    close(fd);
-
-    if (len < 0) {
-        ALOGW("Unable to read /proc/meminfo");
-        return -1;
-    }
-    buffer[len] = 0;
-
-    size_t numFound = 0;
-    unsigned long mem = 0;
-
-    char* p = buffer;
-    while (*p && numFound < num) {
-        int i = 0;
-        while (sums[i]) {
-            if (strncmp(p, sums[i], sumsLen[i]) == 0) {
-                p += sumsLen[i];
-                while (*p == ' ') p++;
-                char* num = p;
-                while (*p >= '0' && *p <= '9') p++;
-                if (*p != 0) {
-                    *p = 0;
-                    p++;
-                    if (*p == 0) p--;
-                }
-                mem += atoll(num);
-                numFound++;
-                break;
-            }
-            i++;
-        }
-        p++;
-    }
-
-    return numFound > 0 ? mem : -1;
-}
 
 BootAnimation::BootAnimation() : Thread(false), mClockEnabled(true), mTimeIsAccurate(false),
         mTimeFormat12Hour(false), mTimeCheckThread(NULL) {
@@ -328,18 +275,6 @@ status_t BootAnimation::readyToRun() {
     status_t status = SurfaceComposerClient::getDisplayInfo(dtoken, &dinfo);
     if (status)
         return -1;
-    char value[PROPERTY_VALUE_MAX];
-    property_get("persist.panel.orientation", value, "0");
-    int orient = atoi(value) / 90;
-
-    if(orient == eOrientation90 || orient == eOrientation270) {
-        int temp = dinfo.h;
-        dinfo.h = dinfo.w;
-        dinfo.w = temp;
-    }
-
-    Rect destRect(dinfo.w, dinfo.h);
-    mSession->setDisplayProjection(dtoken, orient, destRect, destRect);
 
     // create the native surface
     sp<SurfaceControl> control = session()->createSurface(String8("BootAnimation"),
@@ -408,38 +343,6 @@ status_t BootAnimation::readyToRun() {
             return NO_ERROR;
         }
     }
-
-#ifdef PRELOAD_BOOTANIMATION
-    // Preload the bootanimation zip on memory, so we don't stutter
-    // when showing the animation
-    FILE* fd;
-    if (encryptedAnimation && access(SYSTEM_ENCRYPTED_BOOTANIMATION_FILE, R_OK) == 0)
-        fd = fopen(SYSTEM_ENCRYPTED_BOOTANIMATION_FILE, "r");
-    else if (access(OEM_BOOTANIMATION_FILE, R_OK) == 0)
-        fd = fopen(OEM_BOOTANIMATION_FILE, "r");
-    else if (access(SYSTEM_BOOTANIMATION_FILE, R_OK) == 0)
-        fd = fopen(SYSTEM_BOOTANIMATION_FILE, "r");
-    else
-        return NO_ERROR;
-
-    if (fd != NULL) {
-        // We could use readahead..
-        // ... if bionic supported it :(
-        //readahead(fd, 0, INT_MAX);
-        void *crappyBuffer = malloc(2*1024*1024);
-        if (crappyBuffer != NULL) {
-            // Read all the zip
-            while (!feof(fd))
-                fread(crappyBuffer, 1024, 2*1024, fd);
-
-            free(crappyBuffer);
-        } else {
-            ALOGW("Unable to allocate memory to preload the animation");
-        }
-        fclose(fd);
-    }
-#endif
-
     return NO_ERROR;
 }
 
@@ -941,12 +844,10 @@ bool BootAnimation::movie()
 
     // Blend required to draw time on top of animation frames.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#ifndef CONTINUOUS_SPLASH
     glShadeModel(GL_FLAT);
     glDisable(GL_DITHER);
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_BLEND);
-#endif
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glEnable(GL_TEXTURE_2D);
@@ -995,23 +896,12 @@ bool BootAnimation::playAnimation(const Animation& animation)
     nsecs_t frameDuration = s2ns(1) / animation.fps;
     const int animationX = (mWidth - animation.width) / 2;
     const int animationY = (mHeight - animation.height) / 2;
-    bool needSaveMem = false;
-    GLuint mTextureid;
 
     ALOGD("%sAnimationShownTiming start time: %" PRId64 "ms", mShuttingDown ? "Shutdown" : "Boot",
             elapsedRealtime());
     for (size_t i=0 ; i<pcount ; i++) {
         const Animation::Part& part(animation.parts[i]);
         const size_t fcount = part.frames.size();
-
-        // can be 1, 0, or not set
-        #ifdef NO_TEXTURE_CACHE
-        const int noTextureCache = NO_TEXTURE_CACHE;
-        #else
-        const int noTextureCache =
-                ((animation.width * animation.height * fcount) > 48 * 1024 * 1024) ? 1 : 0;
-        #endif
-
         glBindTexture(GL_TEXTURE_2D, 0);
 
         // Handle animation package
@@ -1020,22 +910,6 @@ bool BootAnimation::playAnimation(const Animation& animation)
             if (exitPending())
                 break;
             continue; //to next part
-        }
-
-        /*
-         * calculate if we need to runtime save memory
-         * condition: runtime free memory is less than the textures that will used.
-         * needSaveMem default to be false
-         */
-        GLint mMaxTextureSize;
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
-        if(getFreeMemory() < mMaxTextureSize * mMaxTextureSize * fcount / 1024 || noTextureCache) {
-            ALOGD("Use save memory method, maybe small fps in actual.");
-            needSaveMem = true;
-            glGenTextures(1, &mTextureid);
-            glBindTexture(GL_TEXTURE_2D, mTextureid);
-            glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         }
 
         for (int r=0 ; !part.count || r<part.count ; r++) {
@@ -1063,10 +937,10 @@ bool BootAnimation::playAnimation(const Animation& animation)
                 const Animation::Frame& frame(part.frames[j]);
                 nsecs_t lastFrame = systemTime();
 
-                if (r > 0 && !needSaveMem) {
+                if (r > 0) {
                     glBindTexture(GL_TEXTURE_2D, frame.tid);
                 } else {
-                    if (!needSaveMem && part.count != 1) {
+                    if (part.count != 1) {
                         glGenTextures(1, &frame.tid);
                         glBindTexture(GL_TEXTURE_2D, frame.tid);
                         glTexParameterx(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1137,11 +1011,6 @@ bool BootAnimation::playAnimation(const Animation& animation)
                 glDeleteTextures(1, &frame.tid);
             }
         }
-
-        if (needSaveMem) {
-            glDeleteTextures(1, &mTextureid);
-        }
-
     }
 
     // we've finally played everything we're going to play
