@@ -3976,5 +3976,10 @@ message MetricsEvent {
 
     // Add new aosp constants above this line.
     // END OF AOSP CONSTANTS
+
+    // OPEN: Settings > Languages & input > Power key actions
+    // CATEGORY: SETTINGS
+    // OS: O
+    POWER_KEY_ACTIONS = 948;
   }
 }
