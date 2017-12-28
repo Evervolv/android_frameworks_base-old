@@ -1396,7 +1396,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     private void backLongPress() {
         mBackKeyHandled = true;
-
+        if (unpinActivity(false)) {
+            return;
+        }
         switch (mLongPressOnBackBehavior) {
             case LONG_PRESS_BACK_NOTHING:
                 break;
@@ -1443,7 +1445,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     }
 
     private boolean hasLongPressOnBackBehavior() {
-        return mLongPressOnBackBehavior != LONG_PRESS_BACK_NOTHING;
+        return mLongPressOnBackBehavior != LONG_PRESS_BACK_NOTHING || unpinActivity(true);
     }
 
     private void interceptScreenshotChord() {
@@ -3474,6 +3476,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 }
             } catch (Exception e) {
                 Slog.w(TAG, "Could not dispatch event to device key handler", e);
+            }
+        }
+        return false;
+    }
+
+    private boolean unpinActivity(boolean checkOnly) {
+        if (!hasNavigationBar()) {
+            try {
+                if (ActivityTaskManager.getService().isInLockTaskMode()) {
+                    if (!checkOnly) {
+                        ActivityTaskManager.getService().stopSystemLockTaskMode();
+                    }
+                    return true;
+                }
+            } catch (RemoteException e) {
+                // ignore
             }
         }
         return false;
