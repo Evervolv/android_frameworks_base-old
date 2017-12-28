@@ -245,6 +245,7 @@ import com.android.systemui.tuner.TunerService;
 import com.android.systemui.volume.VolumeComponent;
 
 import evervolv.provider.EVSettings;
+import evervolv.style.StyleInterface;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -275,6 +276,8 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
 
     private static final String FORCE_SHOW_NAVBAR =
             "evsecure:" + EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR;
+    private static final String BERRY_GLOBAL_STYLE =
+            "evsystem:" + EVSettings.System.BERRY_GLOBAL_STYLE;
 
     private static final String BANNER_ACTION_CANCEL =
             "com.android.systemui.statusbar.banner_action_cancel";
@@ -668,6 +671,7 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
 
         final TunerService tunerService = Dependency.get(TunerService.class);
         tunerService.addTunable(this, FORCE_SHOW_NAVBAR);
+        tunerService.addTunable(this, BERRY_GLOBAL_STYLE);
 
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
 
@@ -2114,14 +2118,24 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
     }
 
     public boolean isUsingDarkTheme() {
+        return isUsingTheme(StyleInterface.OVERLAY_DARK_DEFAULT)
+               || isUsingTheme(StyleInterface.OVERLAY_DARK_BLACK);
+    }
+
+    private boolean isUsingTheme(String pkgName) {
         OverlayInfo themeInfo = null;
         try {
-            themeInfo = mOverlayManager.getOverlayInfo("com.android.systemui.theme.dark",
+            themeInfo = mOverlayManager.getOverlayInfo(pkgName,
                     mLockscreenUserManager.getCurrentUserId());
         } catch (RemoteException e) {
             e.printStackTrace();
         }
         return themeInfo != null && themeInfo.isEnabled();
+    }
+
+    private String getDarkOverlay() {
+        return EVSettings.System.getString(mContext.getContentResolver(),
+                EVSettings.System.BERRY_DARK_OVERLAY, StyleInterface.OVERLAY_DARK_DEFAULT);
     }
 
     @Nullable
@@ -3914,15 +3928,37 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
         final boolean nightModeWantsDarkTheme = DARK_THEME_IN_NIGHT_MODE
                 && (config.uiMode & Configuration.UI_MODE_NIGHT_MASK)
                     == Configuration.UI_MODE_NIGHT_YES;
-        final boolean useDarkTheme = wallpaperWantsDarkTheme || nightModeWantsDarkTheme;
+        final boolean useDarkTheme;
+
+        // 0 = auto, 1 = time-based, 2 = light, 3 = dark
+        final int globalStyleSetting = EVSettings.System.getInt(mContext.getContentResolver(),
+                EVSettings.System.BERRY_GLOBAL_STYLE, 0);
+        switch (globalStyleSetting) {
+            case 1:
+                useDarkTheme = nightModeWantsDarkTheme;
+                break;
+            case 2:
+                useDarkTheme = false;
+                break;
+            case 3:
+                useDarkTheme = true;
+                break;
+            default:
+                useDarkTheme = wallpaperWantsDarkTheme || nightModeWantsDarkTheme;
+                break;
+        }
+
         if (isUsingDarkTheme() != useDarkTheme) {
             mUiOffloadThread.submit(() -> {
                 try {
-                    mOverlayManager.setEnabled("com.android.systemui.theme.dark",
+                    mOverlayManager.setEnabled(getDarkOverlay(),
                             useDarkTheme, mLockscreenUserManager.getCurrentUserId());
                 } catch (RemoteException e) {
                     Log.w(TAG, "Can't change theme", e);
                 }
+
+                mContext.getSystemService(UiModeManager.class).setNightMode(
+                    useDarkTheme ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
             });
         }
 
@@ -5657,6 +5693,8 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
                 fm.getFragmentManager().beginTransaction().remove(mNavigationBar).commit();
                 mNavigationBar = null;
             }
+        } else if (BERRY_GLOBAL_STYLE.equals(key)) {
+            updateTheme();
         }
     }
 

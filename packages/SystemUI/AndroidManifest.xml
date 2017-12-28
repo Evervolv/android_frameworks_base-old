@@ -220,6 +220,9 @@
     <uses-permission android:name="evervolv.permission.WRITE_SETTINGS" />
     <uses-permission android:name="evervolv.permission.WRITE_SECURE_SETTINGS" />
 
+    <!-- DayNight mode -->
+    <uses-permission android:name="android.permission.MODIFY_DAY_NIGHT_MODE" />
+
     <application
         android:name=".SystemUIApplication"
         android:persistent="true"
