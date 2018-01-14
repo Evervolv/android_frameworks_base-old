@@ -106,6 +106,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private View mClockView;
     private View mOngoingCallChip;
     private View mNotificationIconAreaInner;
+    private View mNetworkTrafficHolder;
     private int mDisabled1;
     private int mDisabled2;
     private DarkIconManager mDarkIconManager;
@@ -233,6 +234,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         updateBlockedIcons();
         mStatusBarIconController.addIconGroup(mDarkIconManager);
         mSystemIconArea = mStatusBar.findViewById(R.id.system_icon_area);
+        mNetworkTrafficHolder = mStatusBar.findViewById(R.id.network_traffic_holder);
         mClockView = mStatusBar.findViewById(R.id.clock);
         mOngoingCallChip = mStatusBar.findViewById(R.id.ongoing_call_chip);
         showSystemIconArea(false);
@@ -476,6 +478,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
 
     private void hideSystemIconArea(boolean animate) {
         animateHide(mSystemIconArea, animate);
+        animateHide(mNetworkTrafficHolder, animate);
     }
 
     private void showSystemIconArea(boolean animate) {
@@ -483,6 +486,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         int state = mAnimationScheduler.getAnimationState();
         if (state == IDLE || state == SHOWING_PERSISTENT_DOT) {
             animateShow(mSystemIconArea, animate);
+            animateShow(mNetworkTrafficHolder, animate);
         }
     }
 
