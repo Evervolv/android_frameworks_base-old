@@ -82,6 +82,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
     private View mClockView;
     private View mOngoingCallChip;
     private View mNotificationIconAreaInner;
+    private View mNetworkTrafficHolder;
     private View mCenteredIconArea;
     private int mDisabled1;
     private int mDisabled2;
@@ -164,6 +165,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         mDarkIconManager.setBlockList(mBlockedIcons);
         mStatusBarIconController.addIconGroup(mDarkIconManager);
         mSystemIconArea = mStatusBar.findViewById(R.id.system_icon_area);
+        mNetworkTrafficHolder = mStatusBar.findViewById(R.id.network_traffic_holder);
         mClockView = mStatusBar.findViewById(R.id.clock);
         mOngoingCallChip = mStatusBar.findViewById(R.id.ongoing_call_chip);
         showSystemIconArea(false);
@@ -352,6 +354,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
 
     private void hideSystemIconArea(boolean animate) {
         animateHide(mSystemIconArea, animate);
+        animateHide(mNetworkTrafficHolder, animate);
     }
 
     private void showSystemIconArea(boolean animate) {
@@ -359,6 +362,7 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         int state = mAnimationScheduler.getAnimationState();
         if (state == IDLE || state == SHOWING_PERSISTENT_DOT) {
             animateShow(mSystemIconArea, animate);
+            animateShow(mNetworkTrafficHolder, animate);
         }
     }
 
@@ -510,6 +514,8 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
                 && !isSystemIconAreaDisabled()) {
             mSystemIconArea.setVisibility(View.VISIBLE);
             mSystemIconArea.setAlpha(0f);
+            mNetworkTrafficHolder.setVisibility(View.VISIBLE);
+            mNetworkTrafficHolder.setAlpha(0f);
         }
     }
 
@@ -519,6 +525,8 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
         if (mAnimationScheduler.getAnimationState() == ANIMATING_IN) {
             mSystemIconArea.setVisibility(View.INVISIBLE);
             mSystemIconArea.setAlpha(0f);
+            mNetworkTrafficHolder.setVisibility(View.INVISIBLE);
+            mNetworkTrafficHolder.setAlpha(0f);
         } else {
             if (isSystemIconAreaDisabled()) {
                 // don't unhide
@@ -527,12 +535,15 @@ public class CollapsedStatusBarFragment extends Fragment implements CommandQueue
 
             mSystemIconArea.setAlpha(1f);
             mSystemIconArea.setVisibility(View.VISIBLE);
+            mNetworkTrafficHolder.setAlpha(1f);
+            mNetworkTrafficHolder.setVisibility(View.VISIBLE);
         }
     }
 
     @Override
     public void onSystemChromeAnimationUpdate(@NotNull ValueAnimator animator) {
         mSystemIconArea.setAlpha((float) animator.getAnimatedValue());
+        mNetworkTrafficHolder.setAlpha((float) animator.getAnimatedValue());
     }
 
     private boolean isSystemIconAreaDisabled() {
