@@ -22,9 +22,29 @@
     android:layout_gravity="center_vertical|end"
     android:gravity="center_vertical">
 
-    <com.android.systemui.statusbar.phone.StatusIconContainer android:id="@+id/statusIcons"
+    <android.widget.Space
         android:layout_width="0dp"
+        android:layout_height="match_parent"
         android:layout_weight="1"
+        android:gravity="center_vertical"/>
+
+    <com.android.systemui.statusbar.StatusBarItemHolder
+        android:id="@+id/network_traffic_holder"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="start|center_vertical">
+
+        <com.evervolv.internal.statusbar.NetworkTraffic
+            android:id="@+id/network_traffic"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:maxLines="2"
+            android:gravity="center_vertical|start" />
+
+    </com.android.systemui.statusbar.StatusBarItemHolder>
+
+    <com.android.systemui.statusbar.phone.StatusIconContainer android:id="@+id/statusIcons"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:paddingEnd="@dimen/signal_cluster_battery_padding"
         android:gravity="center_vertical"
