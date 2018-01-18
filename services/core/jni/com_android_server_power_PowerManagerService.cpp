@@ -22,6 +22,7 @@
 #include <android/system/suspend/1.0/ISystemSuspend.h>
 #include <android/system/suspend/ISuspendControlService.h>
 #include <nativehelper/JNIHelp.h>
+#include <vendor/evervolv/power/1.0/IEvervolvPower.h>
 #include "jni.h"
 
 #include <nativehelper/ScopedUtfChars.h>
@@ -54,6 +55,8 @@ using android::system::suspend::V1_0::WakeLockType;
 using android::system::suspend::ISuspendControlService;
 using IPowerV1_1 = android::hardware::power::V1_1::IPower;
 using IPowerV1_0 = android::hardware::power::V1_0::IPower;
+using IEvervolvPowerV1_0 = vendor::evervolv::power::V1_0::IEvervolvPower;
+using vendor::evervolv::power::V1_0::EvervolvFeature;
 
 namespace android {
 
@@ -69,7 +72,9 @@ static jobject gPowerManagerServiceObj;
 // Use getPowerHal* to retrieve a copy
 static sp<IPowerV1_0> gPowerHalV1_0_ = nullptr;
 static sp<IPowerV1_1> gPowerHalV1_1_ = nullptr;
+static sp<IEvervolvPowerV1_0> gEvervolvPowerHalV1_0_ = nullptr;
 static bool gPowerHalExists = true;
+static bool gEvervolvPowerHalExists = true;
 static std::mutex gPowerHalMutex;
 static nsecs_t gLastEventTime[USER_ACTIVITY_EVENT_LAST + 1];
 
@@ -108,6 +113,20 @@ static void connectPowerHalLocked() {
     }
 }
 
+// Check validity of current handle to the Evervolv power HAL service, and call getService() if necessary.
+// The caller must be holding gPowerHalMutex.
+void connectEvervolvPowerHalLocked() {
+    if (gEvervolvPowerHalExists && gEvervolvPowerHalV1_0_ == nullptr) {
+        gEvervolvPowerHalV1_0_ = IEvervolvPowerV1_0::getService();
+        if (gEvervolvPowerHalV1_0_ != nullptr) {
+            ALOGI("Loaded power HAL service");
+        } else {
+            ALOGI("Couldn't load power HAL service");
+            gEvervolvPowerHalExists = false;
+        }
+    }
+}
+
 // Retrieve a copy of PowerHAL V1_0
 sp<IPowerV1_0> getPowerHalV1_0() {
     std::lock_guard<std::mutex> lock(gPowerHalMutex);
@@ -120,6 +139,13 @@ sp<IPowerV1_1> getPowerHalV1_1() {
     std::lock_guard<std::mutex> lock(gPowerHalMutex);
     connectPowerHalLocked();
     return gPowerHalV1_1_;
+}
+
+// Retrieve a copy of EvervolvPowerHAL V1_0
+sp<IEvervolvPowerV1_0> getEvervolvPowerHalV1_0() {
+    std::lock_guard<std::mutex> lock(gPowerHalMutex);
+    connectEvervolvPowerHalLocked();
+    return gEvervolvPowerHalV1_0_;
 }
 
 // Check if a call to a power HAL function failed; if so, log the failure and invalidate the
@@ -304,6 +330,17 @@ static bool nativeForceSuspend(JNIEnv* /* env */, jclass /* clazz */) {
     return retval;
 }
 
+static jint nativeGetFeature(JNIEnv* /* env */, jclass /* clazz */, jint featureId) {
+    int value = -1;
+
+    sp<IEvervolvPowerV1_0> evervolvPowerHalV1_0 = getEvervolvPowerHalV1_0();
+    if (evervolvPowerHalV1_0 != nullptr) {
+        value = evervolvPowerHalV1_0->getFeature(static_cast<EvervolvFeature>(featureId));
+    }
+
+    return static_cast<jint>(value);
+}
+
 // ----------------------------------------------------------------------------
 
 static const JNINativeMethod gPowerManagerServiceMethods[] = {
@@ -324,6 +361,8 @@ static const JNINativeMethod gPowerManagerServiceMethods[] = {
             (void*) nativeSendPowerHint },
     { "nativeSetFeature", "(II)V",
             (void*) nativeSetFeature },
+    { "nativeGetFeature", "(I)I",
+            (void*) nativeGetFeature },
 };
 
 #define FIND_CLASS(var, className) \

@@ -750,6 +750,7 @@ public final class PowerManagerService extends SystemService
     private static native void nativeSendPowerHint(int hintId, int data);
     private static native void nativeSetFeature(int featureId, int data);
     private static native boolean nativeForceSuspend();
+    private static native int nativeGetFeature(int featureId);
 
     public PowerManagerService(Context context) {
         this(context, new Injector());
@@ -5078,6 +5079,21 @@ public final class PowerManagerService extends SystemService
         @Override
         public WakeData getLastWakeup() {
             return getLastWakeupInternal();
+        }
+
+        @Override
+        public boolean setPowerSaveMode(boolean mode) {
+            return setLowPowerModeInternal(mode);
+        }
+
+        @Override
+        public int getFeature(int featureId) {
+            return nativeGetFeature(featureId);
+        }
+
+        @Override
+        public void setFeature(int featureId, int data) {
+            nativeSetFeature(featureId, data);
         }
     }
 }
