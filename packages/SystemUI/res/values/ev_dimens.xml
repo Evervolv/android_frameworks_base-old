@@ -16,6 +16,9 @@
      limitations under the License.
 -->
 <resources>
+    <!-- Largest size an avatar might need to be drawn in the power menu user picker -->
+    <dimen name="global_actions_avatar_size">24dp</dimen>
+
     <!-- Tri-state UI -->
     <dimen name="tri_state_down_dialog_position">0px</dimen>
     <dimen name="tri_state_down_dialog_position_l">0px</dimen>
