@@ -295,15 +295,22 @@ public class Camera {
      *   cameras or an error was encountered enumerating them.
      */
     public static int getNumberOfCameras() {
-        boolean exposeAuxCamera = false;
+        boolean exposeAuxCamera = true;
         String packageName = ActivityThread.currentOpPackageName();
         /* Force to expose only two cameras
          * if the package name does not falls in this bucket
          */
         String packageList = SystemProperties.get("vendor.camera.aux.packagelist", "");
+        String packageBlacklist = SystemProperties.get("vendor.camera.aux.packageblacklist", "");
         if (!packageList.isEmpty()) {
+            exposeAuxCamera = false;
             if (Arrays.asList(packageList.split(",")).contains(packageName)) {
                 exposeAuxCamera = true;
+            }
+        } else if (!packageBlacklist.isEmpty()) {
+            exposeAuxCamera = true;
+            if (Arrays.asList(packageBlacklist.split(",")).contains(packageName)) {
+                exposeAuxCamera = false;
             }
         }
         int numberOfCameras = _getNumberOfCameras();
@@ -575,7 +582,6 @@ public class Camera {
             mEventHandler = null;
         }
 
-
         // Force HAL1 if the package name is in our 'blacklist'
         String packageList = SystemProperties.get("vendor.camera.hal1.packagelist", "");
         if (!packageList.isEmpty()) {
@@ -584,6 +590,7 @@ public class Camera {
                 halVersion = CAMERA_HAL_API_VERSION_1_0;
             }
         }
+
         return native_setup(new WeakReference<Camera>(this), cameraId, halVersion,
                 ActivityThread.currentOpPackageName());
     }
