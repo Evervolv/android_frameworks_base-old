@@ -128,6 +128,7 @@ import android.media.AudioManagerInternal;
 import android.media.AudioSystem;
 import android.media.IAudioService;
 import android.media.session.MediaSessionLegacyHelper;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.FactoryTest;
@@ -158,6 +159,7 @@ import android.service.dreams.IDreamManager;
 import android.service.vr.IPersistentVrStateCallbacks;
 import android.speech.RecognizerIntent;
 import android.telecom.TelecomManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.util.MutableBoolean;
@@ -379,6 +381,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private DisplayFoldController mDisplayFoldController;
     AppOpsManager mAppOpsManager;
     PackageManager mPackageManager;
+    AlertSliderObserver mAlertSliderObserver;
     private boolean mHasFeatureAuto;
     private boolean mHasFeatureWatch;
     private boolean mHasFeatureLeanback;
@@ -638,6 +641,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int MSG_LAUNCH_ASSIST_LONG_PRESS = 24;
     private static final int MSG_POWER_VERY_LONG_PRESS = 25;
     private static final int MSG_RINGER_TOGGLE_CHORD = 26;
+
+    private boolean mHasAlertSlider = false;
 
     private class PolicyHandler extends Handler {
         @Override
@@ -1772,6 +1777,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mWakeOnBackKeyPress =
                 res.getBoolean(com.android.internal.R.bool.config_wakeOnBackKeyPress);
 
+        // Init alert slider
+        mHasAlertSlider = res.getBoolean(com.evervolv.platform.internal.R.bool.config_hasAlertSlider)
+                && !TextUtils.isEmpty(res.getString(com.evervolv.platform.internal.R.string.alert_slider_state_path))
+                && !TextUtils.isEmpty(res.getString(com.evervolv.platform.internal.R.string.alert_slider_uevent_match_path));
+
         // Init display burn-in protection
         boolean burnInProtectionEnabled = context.getResources().getBoolean(
                 com.android.internal.R.bool.config_enableBurnInProtection);
@@ -2069,6 +2079,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mWakeGestureEnabledSetting != wakeGestureEnabledSetting) {
                 mWakeGestureEnabledSetting = wakeGestureEnabledSetting;
                 updateWakeGestureListenerLp();
+            }
+
+            if (mAlertSliderObserver != null) {
+                 mAlertSliderObserver.update();
             }
 
             // use screen off timeout setting as the timeout for the lockscreen
@@ -4849,6 +4863,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mVrManagerInternal = LocalServices.getService(VrManagerInternal.class);
         if (mVrManagerInternal != null) {
             mVrManagerInternal.addPersistentVrModeStateListener(mPersistentVrModeListener);
+        }
+
+        if (mHasAlertSlider) {
+            mAlertSliderObserver = new AlertSliderObserver(mContext);
+            mAlertSliderObserver.startObserving(com.evervolv.platform.internal.R.string.alert_slider_uevent_match_path);
         }
 
         readCameraLensCoverState();
