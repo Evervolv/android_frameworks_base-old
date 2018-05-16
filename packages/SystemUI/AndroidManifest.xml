@@ -336,6 +336,9 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Reader QS Tile -->
+    <uses-permission android:name="evervolv.permission.HARDWARE_ABSTRACTION_ACCESS" />
+
     <application
         android:name=".SystemUIApplication"
         android:persistent="true"
