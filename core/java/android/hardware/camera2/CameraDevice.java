@@ -433,6 +433,10 @@ public abstract class CameraDevice implements AutoCloseable {
             @Nullable Handler handler)
             throws CameraAccessException;
 
+    /** @hide */
+    public abstract void setVendorStreamConfigMode(int index)
+            throws CameraAccessException;
+
     /**
      * <p>Create a new {@link CameraCaptureSession} using a {@link SessionConfiguration} helper
      * object that aggregates all supported parameters.</p>
