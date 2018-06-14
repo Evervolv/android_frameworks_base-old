@@ -2743,6 +2743,18 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    private static boolean isDeviceDreaming() {
+        IDreamManager dreamManager = getDreamManager();
+        if (dreamManager != null) {
+            try {
+                return dreamManager.isDreaming();
+            } catch (RemoteException e) {
+                // fine, stay asleep then
+            }
+        }
+        return false;
+    }
+
     static IDreamManager getDreamManager() {
         return IDreamManager.Stub.asInterface(
                 ServiceManager.checkService(DreamService.DREAM_SERVICE));
@@ -4515,6 +4527,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             return false;
         }
 
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+                && isDeviceDreaming()) {
+            return false;
+        }
+
         // Send events to keyguard while the screen is on and it's showing.
         if (isKeyguardShowingAndNotOccluded() && !displayOff) {
             return true;
@@ -4530,14 +4547,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (isDefaultDisplay) {
             // Send events to a dozing dream even if the screen is off since the dream
             // is in control of the state of the screen.
-            IDreamManager dreamManager = getDreamManager();
-
-            try {
-                if (dreamManager != null && dreamManager.isDreaming()) {
-                    return true;
-                }
-            } catch (RemoteException e) {
-                Slog.e(TAG, "RemoteException when checking if dreaming", e);
+            if (isDeviceDreaming()) {
+                return true;
             }
         }
         // Otherwise, consume events since the user can't see what is being
