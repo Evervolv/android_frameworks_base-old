@@ -54,6 +54,8 @@ import com.android.systemui.statusbar.policy.ConfigurationController.Configurati
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.tuner.TunerService.Tunable;
 
+import evervolv.provider.EVSettings;
+
 import libcore.icu.LocaleData;
 
 import java.text.SimpleDateFormat;
@@ -66,6 +68,8 @@ import java.util.TimeZone;
  */
 public class Clock extends TextView implements DemoMode, Tunable, CommandQueue.Callbacks,
         DarkReceiver, ConfigurationListener {
+
+    public static final String CLOCK_STYLE = "evsystem:" + EVSettings.System.STATUS_BAR_AM_PM;
 
     public static final String CLOCK_SECONDS = "clock_seconds";
     private static final String TAG = "StatusBarClock";
@@ -93,7 +97,7 @@ public class Clock extends TextView implements DemoMode, Tunable, CommandQueue.C
     private static final int AM_PM_STYLE_SMALL   = 1;
     private static final int AM_PM_STYLE_GONE    = 2;
 
-    private final int mAmPmStyle;
+    private int mAmPmStyle = AM_PM_STYLE_GONE;
     private final boolean mShowDark;
     private boolean mShowSeconds;
     private Handler mSecondsHandler;
@@ -124,7 +128,7 @@ public class Clock extends TextView implements DemoMode, Tunable, CommandQueue.C
                 R.styleable.Clock,
                 0, 0);
         try {
-            mAmPmStyle = a.getInt(R.styleable.Clock_amPmStyle, AM_PM_STYLE_GONE);
+            mAmPmStyle = a.getInt(R.styleable.Clock_amPmStyle, mAmPmStyle);
             mShowDark = a.getBoolean(R.styleable.Clock_showDark, true);
             mNonAdaptedColor = getCurrentTextColor();
         } finally {
@@ -188,7 +192,7 @@ public class Clock extends TextView implements DemoMode, Tunable, CommandQueue.C
 
             getContext().registerReceiverAsUser(mIntentReceiver, UserHandle.ALL, filter,
                     null, Dependency.get(Dependency.TIME_TICK_HANDLER));
-            Dependency.get(TunerService.class).addTunable(this, CLOCK_SECONDS,
+            Dependency.get(TunerService.class).addTunable(this, CLOCK_SECONDS, CLOCK_STYLE,
                     StatusBarIconController.ICON_BLACKLIST);
             SysUiServiceProvider.getComponent(getContext(), CommandQueue.class).addCallback(this);
             if (mShowDark) {
@@ -290,7 +294,7 @@ public class Clock extends TextView implements DemoMode, Tunable, CommandQueue.C
     }
 
     final void updateClock() {
-        if (mDemoMode) return;
+        if (mDemoMode || mCalendar == null) return;
         mCalendar.setTimeInMillis(System.currentTimeMillis());
         setText(getSmallTime());
         setContentDescription(mContentDescriptionFormat.format(mCalendar.getTime()));
@@ -301,6 +305,13 @@ public class Clock extends TextView implements DemoMode, Tunable, CommandQueue.C
         if (CLOCK_SECONDS.equals(key)) {
             mShowSeconds = TunerService.parseIntegerSwitch(newValue, false);
             updateShowSeconds();
+        } else if (CLOCK_STYLE.equals(key)) {
+            mAmPmStyle = AM_PM_STYLE_GONE;
+            try {
+                mAmPmStyle = Integer.valueOf(newValue);
+            } catch (NumberFormatException ex) {}
+            mClockFormatString = ""; // force refresh
+            updateClock();
         } else {
             setClockVisibleByUser(!StatusBarIconController.getIconBlacklist(newValue)
                     .contains("clock"));
