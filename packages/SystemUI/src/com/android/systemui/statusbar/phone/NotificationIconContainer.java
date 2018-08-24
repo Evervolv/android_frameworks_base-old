@@ -137,11 +137,14 @@ public class NotificationIconContainer extends AlphaOptimizedFrameLayout {
         }
     }.setDuration(CONTENT_FADE_DURATION);
 
-    private static final int MAX_ICONS_ON_AOD = 3;
+    private final int MAX_ICONS_ON_AOD =
+            getResources().getInteger(R.integer.config_maxVisibleNotificationIconsOnAod);
 
     /* Maximum number of icons in short shelf on lockscreen when also showing overflow dot. */
-    public static final int MAX_ICONS_ON_LOCKSCREEN = 3;
-    public static final int MAX_STATIC_ICONS = 4;
+    private final int MAX_VISIBLE_ICONS_ON_LOCK =
+            getResources().getInteger(R.integer.config_maxVisibleNotificationIconsOnLock);
+    public final int MAX_STATIC_ICONS =
+            getResources().getInteger(R.integer.config_maxVisibleNotificationIcons);
     private static final int MAX_DOTS = 1;
 
     private boolean mIsStaticLayout = true;
@@ -393,7 +396,7 @@ public class NotificationIconContainer extends AlphaOptimizedFrameLayout {
             return 0f;
         }
         final float contentWidth =
-                mIconSize * MathUtils.min(numIcons, MAX_ICONS_ON_LOCKSCREEN + 1);
+                mIconSize * MathUtils.min(numIcons, MAX_VISIBLE_ICONS_ON_LOCK + 1);
         return getActualPaddingStart()
                 + contentWidth
                 + getActualPaddingEnd();
