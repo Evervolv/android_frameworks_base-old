@@ -192,6 +192,7 @@ import android.view.autofill.AutofillManagerInternal;
 import android.widget.Toast;
 
 import evervolv.provider.EVSettings;
+import evervolv.hardware.HardwareManager;
 
 import com.android.internal.R;
 import com.android.internal.accessibility.AccessibilityShortcutController;
@@ -613,6 +614,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mAssistPressed;
     boolean mAppSwitchLongPressed;
 
+    private int mForceNavbar = -1;
+
     // Tracks user-customisable behavior for certain key events
     private Action mHomeLongPressAction;
     private Action mHomeDoubleTapAction;
@@ -737,6 +740,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int MSG_SWITCH_KEYBOARD_LAYOUT = 25;
     private static final int MSG_LOG_KEYBOARD_SYSTEM_EVENT = 26;
     private static final int MSG_CAMERA_LONG_PRESS = 27;
+
+    private HardwareManager mHardwareManager;
 
     private class PolicyHandler extends Handler {
         @Override
@@ -932,6 +937,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(EVSettings.System.getUriFor(
                     EVSettings.System.CAMERA_LAUNCH), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(EVSettings.Secure.getUriFor(
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
         }
@@ -2233,7 +2241,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         mHandler = new PolicyHandler();
         mWakeGestureListener = new MyWakeGestureListener(mContext, mHandler);
         mSettingsObserver = new SettingsObserver(mHandler);
-        mSettingsObserver.observe();
         mModifierShortcutManager = new ModifierShortcutManager(mContext, mHandler);
         mUiMode = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_defaultUiModeType);
@@ -2735,6 +2742,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         int activeHardwareKeys = mDeviceHardwareKeys;
 
+        if (mForceNavbar == 1) {
+            activeHardwareKeys = 0;
+        }
+
         final boolean hasMenu = (activeHardwareKeys & KEY_MASK_MENU) != 0;
         final boolean hasAssist = (activeHardwareKeys & KEY_MASK_ASSIST) != 0;
         final boolean hasAppSwitch = (activeHardwareKeys & KEY_MASK_APP_SWITCH) != 0;
@@ -2878,6 +2889,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             if (mWakeGestureEnabledSetting != wakeGestureEnabledSetting) {
                 mWakeGestureEnabledSetting = wakeGestureEnabledSetting;
                 updateWakeGestureListenerLp();
+            }
+
+            int forceNavbar = EVSettings.Secure.getIntForUser(resolver,
+                    EVSettings.Secure.DEV_FORCE_SHOW_NAVBAR, 0,
+                    UserHandle.USER_CURRENT);
+            if (forceNavbar != mForceNavbar) {
+                mForceNavbar = forceNavbar;
+                if (mHardwareManager.isSupported(HardwareManager.FEATURE_KEY_DISABLE)) {
+                    mHardwareManager.setFeature(HardwareManager.FEATURE_KEY_DISABLE,
+                            mForceNavbar == 1);
+                }
             }
 
             readConfigurationDependentBehaviors();
@@ -6039,6 +6061,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (mVrManagerInternal != null) {
             mVrManagerInternal.addPersistentVrModeStateListener(mPersistentVrModeListener);
         }
+
+        mHardwareManager = HardwareManager.getInstance(mContext);
+        // Ensure observe happens in systemReady() since we need
+        // HardwareService to be up and running
+        mSettingsObserver.observe();
 
         readCameraLensCoverState();
         updateUiMode();
