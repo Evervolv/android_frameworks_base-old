@@ -21,6 +21,9 @@ import android.app.ActivityTaskManager;
 import android.app.AlarmManager;
 import android.app.AlarmManager.AlarmClockInfo;
 import android.app.SynchronousUserSwitchObserver;
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,6 +41,7 @@ import android.util.Log;
 
 import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.TelephonyIntents;
+import com.android.settingslib.bluetooth.CachedBluetoothDevice;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.SysUiServiceProvider;
@@ -68,6 +72,7 @@ import com.android.systemui.statusbar.policy.ZenModeController;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -179,6 +184,7 @@ public class PhoneStatusBarPolicy
         filter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
         filter.addAction(AudioManager.INTERNAL_RINGER_MODE_CHANGED_ACTION);
         filter.addAction(AudioManager.ACTION_HEADSET_PLUG);
+        filter.addAction(BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         filter.addAction(TelecomManager.ACTION_CURRENT_TTY_MODE_CHANGED);
         filter.addAction(Intent.ACTION_MANAGED_PROFILE_AVAILABLE);
@@ -400,17 +406,79 @@ public class PhoneStatusBarPolicy
                 mContext.getString(R.string.accessibility_quick_settings_bluetooth_on);
         boolean bluetoothVisible = false;
         if (mBluetooth != null) {
-            if (mBluetooth.isBluetoothConnected()
-                    && (mBluetooth.isBluetoothAudioActive()
-                    || !mBluetooth.isBluetoothAudioProfileOnly())) {
-                contentDescription = mContext.getString(
-                        R.string.accessibility_bluetooth_connected);
-                bluetoothVisible = mBluetooth.isBluetoothEnabled();
+            final Collection<CachedBluetoothDevice> devices = mBluetooth.getDevices();
+            if (devices != null) {
+                // get battery level for the first device with battery level support
+                for (CachedBluetoothDevice device : devices) {
+                    // don't get the level if still pairing
+                    if (mBluetooth.getBondState(device) == BluetoothDevice.BOND_NONE) continue;
+                    int state = device.getMaxConnectionState();
+                    if (state == BluetoothProfile.STATE_CONNECTED) {
+                        int batteryLevel = device.getBatteryLevel();
+                        BluetoothClass type = device.getBtClass();
+                        if (batteryLevel != BluetoothDevice.BATTERY_LEVEL_UNKNOWN && showBatteryForThis(type)) {
+                            iconId = getBtLevelIconRes(batteryLevel);
+                        } else {
+                            iconId = R.drawable.stat_sys_data_bluetooth_connected;
+                        }
+                        contentDescription = mContext.getString(
+                                R.string.accessibility_bluetooth_connected);
+                        bluetoothVisible = mBluetooth.isBluetoothEnabled();
+                        break;
+                    }
+                }
             }
         }
 
         mIconController.setIcon(mSlotBluetooth, iconId, contentDescription);
         mIconController.setIconVisibility(mSlotBluetooth, bluetoothVisible);
+    }
+
+    private int getBtLevelIconRes(int batteryLevel) {
+        if (batteryLevel == 100) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_9;
+        } else if (batteryLevel >= 90) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_8;
+        } else if (batteryLevel >= 80) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_7;
+        } else if (batteryLevel >= 70) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_6;
+        } else if (batteryLevel >= 60) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_5;
+        } else if (batteryLevel >= 50) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_4;
+        } else if (batteryLevel >= 40) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_3;
+        } else if (batteryLevel >= 30) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_2;
+        } else if (batteryLevel >= 20) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_1;
+        } else if (batteryLevel >= 10) {
+            return R.drawable.stat_sys_data_bluetooth_connected_battery_0;
+        } else {
+            return R.drawable.stat_sys_data_bluetooth_connected;
+        }
+     }
+
+    private boolean showBatteryForThis(BluetoothClass type) {
+        boolean show = false;
+        if (type != null) {
+            switch (type.getDeviceClass()) {
+            case BluetoothClass.Device.AUDIO_VIDEO_WEARABLE_HEADSET:
+            case BluetoothClass.Device.AUDIO_VIDEO_HANDSFREE:
+            case BluetoothClass.Device.AUDIO_VIDEO_PORTABLE_AUDIO:
+            case BluetoothClass.Device.AUDIO_VIDEO_LOUDSPEAKER:
+            case BluetoothClass.Device.AUDIO_VIDEO_HEADPHONES:
+                show = true;
+                break;
+            default:
+                show = false;
+                break;
+            }
+        } else {
+            show = false;
+        }
+        return show;
     }
 
     private final void updateTTY() {
@@ -683,6 +751,9 @@ public class PhoneStatusBarPolicy
                     break;
                 case AudioManager.ACTION_HEADSET_PLUG:
                     updateHeadsetPlug(intent);
+                    break;
+                case BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED:
+                    updateBluetooth();
                     break;
             }
         }
