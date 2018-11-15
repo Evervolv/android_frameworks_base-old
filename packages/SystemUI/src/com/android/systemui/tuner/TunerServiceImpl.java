@@ -349,7 +349,10 @@ public class TunerServiceImpl extends TunerService {
         mContext.sendBroadcast(intent);
 
         for (String key : mTunableLookup.keySet()) {
-            if (ArrayUtils.contains(RESET_BLACKLIST, key)) {
+            boolean isWhitelisted = isEVGlobal(key)
+                                    || isEVSecure(key)
+                                    || isEVSystem(key);
+            if (isWhitelisted || ArrayUtils.contains(RESET_BLACKLIST, key)) {
                 continue;
             }
             setValue(key, null);
