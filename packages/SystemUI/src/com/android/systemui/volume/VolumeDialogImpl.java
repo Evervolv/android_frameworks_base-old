@@ -421,7 +421,8 @@ public class VolumeDialogImpl implements VolumeDialog,
         @Override
         public void onTuningChanged(String key, String newValue) {
             if (VOLUME_PANEL_ON_LEFT.equals(key)) {
-                final boolean volumePanelOnLeft = TunerService.parseIntegerSwitch(newValue, false);
+                final boolean volumePanelOnLeft = TunerService.parseIntegerSwitch(newValue,
+                        mContext.getResources().getBoolean(R.bool.config_audioPanelOnLeftSide));
                 if (mVolumePanelOnLeft != volumePanelOnLeft) {
                     mVolumePanelOnLeft = volumePanelOnLeft;
                     mHandler.post(() -> {

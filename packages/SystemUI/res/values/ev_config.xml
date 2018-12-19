@@ -24,4 +24,7 @@
 
     <!-- Width of the battery icon in the status bar when set to circle style. -->
     <dimen name="status_bar_battery_icon_circle_width">13.0dp</dimen>
+
+    <!-- Allow overriding the audio panel location to the left side. -->
+    <bool name="config_audioPanelOnLeftSide">false</bool>
 </resources>
