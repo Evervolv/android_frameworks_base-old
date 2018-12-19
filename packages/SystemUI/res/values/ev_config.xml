@@ -46,4 +46,7 @@
          causes a poor experience. -->
     <bool name="config_fingerprintWakeAndUnlock">true</bool>
 
+    <!-- Allow overriding the audio panel location to the left side. -->
+    <bool name="config_audioPanelOnLeftSide">false</bool>
+
 </resources>
