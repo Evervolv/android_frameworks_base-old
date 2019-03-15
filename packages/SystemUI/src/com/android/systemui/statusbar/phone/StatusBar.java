@@ -5682,7 +5682,7 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
     @Override
     public void onTuningChanged(String key, String newValue) {
         if (mWindowManagerService != null && FORCE_SHOW_NAVBAR.equals(key)) {
-            boolean forcedVisibility = newValue != null && Integer.parseInt(newValue) == 1;
+            boolean forcedVisibility = TunerService.parseIntegerSwitch(newValue, false);
 
             if (forcedVisibility && mNavigationBarView == null) {
                 createNavigationBar();
