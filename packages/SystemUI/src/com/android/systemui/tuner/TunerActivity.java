@@ -60,6 +60,8 @@ public class TunerActivity extends Activity implements
                 fragment = new DemoModeFragment();
             } else if ("com.android.settings.action.STATUS_BAR_TUNER".equals(action)) {
                 fragment = new StatusBarTuner();
+            } else if ("com.android.settings.action.LOCK_SCREEN_TUNER".equals(action)) {
+                fragment = new LockscreenFragment();
             } else {
                 fragment = new TunerFragment();
             }
