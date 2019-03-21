@@ -41,4 +41,7 @@
     <!-- Label for current user in power menu options dialog -->
     <string name="global_action_current_user">Current</string>
 
+    <!-- Hint for custom lockscreen shortcuts -->
+    <string name="custom_swipe_hint">Swipe from icon for <xliff:g name="target">%s</xliff:g></string>
+
 </resources>
