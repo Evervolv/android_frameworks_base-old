@@ -31,6 +31,8 @@ import com.android.systemui.statusbar.KeyguardAffordanceView;
 import com.android.systemui.statusbar.policy.AccessibilityController;
 import com.android.systemui.statusbar.policy.UserInfoController.OnUserInfoChangedListener;
 
+import evervolv.app.ContextConstants;
+
 /**
  * Manages the different states and animations of the unlock icon.
  */
@@ -56,6 +58,7 @@ public class LockIcon extends KeyguardAffordanceView implements OnUserInfoChange
     private AccessibilityController mAccessibilityController;
     private boolean mHasFingerPrintIcon;
     private boolean mHasFaceUnlockIcon;
+    private boolean mHasFod;
     private int mDensity;
 
     private final Runnable mDrawOffTimeout = () -> update(true /* forceUpdate */);
@@ -65,6 +68,7 @@ public class LockIcon extends KeyguardAffordanceView implements OnUserInfoChange
         mTrustDrawable = new TrustDrawable(context);
         setBackground(mTrustDrawable);
         mUnlockMethodCache = UnlockMethodCache.getInstance(context);
+        mHasFod = context.getPackageManager().hasSystemFeature(ContextConstants.Features.FOD);
     }
 
     @Override
@@ -308,13 +312,13 @@ public class LockIcon extends KeyguardAffordanceView implements OnUserInfoChange
         boolean fingerprintRunning = updateMonitor.isFingerprintDetectionRunning();
         boolean unlockingAllowed = updateMonitor.isUnlockingWithFingerprintAllowed();
         if (mTransientFpError) {
-            return STATE_FINGERPRINT_ERROR;
+            return mHasFod ? STATE_LOCKED : STATE_FINGERPRINT_ERROR;
         } else if (mUnlockMethodCache.canSkipBouncer()) {
             return STATE_LOCK_OPEN;
         } else if (mUnlockMethodCache.isFaceUnlockRunning()) {
             return STATE_FACE_UNLOCK;
         } else if (fingerprintRunning && unlockingAllowed) {
-            return STATE_FINGERPRINT;
+            return mHasFod ? STATE_LOCKED : STATE_FINGERPRINT;
         } else {
             return STATE_LOCKED;
         }

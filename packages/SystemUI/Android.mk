@@ -55,7 +55,8 @@ LOCAL_STATIC_ANDROID_LIBRARIES := \
 LOCAL_STATIC_JAVA_LIBRARIES := \
     SystemUI-tags \
     SystemUI-proto \
-    com.evervolv.platform.internal
+    com.evervolv.platform.internal \
+    vendor.evervolv.biometrics.fingerprint.inscreen-V1.0-java
 
 LOCAL_JAVA_LIBRARIES := telephony-common \
     android.car
