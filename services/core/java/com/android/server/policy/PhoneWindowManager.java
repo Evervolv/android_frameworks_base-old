@@ -227,6 +227,8 @@ import com.android.server.wm.WindowManagerService;
 
 import dalvik.system.PathClassLoader;
 
+import evervolv.provider.EVSettings;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -585,6 +587,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     boolean mHavePendingMediaKeyRepeatWithWakeLock;
 
     private int mCurrentUserId;
+    private boolean mThreeFingerGestureEnabled = false;
 
     // Maps global key codes to the components that will handle them.
     private GlobalKeyManager mGlobalKeyManager;
@@ -627,6 +630,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int MSG_HANDLE_ALL_APPS = 22;
     private static final int MSG_LAUNCH_ASSIST = 23;
     private static final int MSG_RINGER_TOGGLE_CHORD = 24;
+
+    private SwipeToScreenshotListener mSwipeToScreenshot;
 
     private class PolicyHandler extends Handler {
         @Override
@@ -751,6 +756,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.Global.getUriFor(
                     Settings.Global.POWER_BUTTON_SUPPRESSION_DELAY_AFTER_GESTURE_WAKE), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(EVSettings.System.getUriFor(
+                    EVSettings.System.SWIPE_TO_SCREENSHOT), false, this,
                     UserHandle.USER_ALL);
             updateSettings();
         }
@@ -1678,6 +1686,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     context, minHorizontal, maxHorizontal, minVertical, maxVertical, maxRadius);
         }
 
+        mSwipeToScreenshot = new SwipeToScreenshotListener(
+                context, new SwipeToScreenshotListener.Callbacks() {
+            @Override
+            public void onSwipeThreeFinger() {
+                mHandler.post(mScreenshotRunnable);
+            }
+        });
+
         mHandler = new PolicyHandler();
         mWakeGestureListener = new MyWakeGestureListener(mContext, mHandler);
         mSettingsObserver = new SettingsObserver(mHandler);
@@ -2105,6 +2121,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    private void enableSwipeThreeFingerGesture(boolean enable) {
+        if (mThreeFingerGestureEnabled == enable) {
+            return;
+        }
+
+        if (enable) {
+            mThreeFingerGestureEnabled = true;
+            mWindowManagerFuncs.registerPointerEventListener(mSwipeToScreenshot, DEFAULT_DISPLAY);
+        } else {
+            mThreeFingerGestureEnabled = false;
+            mWindowManagerFuncs.unregisterPointerEventListener(mSwipeToScreenshot, DEFAULT_DISPLAY);
+        }
+    }
+
     public void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
         boolean updateRotation = false;
@@ -2172,6 +2202,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Global.KEY_CHORD_POWER_VOLUME_UP,
                     mContext.getResources().getInteger(
                             com.android.internal.R.integer.config_keyChordPowerVolumeUp));
+
+            boolean threeFingerGesture = EVSettings.System.getIntForUser(resolver,
+                    EVSettings.System.SWIPE_TO_SCREENSHOT, 0, UserHandle.USER_CURRENT) == 1;
+            enableSwipeThreeFingerGesture(threeFingerGesture);
         }
         if (updateRotation) {
             updateRotation(true);
