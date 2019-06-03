@@ -168,8 +168,6 @@ public class BatteryMeterDrawableBase extends Drawable {
         mPowersavePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPowersavePaint.setColor(mPlusPaint.getColor());
         mPowersavePaint.setStyle(Style.STROKE);
-        mPowersavePaint.setStrokeWidth(context.getResources()
-                .getDimensionPixelSize(R.dimen.battery_powersave_outline_thickness));
 
         mPathEffect = new DashPathEffect(new float[]{3,2},0);
 
@@ -335,6 +333,9 @@ public class BatteryMeterDrawableBase extends Drawable {
 
         mBatteryPaint.setStrokeWidth(0);
         mBatteryPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+        mPowersavePaint.setStrokeWidth(mContext.getResources()
+                .getDimensionPixelSize(R.dimen.battery_powersave_outline_thickness));
 
         if (level == -1) return;
 
@@ -511,6 +512,8 @@ public class BatteryMeterDrawableBase extends Drawable {
         mBatteryPaint.setStrokeWidth(strokeWidth);
         mBatteryPaint.setStyle(Paint.Style.STROKE);
 
+        mPowersavePaint.setStrokeWidth(strokeWidth);
+
         if (mMeterStyle == BATTERY_STYLE_DOTTED_CIRCLE) {
             mBatteryPaint.setPathEffect(mPathEffect);
         } else {
@@ -531,7 +534,11 @@ public class BatteryMeterDrawableBase extends Drawable {
 
         // draw colored arc representing charge level
         if (level > 0) {
-            c.drawArc(mFrame, 270, 3.6f * level, false, mBatteryPaint);
+            if (!mCharging && mPowerSaveEnabled && mPowerSaveAsColorError) {
+                c.drawArc(mFrame, 270, 3.6f * level, false, mPowersavePaint);
+            } else {
+                c.drawArc(mFrame, 270, 3.6f * level, false, mBatteryPaint);
+            }
         }
 
         if (mCharging) {
@@ -600,16 +607,6 @@ public class BatteryMeterDrawableBase extends Drawable {
             pctX = mWidth * 0.5f;
             pctY = (mHeight + mTextHeight) * 0.47f;
             c.drawText(pctText, pctX, pctY, mTextPaint);
-        }
-
-        if (!mCharging && !mPowerSaveEnabled) {
-            if (level <= mCriticalLevel) {
-                // draw the warning text
-               float x = circleSize / 2.0f + mPadding.left;
-               float y = circleSize / 2.0f + (bounds.bottom - bounds.top) / 2.0f
-                    - strokeWidth / 2.0f + mContext.getResources().getDisplayMetrics().density;
-                c.drawText(mWarningString, x, y, mWarningTextPaint);
-            }
         }
     }
 
