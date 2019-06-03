@@ -131,6 +131,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.app.ColorDisplayController;
 import com.android.internal.colorextraction.ColorExtractor;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
@@ -524,6 +525,8 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
     private NotificationMediaManager mMediaManager;
     protected NotificationLockscreenUserManager mLockscreenUserManager;
     protected NotificationRemoteInputManager mRemoteInputManager;
+
+    private ColorDisplayController mColorDisplayController;
 
     private BroadcastReceiver mWallpaperChangedReceiver = new BroadcastReceiver() {
         @Override
@@ -1007,6 +1010,9 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
         mStackScroller.setScrimController(mScrimController);
         mDozeScrimController = new DozeScrimController(mScrimController, context,
                 DozeParameters.getInstance(context));
+
+        mColorDisplayController = new ColorDisplayController(mContext,
+                ActivityManager.getCurrentUser());
 
         // Other icons
         mVolumeComponent = getComponent(VolumeComponent.class);
@@ -2131,6 +2137,20 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
             e.printStackTrace();
         }
         return themeInfo != null && themeInfo.isEnabled();
+    }
+
+    private boolean isNightModeActive() {
+        // SystemUI is initialized before ColorDisplayService, so the service may not
+        // be ready when this is called the first time
+        if (!mColorDisplayController.isAvailable(mContext)) {
+            return false;
+        }
+        try {
+            return mColorDisplayController.isActivated();
+        } catch (NullPointerException e) {
+            Log.w(TAG, e.getMessage());
+        }
+        return false;
     }
 
     private String getDarkOverlay() {
@@ -3935,7 +3955,7 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
                 EVSettings.System.BERRY_GLOBAL_STYLE, 0);
         switch (globalStyleSetting) {
             case 1:
-                useDarkTheme = nightModeWantsDarkTheme;
+                useDarkTheme = isNightModeActive();
                 break;
             case 2:
                 useDarkTheme = false;
