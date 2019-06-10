@@ -291,6 +291,7 @@ public class BatteryMeterView extends LinearLayout implements
             case BatteryMeterDrawableBase.BATTERY_STYLE_TEXT:
                 mBatteryIconView.setVisibility(View.GONE);
                 mBatteryPercentView.setVisibility(View.VISIBLE);
+                mBatteryPercentView.setPaddingRelative(0, 0, 0, 0);
                 break;
             default:
                 mDrawable.setMeterStyle(meterStyle);
@@ -298,6 +299,11 @@ public class BatteryMeterView extends LinearLayout implements
                 mBatteryPercentView.setVisibility(
                         mShowPercentAvailable && pctStyle == 1 ? View.VISIBLE : View.GONE);
                 break;
+        }
+
+        if (meterStyle != BatteryMeterDrawableBase.BATTERY_STYLE_TEXT) {
+            mBatteryPercentView.setPaddingRelative(
+                    getContext().getResources().getDimensionPixelSize(R.dimen.battery_level_padding_start), 0, 0, 0);
         }
 
         if (mForceShowPercent) {
