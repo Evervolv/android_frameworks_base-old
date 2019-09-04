@@ -25,7 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.android.internal.colorextraction.ColorExtractor;
-import com.android.keyguard.R;
+import com.android.systemui.R;
 import com.android.systemui.colorextraction.SysuiColorExtractor;
 import com.android.systemui.plugins.ClockPlugin;
 
@@ -50,6 +50,11 @@ public class TypeClockController implements ClockPlugin {
      * Extracts accent color from wallpaper.
      */
     private final SysuiColorExtractor mColorExtractor;
+
+    /**
+     * Computes preferred position of clock.
+     */
+    private final SmallClockPosition mClockPosition;
 
     /**
      * Renders preview from clock view.
@@ -84,6 +89,7 @@ public class TypeClockController implements ClockPlugin {
         mResources = res;
         mLayoutInflater = inflater;
         mColorExtractor = colorExtractor;
+        mClockPosition = new SmallClockPosition(res);
     }
 
     private void createViews() {
@@ -131,7 +137,7 @@ public class TypeClockController implements ClockPlugin {
         setDarkAmount(1f);
         setTextColor(Color.WHITE);
         ColorExtractor.GradientColors colors = mColorExtractor.getColors(
-                WallpaperManager.FLAG_LOCK, true);
+                WallpaperManager.FLAG_LOCK);
         setColorPalette(colors.supportsDarkText(), colors.getColorPalette());
         onTimeTick();
 
@@ -152,6 +158,11 @@ public class TypeClockController implements ClockPlugin {
             createViews();
         }
         return mView;
+    }
+
+    @Override
+    public int getPreferredY(int totalHeight) {
+        return mClockPosition.getPreferredY();
     }
 
     @Override
@@ -181,6 +192,7 @@ public class TypeClockController implements ClockPlugin {
 
     @Override
     public void setDarkAmount(float darkAmount) {
+        mClockPosition.setDarkAmount(darkAmount);
         if (mDarkController != null) {
             mDarkController.setDarkAmount(darkAmount);
         }
