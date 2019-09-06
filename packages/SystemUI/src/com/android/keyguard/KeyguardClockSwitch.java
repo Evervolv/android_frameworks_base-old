@@ -200,9 +200,7 @@ public class KeyguardClockSwitch extends RelativeLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (CUSTOM_CLOCKS_ENABLED) {
-            mClockManager.addOnClockChangedListener(mClockChangedListener);
-        }
+        mClockManager.addOnClockChangedListener(mClockChangedListener);
         mStatusBarStateController.addCallback(mStateListener);
         mSysuiColorExtractor.addOnColorsChangedListener(mColorsListener);
         updateColors();
@@ -211,9 +209,7 @@ public class KeyguardClockSwitch extends RelativeLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (CUSTOM_CLOCKS_ENABLED) {
-            mClockManager.removeOnClockChangedListener(mClockChangedListener);
-        }
+        mClockManager.removeOnClockChangedListener(mClockChangedListener);
         mStatusBarStateController.removeCallback(mStateListener);
         mSysuiColorExtractor.removeOnColorsChangedListener(mColorsListener);
         setClockPlugin(null);
