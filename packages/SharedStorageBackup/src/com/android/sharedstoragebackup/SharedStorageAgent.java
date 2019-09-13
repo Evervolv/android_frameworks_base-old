@@ -4,6 +4,7 @@ import android.app.backup.FullBackupAgent;
 import android.app.backup.FullBackup;
 import android.app.backup.FullBackupDataOutput;
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.os.storage.StorageManager;
@@ -16,7 +17,7 @@ import java.io.IOException;
 
 public class SharedStorageAgent extends FullBackupAgent {
     static final String TAG = "SharedStorageAgent";
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = Build.IS_ENG;
 
     StorageVolume[] mVolumes;
 

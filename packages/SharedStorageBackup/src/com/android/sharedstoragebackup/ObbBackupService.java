@@ -21,6 +21,7 @@ import android.app.backup.FullBackup;
 import android.app.backup.FullBackupDataOutput;
 import android.app.backup.IBackupManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
@@ -43,7 +44,7 @@ import com.android.internal.backup.IObbBackupService;
  */
 public class ObbBackupService extends Service {
     static final String TAG = "ObbBackupService";
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = Build.IS_ENG;
 
     /**
      * IObbBackupService interface implementation

@@ -22,6 +22,7 @@ import android.app.backup.IBackupManager;
 import android.app.backup.IFullBackupRestoreObserver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -50,7 +51,7 @@ import android.widget.Toast;
  */
 public class BackupRestoreConfirmation extends Activity {
     static final String TAG = "BackupRestoreConfirmation";
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = Build.IS_ENG;
 
     static final String KEY_DID_ACKNOWLEDGE = "did_acknowledge";
     static final String KEY_TOKEN = "token";
