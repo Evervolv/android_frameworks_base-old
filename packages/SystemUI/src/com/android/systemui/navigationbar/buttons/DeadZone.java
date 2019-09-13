@@ -19,6 +19,7 @@ package com.android.systemui.navigationbar.buttons;
 import android.animation.ObjectAnimator;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.Slog;
 import android.view.MotionEvent;
@@ -39,11 +40,11 @@ import com.android.systemui.navigationbar.NavigationBarView;
 public class DeadZone {
     public static final String TAG = "DeadZone";
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = Build.IS_ENG;
     public static final int HORIZONTAL = 0;  // Consume taps along the top edge.
     public static final int VERTICAL = 1;  // Consume taps along the left edge.
 
-    private static final boolean CHATTY = true; // print to logcat when we eat a click
+    private static final boolean CHATTY = false; // print to logcat when we eat a click
     private final NavigationBarController mNavBarController;
     private final NavigationBarView mNavigationBarView;
 

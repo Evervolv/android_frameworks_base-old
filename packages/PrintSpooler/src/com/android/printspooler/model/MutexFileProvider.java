@@ -16,6 +16,7 @@
 
 package com.android.printspooler.model;
 
+import android.os.Build;
 import android.util.Log;
 
 import java.io.File;
@@ -35,7 +36,7 @@ import java.io.IOException;
 public final class MutexFileProvider {
     private static final String LOG_TAG = "MutexFileProvider";
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = Build.IS_ENG;
 
     private final Object mLock = new Object();
 
