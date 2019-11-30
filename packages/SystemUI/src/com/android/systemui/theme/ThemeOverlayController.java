@@ -78,6 +78,7 @@ import com.android.systemui.settings.UserTracker;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController;
 import com.android.systemui.statusbar.policy.DeviceProvisionedController.DeviceProvisionedListener;
 import com.android.systemui.util.settings.SecureSettings;
+import com.android.systemui.util.settings.SystemSettings;
 
 import com.google.ux.material.libmonet.dynamiccolor.MaterialDynamicColors;
 import com.google.ux.material.libmonet.hct.Hct;
@@ -89,6 +90,8 @@ import com.google.ux.material.libmonet.scheme.SchemeNeutral;
 import com.google.ux.material.libmonet.scheme.SchemeRainbow;
 import com.google.ux.material.libmonet.scheme.SchemeTonalSpot;
 import com.google.ux.material.libmonet.scheme.SchemeVibrant;
+
+import evervolv.provider.EVSettings;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -125,6 +128,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
     private final BroadcastDispatcher mBroadcastDispatcher;
     private final Executor mBgExecutor;
     private final SecureSettings mSecureSettings;
+    private final SystemSettings mSystemSettings;
     private final Executor mMainExecutor;
     private final Handler mBgHandler;
     private final boolean mIsMonochromaticEnabled;
@@ -387,6 +391,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             @Background Executor bgExecutor,
             ThemeOverlayApplier themeOverlayApplier,
             SecureSettings secureSettings,
+            SystemSettings systemSettings,
             WallpaperManager wallpaperManager,
             UserManager userManager,
             DeviceProvisionedController deviceProvisionedController,
@@ -408,6 +413,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
         mBgHandler = bgHandler;
         mThemeManager = themeOverlayApplier;
         mSecureSettings = secureSettings;
+        mSystemSettings = systemSettings;
         mWallpaperManager = wallpaperManager;
         mUserTracker = userTracker;
         mResources = resources;
@@ -455,6 +461,33 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             // Force reload so that we update even when the main color has not changed
             reevaluateSystemTheme(true /* forceReload */);
         });
+
+        mSystemSettings.registerContentObserverForUser(
+                EVSettings.System.getUriFor(EVSettings.System.STATUS_BAR_BATTERY_STYLE),
+                false,
+                new ContentObserver(mBgHandler) {
+                    @Override
+                    public void onChange(boolean selfChange, Collection<Uri> collection, int flags,
+                            int userId) {
+                        if (DEBUG) Log.d(TAG, "Overlay changed for user: " + userId);
+                        if (mUserTracker.getUserId() != userId) {
+                            return;
+                        }
+                        if (!mDeviceProvisionedController.isUserSetup(userId)) {
+                            Log.i(TAG, "Theme application deferred when setting changed.");
+                            mDeferredThemeEvaluation = true;
+                            return;
+                        }
+                        boolean isCircleBattery = EVSettings.System.getIntForUser(
+                                mContext.getContentResolver(),
+                                EVSettings.System.STATUS_BAR_BATTERY_STYLE,
+                                0, UserHandle.USER_CURRENT) == 1;
+                        if (isCircleBattery) {
+                            reevaluateSystemTheme(true /* forceReload */);
+                        }
+                    }
+                },
+                UserHandle.USER_ALL);
 
         if (!mIsMonetEnabled) {
             return;
