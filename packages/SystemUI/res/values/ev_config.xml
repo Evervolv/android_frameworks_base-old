@@ -1,5 +1,5 @@
 <!--
-     Copyright (C) 2018 The LineageOS Project
+     Copyright (C) 2018-2019 The LineageOS Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -17,4 +17,7 @@
     <!-- Color of the FOD view -->
     <color name="config_fodColor">#00ff00</color>
     <color name="config_fodColorBackground">#20000000</color>
+
+    <!-- Width of the battery icon in the status bar when set to circle style. -->
+    <dimen name="status_bar_battery_icon_circle_width">13.0dp</dimen>
 </resources>
