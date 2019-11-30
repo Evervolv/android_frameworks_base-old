@@ -36,10 +36,16 @@ import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.ViewController;
 
+import evervolv.provider.EVSettings;
+
 import javax.inject.Inject;
 
 /** Controller for {@link BatteryMeterView}. **/
 public class BatteryMeterViewController extends ViewController<BatteryMeterView> {
+
+    private static final String STATUS_BAR_BATTERY_STYLE =
+            "evsystem:" + EVSettings.System.STATUS_BAR_BATTERY_STYLE;
+
     private final ConfigurationController mConfigurationController;
     private final TunerService mTunerService;
     private final ContentResolver mContentResolver;
@@ -64,6 +70,9 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
                 ArraySet<String> icons = StatusBarIconController.getIconHideList(
                         getContext(), newValue);
                 mView.setVisibility(icons.contains(mSlotBattery) ? View.GONE : View.VISIBLE);
+            } else if (STATUS_BAR_BATTERY_STYLE.equals(key)) {
+                int batteryStyle = newValue != null ? Integer.parseInt(newValue) : 0;
+                mView.setBatteryStyle(batteryStyle);
             }
         }
     };
@@ -156,7 +165,8 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
             return;
         }
 
-        mTunerService.addTunable(mTunable, StatusBarIconController.ICON_HIDE_LIST);
+        mTunerService.addTunable(mTunable, StatusBarIconController.ICON_HIDE_LIST,
+                STATUS_BAR_BATTERY_STYLE);
         mIsSubscribedForTunerUpdates = true;
     }
 
