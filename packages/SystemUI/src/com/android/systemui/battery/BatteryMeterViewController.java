@@ -16,6 +16,7 @@
 package com.android.systemui.battery;
 
 import static android.provider.Settings.System.SHOW_BATTERY_PERCENT;
+import static evervolv.provider.EVSettings.System.STATUS_BAR_BATTERY_STYLE;
 
 import android.app.ActivityManager;
 import android.content.ContentResolver;
@@ -36,10 +37,13 @@ import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.ViewController;
 
+import evervolv.provider.EVSettings;
+
 import javax.inject.Inject;
 
 /** Controller for {@link BatteryMeterView}. **/
 public class BatteryMeterViewController extends ViewController<BatteryMeterView> {
+
     private final ConfigurationController mConfigurationController;
     private final TunerService mTunerService;
     private final ContentResolver mContentResolver;
@@ -175,6 +179,11 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
                 false,
                 mSettingObserver,
                 user);
+        mContentResolver.registerContentObserver(
+                EVSettings.System.getUriFor(STATUS_BAR_BATTERY_STYLE),
+                false,
+                mSettingObserver,
+                user);
     }
 
     private void registerGlobalBatteryUpdateObserver() {
@@ -197,6 +206,10 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
                     Settings.Global.BATTERY_ESTIMATES_LAST_UPDATE_TIME)) {
                 // update the text for sure if the estimate in the cache was updated
                 mView.updatePercentText();
+            }
+            if (TextUtils.equals(uri.getLastPathSegment(),
+                    EVSettings.System.STATUS_BAR_BATTERY_STYLE)) {
+                mView.updateBatteryIcon();
             }
         }
     }
