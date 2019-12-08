@@ -54,4 +54,8 @@
 
     <!-- Biometric Prompt -->
     <dimen name="biometric_dialog_fod_margin">12dp</dimen>
+
+    <!-- The margin & padding of the phone/camera icon view on keyguard. -->
+    <dimen name="keyguard_affordance_padding">5dp</dimen>
+    <dimen name="keyguard_affordance_margin">10dp</dimen>
 </resources>
