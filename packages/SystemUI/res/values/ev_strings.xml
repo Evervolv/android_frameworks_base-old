@@ -64,4 +64,9 @@
 
     <!-- Notify use that they are in Lock-to-app (for devices without navbar)-->
     <string name="screen_pinning_toast_no_navbar">To unpin this screen, touch &amp; hold Back button</string>
+
+    <!-- Samsung clock -->
+    <string name="clock_title_default_bold" translatable="false">Default (bold)</string>
+    <string name="clock_title_samsung" translatable="false">Samsung</string>
+    <string name="clock_title_samsung_bold" translatable="false">Samsung (bold)</string>
 </resources>
