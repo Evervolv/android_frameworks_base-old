@@ -714,6 +714,20 @@ public class NotificationPanelViewController extends PanelViewController {
                 R.layout.keyguard_status_view, mView, false);
         mView.addView(mKeyguardStatusView, index);
 
+        // Update keyguard status bar
+        index = mView.indexOfChild(mKeyguardStatusBar);
+        mView.removeView(mKeyguardStatusBar);
+        mKeyguardStatusBar = (KeyguardStatusBarView) mInjectionInflationController.injectable(
+                LayoutInflater.from(mView.getContext())).inflate(
+                R.layout.keyguard_status_bar, mView, false);
+        mView.addView(mKeyguardStatusBar, index);
+        if (mQs != null && mQs instanceof QSFragment) {
+            mKeyguardStatusBar.setQSPanel(((QSFragment) mQs).getQsPanel());
+        }
+        boolean show = mBarState == StatusBarState.KEYGUARD;
+        mKeyguardStatusBar.setAlpha(show ? 0f : 1f);
+        mKeyguardStatusBar.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+
         // Re-associate the clock container with the keyguard clock switch.
         mBigClockContainer.removeAllViews();
         KeyguardClockSwitch keyguardClockSwitch = mView.findViewById(R.id.keyguard_clock_container);
@@ -732,10 +746,6 @@ public class NotificationPanelViewController extends PanelViewController {
         mKeyguardIndicationController.setIndicationArea(mKeyguardBottomArea);
         mStatusBarStateListener.onDozeAmountChanged(mStatusBarStateController.getDozeAmount(),
                 mStatusBarStateController.getInterpolatedDozeAmount());
-
-        if (mKeyguardStatusBar != null) {
-            mKeyguardStatusBar.onThemeChanged();
-        }
 
         setKeyguardStatusViewVisibility(mBarState, false, false);
         setKeyguardBottomAreaVisibility(mBarState, false);
