@@ -76,6 +76,7 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
     private final WindowManager.LayoutParams mParams = new WindowManager.LayoutParams();
     private final WindowManager.LayoutParams mPressedParams = new WindowManager.LayoutParams();
     private final WindowManager mWindowManager;
+    private final FODAnimation mFODAnimation;
 
     private IFingerprintInscreen mFingerprintInscreenDaemon;
 
@@ -195,6 +196,9 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
             } else {
                 setAlpha(getFODAlpha());
             }
+            if (mFODAnimation != null) {
+                mFODAnimation.setAnimationKeyguard(showing);
+            }
         }
 
         @Override
@@ -262,6 +266,15 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
         public void onStrongAuthStateChanged(int userId) {
             setAlpha(getFODAlpha());
         }
+
+        @Override
+        public void onBiometricHelp(int msgId, String helpString,
+                                    BiometricSourceType biometricSourceType) {
+            if (msgId == KeyguardUpdateMonitor.BIOMETRIC_HELP_FINGERPRINT_NOT_RECOGNIZED) {
+                hideCircle();
+                mHandler.post(() -> mFODAnimation.hideFODAnimation());
+            }
+        }
     };
 
     public FODCircleView(Context context) {
@@ -302,6 +315,7 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
         mDreamingMaxOffset = (int) (mSize * 0.1f);
 
         mHandler = new Handler(Looper.getMainLooper());
+        mFODAnimation = new FODAnimation(context, mPositionY);
 
         mParams.height = mSize;
         mParams.width = mSize;
@@ -379,14 +393,17 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
 
         if (event.getAction() == MotionEvent.ACTION_DOWN && newIsInside) {
             showCircle();
+            mFODAnimation.showFODAnimation();
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             hideCircle();
+            mFODAnimation.hideFODAnimation();
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             return true;
         }
 
+        mFODAnimation.hideFODAnimation();
         return false;
     }
 
@@ -532,6 +549,7 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
                 mUpdateMonitor.getStrongAuthTracker();
         mCanUnlockWithFp = (biometrics && strongAuthTracker.isUnlockingWithBiometricAllowed(true)
                 || !biometrics) && !mFpDisabled;
+        mFODAnimation.setCanUnlock(mCanUnlockWithFp);
     }
 
     private void updatePosition() {
