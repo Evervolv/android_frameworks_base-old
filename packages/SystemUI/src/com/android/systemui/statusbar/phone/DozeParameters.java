@@ -221,6 +221,10 @@ public class DozeParameters implements
         return getBoolean("doze.pulse.proxcheck", R.bool.doze_proximity_check_before_pulse);
     }
 
+    public boolean getProximitySensorSupported() {
+        return mResources.getBoolean(R.bool.doze_proximity_sensor_supported);
+    }
+
     /**
      * @return true if we should only register for sensors that use the proximity sensor when the
      * display state is {@link android.view.Display.STATE_OFF},

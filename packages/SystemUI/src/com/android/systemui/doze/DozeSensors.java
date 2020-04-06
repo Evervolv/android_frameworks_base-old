@@ -118,6 +118,7 @@ public class DozeSensors {
     private boolean mListeningProxSensors;
     private boolean mListeningAodOnlySensors;
     private boolean mUdfpsEnrolled;
+    private boolean mSupportProximitySensor;
 
     @DevicePostureController.DevicePostureInt
     private int mDevicePosture;
@@ -166,7 +167,8 @@ public class DozeSensors {
         mDozeLog = dozeLog;
         mProximitySensor = proximitySensor;
         mProximitySensor.setTag(TAG);
-        mSelectivelyRegisterProxSensors = dozeParameters.getSelectivelyRegisterSensorsUsingProx();
+        mSupportProximitySensor = dozeParameters.getProximitySensorSupported();
+        mSelectivelyRegisterProxSensors = dozeParameters.getSelectivelyRegisterSensorsUsingProx() && mSupportProximitySensor;
         mListeningProxSensors = !mSelectivelyRegisterProxSensors;
         mScreenOffUdfpsEnabled =
                 config.screenOffUdfpsEnabled(KeyguardUpdateMonitor.getCurrentUser());
@@ -280,13 +282,15 @@ public class DozeSensors {
                         false /* requiresAod */
                 ),
         };
-        setProxListening(false);  // Don't immediately start listening when we register.
-        mProximitySensor.register(
-                proximityEvent -> {
-                    if (proximityEvent != null) {
-                        mProxCallback.accept(!proximityEvent.getBelow());
-                    }
-                });
+        if (mSupportProximitySensor) {
+            setProxListening(false);  // Don't immediately start listening when we register.
+            mProximitySensor.register(
+                    proximityEvent -> {
+                        if (proximityEvent != null) {
+                            mProxCallback.accept(!proximityEvent.getBelow());
+                        }
+                    });
+        }
 
         mDevicePostureController.addCallback(mDevicePostureCallback);
     }
@@ -508,6 +512,9 @@ public class DozeSensors {
      * @return true if prox is currently near, false if far or null if unknown.
      */
     public Boolean isProximityCurrentlyNear() {
+        if (!mSupportProximitySensor) {
+            return false;
+        }
         return mProximitySensor.isNear();
     }
 
