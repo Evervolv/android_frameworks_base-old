@@ -47,6 +47,7 @@ import com.android.internal.logging.UiEventLogger;
 import com.android.internal.logging.UiEventLoggerImpl;
 import com.android.internal.logging.nano.MetricsProto;
 import com.android.internal.util.IndentingPrintWriter;
+import com.android.systemui.R;
 import com.android.systemui.plugins.SensorManagerPlugin;
 import com.android.systemui.statusbar.phone.DozeParameters;
 import com.android.systemui.util.sensors.AsyncSensorManager;
@@ -175,6 +176,11 @@ public class DozeSensors {
                         mConfig.getWakeLockScreenDebounce(),
                         dozeLog),
         };
+
+        boolean supportProximitySensor = mContext.getResources().getBoolean(R.bool.doze_proximity_sensor_supported);
+        if (!supportProximitySensor) {
+            return;
+        }
 
         setProxListening(false);  // Don't immediately start listening when we register.
         mProximitySensor.register(
