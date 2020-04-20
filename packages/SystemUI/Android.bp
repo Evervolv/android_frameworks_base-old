@@ -165,6 +165,7 @@ android_library {
         "androidx.activity_activity-compose",
         "androidx.compose.animation_animation-graphics",
         "com.evervolv.platform.internal",
+        "vendor.lineage.powershare-V1.0-java",
     ],
     libs: [
         "keepanno-annotations",
@@ -303,6 +304,7 @@ android_library {
         "androidx.activity_activity-compose",
         "androidx.compose.animation_animation-graphics",
         "com.evervolv.platform.internal",
+        "vendor.lineage.powershare-V1.0-java",
     ],
 }
 
