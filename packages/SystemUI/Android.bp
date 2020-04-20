@@ -126,6 +126,7 @@ android_library {
         "lottie",
         "LowLightDreamLib",
         "com.evervolv.platform.internal",
+        "vendor.lineage.powershare-V1.0-java",
     ],
     manifest: "AndroidManifest.xml",
 
@@ -231,6 +232,7 @@ android_library {
         "WindowManager-Shell",
         "LowLightDreamLib",
         "com.evervolv.platform.internal",
+        "vendor.lineage.powershare-V1.0-java",
     ],
     libs: [
         "android.test.runner",
