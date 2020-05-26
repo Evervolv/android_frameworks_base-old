@@ -146,6 +146,7 @@ public class VolumeDialogImpl implements VolumeDialog,
 
     private View mDialog;
     private ViewGroup mDialogView;
+    private ViewGroup mDialogMainView;
     private ViewGroup mDialogRowsView;
     private ViewGroup mRinger;
     private ImageButton mRingerIcon;
@@ -271,6 +272,11 @@ public class VolumeDialogImpl implements VolumeDialog,
         dialogViewLP.gravity = Gravity.CENTER_VERTICAL;
         mDialogView.setLayoutParams(dialogViewLP);
 
+        mDialogMainView = mDialog.findViewById(R.id.main);
+        if (mDialogMainView != null) {
+            setLayoutGravity(mDialogMainView.getLayoutParams(), panelGravity);
+        }
+
         mDialogRowsView = mDialog.findViewById(R.id.volume_dialog_rows);
         mRinger = mDialog.findViewById(R.id.ringer);
         if (mRinger != null) {
@@ -284,6 +290,7 @@ public class VolumeDialogImpl implements VolumeDialog,
         mODICaptionsView = mDialog.findViewById(R.id.odi_captions);
         if (mODICaptionsView != null) {
             mODICaptionsIcon = mODICaptionsView.findViewById(R.id.odi_captions_icon);
+            setLayoutGravity(mODICaptionsView.getLayoutParams(), panelGravity);
         }
         mODICaptionsTooltipViewStub = mDialog.findViewById(R.id.odi_captions_tooltip_stub);
         if (mHasSeenODICaptionsTooltip && mODICaptionsTooltipViewStub != null) {
@@ -297,6 +304,9 @@ public class VolumeDialogImpl implements VolumeDialog,
 
         mSettingsView = mDialog.findViewById(R.id.settings_container);
         mSettingsIcon = mDialog.findViewById(R.id.settings);
+        if (mSettingsIcon != null) {
+            setLayoutGravity(mSettingsIcon.getLayoutParams(), Gravity.CENTER);
+        }
 
         if (mRows.isEmpty()) {
             if (!AudioSystem.isSingleVolume(mContext)) {
