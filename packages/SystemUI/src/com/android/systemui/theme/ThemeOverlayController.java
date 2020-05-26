@@ -71,6 +71,8 @@ import com.android.systemui.statusbar.policy.DeviceProvisionedController.DeviceP
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.util.settings.SecureSettings;
 
+import evervolv.provider.EVSettings;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -99,6 +101,11 @@ import javax.inject.Inject;
 public class ThemeOverlayController extends SystemUI implements Dumpable {
     protected static final String TAG = "ThemeOverlayController";
     private static final boolean DEBUG = true;
+
+    private final String KEY_BERRY_BLACK_THEME =
+            "evsystem:" + EVSettings.System.BERRY_BLACK_THEME;
+    private final String OVERLAY_BERRY_BLACK_THEME =
+            "com.evervolv.overlay.customization.blacktheme";
 
     protected static final int NEUTRAL = 0;
     protected static final int ACCENT = 1;
@@ -140,6 +147,8 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
     private boolean mDeferredThemeEvaluation;
     // Determines if we should ignore THEME_CUSTOMIZATION_OVERLAY_PACKAGES setting changes.
     private boolean mSkipSettingChange;
+
+    private boolean mBlackMode;
 
     private final DeviceProvisionedListener mDeviceProvisionedListener =
             new DeviceProvisionedListener() {
@@ -233,6 +242,11 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
             }
         }
         return false;
+    }
+
+    private boolean isNightMode() {
+        return (mContext.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 
     private void handleWallpaperColors(WallpaperColors wallpaperColors, int flags, int userId) {
@@ -366,6 +380,9 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
     private final TunerService.Tunable mTunable = new TunerService.Tunable() {
         @Override
         public void onTuningChanged(String key, String newValue) {
+            if (KEY_BERRY_BLACK_THEME.equals(key)) {
+                mBlackMode = TunerService.parseIntegerSwitch(newValue, false);
+            }
             reevaluateSystemTheme(true /* forceReload */);
         }
     };
@@ -406,7 +423,8 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
 
         mTunerService.addTunable(mTunable, Settings.Secure.UI_NIGHT_MODE,
                 Settings.Secure.UI_NIGHT_MODE_OVERRIDE_ON,
-                Settings.Secure.UI_NIGHT_MODE_OVERRIDE_OFF);
+                Settings.Secure.UI_NIGHT_MODE_OVERRIDE_OFF,
+                KEY_BERRY_BLACK_THEME);
 
         if (!mIsMonetEnabled) {
             return;
@@ -506,10 +524,7 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
      * Given a color candidate, return an overlay definition.
      */
     protected @Nullable FabricatedOverlay getOverlay(int color, int type) {
-        boolean nightMode = (mContext.getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-
-        mColorScheme = new ColorScheme(color, nightMode);
+        mColorScheme = new ColorScheme(color, isNightMode());
         List<Integer> colorShades = type == ACCENT
                 ? mColorScheme.getAllAccentColors() : mColorScheme.getAllNeutralColors();
         String name = type == ACCENT ? "accent" : "neutral";
@@ -622,6 +637,12 @@ public class ThemeOverlayController extends SystemUI implements Dumpable {
         if (!categoryToPackage.containsKey(OVERLAY_CATEGORY_ACCENT_COLOR)
                 && mSecondaryOverlay != null) {
             categoryToPackage.put(OVERLAY_CATEGORY_ACCENT_COLOR, mSecondaryOverlay.getIdentifier());
+        }
+
+        if (categoryToPackage.containsKey(OVERLAY_CATEGORY_SYSTEM_PALETTE)
+                && mBlackMode && isNightMode()) {
+            OverlayIdentifier blackTheme = new OverlayIdentifier(OVERLAY_BERRY_BLACK_THEME);
+            categoryToPackage.put(OVERLAY_CATEGORY_SYSTEM_PALETTE, blackTheme);
         }
 
         Set<UserHandle> managedProfiles = new HashSet<>();
