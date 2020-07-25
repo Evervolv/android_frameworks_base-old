@@ -33,6 +33,7 @@ import com.android.systemui.qs.tiles.CastTile;
 import com.android.systemui.qs.tiles.CellularTile;
 import com.android.systemui.qs.tiles.ColorInversionTile;
 import com.android.systemui.qs.tiles.DataSaverTile;
+import com.android.systemui.qs.tiles.DcDimmingTile;
 import com.android.systemui.qs.tiles.DndTile;
 import com.android.systemui.qs.tiles.FlashlightTile;
 import com.android.systemui.qs.tiles.HotspotTile;
@@ -78,6 +79,7 @@ public class QSFactoryImpl implements QSFactory {
     private final Provider<GarbageMonitor.MemoryTile> mMemoryTileProvider;
     private final Provider<UiModeNightTile> mUiModeNightTileProvider;
     private final Provider<ScreenRecordTile> mScreenRecordTileProvider;
+    private final Provider<DcDimmingTile> mDcDimmingTileProvider;
 
     private final Lazy<QSHost> mQsHostLazy;
 
@@ -102,7 +104,8 @@ public class QSFactoryImpl implements QSFactory {
             Provider<NfcTile> nfcTileProvider,
             Provider<GarbageMonitor.MemoryTile> memoryTileProvider,
             Provider<UiModeNightTile> uiModeNightTileProvider,
-            Provider<ScreenRecordTile> screenRecordTileProvider) {
+            Provider<ScreenRecordTile> screenRecordTileProvider,
+            Provider<DcDimmingTile> dcDimTileProvider) {
         mQsHostLazy = qsHostLazy;
         mWifiTileProvider = wifiTileProvider;
         mBluetoothTileProvider = bluetoothTileProvider;
@@ -124,6 +127,7 @@ public class QSFactoryImpl implements QSFactory {
         mMemoryTileProvider = memoryTileProvider;
         mUiModeNightTileProvider = uiModeNightTileProvider;
         mScreenRecordTileProvider = screenRecordTileProvider;
+        mDcDimmingTileProvider = dcDimTileProvider;
     }
 
     public QSTile createTile(String tileSpec) {
@@ -175,6 +179,8 @@ public class QSFactoryImpl implements QSFactory {
                 return mUiModeNightTileProvider.get();
             case "screenrecord":
                 return mScreenRecordTileProvider.get();
+            case "dc_dimming":
+                return mDcDimmingTileProvider.get();
         }
 
         // Custom tiles

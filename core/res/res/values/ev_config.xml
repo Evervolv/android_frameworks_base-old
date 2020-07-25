@@ -45,4 +45,8 @@
     <!-- The list of components which should be forced to be enabled. -->
     <string-array name="config_forceEnabledComponents" translatable="false">
     </string-array>
+
+    <!-- Defines the sysfs attribute path used by the device
+         to enable/disable DC dimming. -->
+    <string name="config_deviceDcDimmingSysfsNode"></string>
 </resources>
