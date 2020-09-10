@@ -3498,6 +3498,8 @@ public class CentralSurfacesImpl extends CoreStartable implements
             // the closing
             mNotificationShadeWindowController.setNotificationShadeFocusable(true);
         }
+        // It's closed; no need to leave it open.
+        mStatusBarStateController.setLeaveOpenOnKeyguardHide(false);
     }
 
     @Override
