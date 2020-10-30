@@ -83,11 +83,7 @@ import android.os.VibrationEffect;
 import android.provider.Settings;
 import android.provider.Settings.Global;
 import android.text.InputFilter;
-<<<<<<< HEAD
-=======
 import android.text.TextUtils;
-import android.util.FeatureFlagUtils;
->>>>>>> ed03c2253abc (SystemUI: Make the volume dialog expandable)
 import android.util.Log;
 import android.util.Slog;
 import android.util.SparseBooleanArray;
@@ -1417,11 +1413,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                         : "";
                 mMediaOutputDialogFactory.create(packageName, true, mDialogView);
                 dismissH(DISMISS_REASON_SETTINGS_CLICKED);
-<<<<<<< HEAD
-                mMediaOutputDialogFactory.dismiss();
-                mVolumeNavigator.openVolumePanel(
-                        mVolumePanelNavigationInteractor.getVolumePanelRoute());
-=======
             });
         }
 
@@ -1433,7 +1424,6 @@ public class VolumeDialogImpl implements VolumeDialog, Dumpable,
                 mExpanded = !mExpanded;
                 updateRowsH(mDefaultRow, true);
                 mExpandRows.setExpanded(mExpanded);
->>>>>>> ed03c2253abc (SystemUI: Make the volume dialog expandable)
             });
         }
     }
