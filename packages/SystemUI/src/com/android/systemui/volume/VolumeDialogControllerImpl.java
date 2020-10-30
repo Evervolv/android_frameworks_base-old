@@ -53,6 +53,7 @@ import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Slog;
+import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityManager;
 
 import androidx.lifecycle.Observer;
@@ -68,6 +69,8 @@ import com.android.systemui.qs.tiles.DndTile;
 import com.android.systemui.statusbar.phone.StatusBar;
 import com.android.systemui.util.RingerModeLiveData;
 import com.android.systemui.util.RingerModeTracker;
+
+import evervolv.provider.EVSettings;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -136,6 +139,10 @@ public class VolumeDialogControllerImpl implements VolumeDialogController, Dumpa
     private boolean mShowA11yStream;
     private boolean mShowVolumeDialog;
     private boolean mShowSafetyWarning;
+
+    private boolean isResumable;
+    private Handler mMediaStateHandler;
+
     private long mLastToggledRingerOn;
     private final NotificationManager mNotificationManager;
 
@@ -181,6 +188,8 @@ public class VolumeDialogControllerImpl implements VolumeDialogController, Dumpa
         mHasVibrator = mVibrator != null && mVibrator.hasVibrator();
         mAudioService = IAudioService.Stub.asInterface(
                 ServiceManager.getService(Context.AUDIO_SERVICE));
+
+        mMediaStateHandler = new Handler();
 
         boolean accessibilityVolumeStreamActive = context.getSystemService(
                 AccessibilityManager.class).isAccessibilityVolumeStreamActive();
@@ -560,6 +569,34 @@ public class VolumeDialogControllerImpl implements VolumeDialogController, Dumpa
         final StreamState ss = streamStateW(stream);
         if (ss.level == level) return false;
         ss.level = level;
+        if (stream == AudioSystem.STREAM_MUSIC && level == 0
+                  && mAudio.isMusicActive()) {
+            boolean adaptivePlaybackEnabled = EVSettings.System.getIntForUser(
+                    mContext.getContentResolver(), EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED, 0,
+                    UserHandle.USER_CURRENT) == 1;
+            if (adaptivePlaybackEnabled) {
+                int adaptivePlaybackTimeout = EVSettings.System.getIntForUser(
+                        mContext.getContentResolver(), EVSettings.System.ADAPTIVE_PLAYBACK_TIMEOUT,
+                        30000, UserHandle.USER_CURRENT);
+                mAudio.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,
+                        KeyEvent.KEYCODE_MEDIA_PAUSE));
+                mAudio.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,
+                        KeyEvent.KEYCODE_MEDIA_PAUSE));
+                isResumable = true;
+                mMediaStateHandler.removeCallbacksAndMessages(null);
+                mMediaStateHandler.postDelayed(() -> {
+                    isResumable = false;
+                }, adaptivePlaybackTimeout);
+            }
+        }
+        if (stream == AudioSystem.STREAM_MUSIC && level > 0 && isResumable) {
+            mMediaStateHandler.removeCallbacksAndMessages(null);
+            mAudio.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,
+                    KeyEvent.KEYCODE_MEDIA_PLAY));
+            mAudio.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,
+                    KeyEvent.KEYCODE_MEDIA_PLAY));
+            isResumable = false;
+        }
         if (isLogWorthy(stream)) {
             Events.writeEvent(Events.EVENT_LEVEL_CHANGED, stream, level);
         }

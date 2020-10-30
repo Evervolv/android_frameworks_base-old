@@ -90,6 +90,8 @@ import com.android.server.SystemService;
 import com.android.server.Watchdog;
 import com.android.server.Watchdog.Monitor;
 
+import evervolv.provider.EVSettings;
+
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
@@ -142,6 +144,7 @@ public class MediaSessionService extends SystemService implements Monitor {
     private ContentResolver mContentResolver;
     private SettingsObserver mSettingsObserver;
     private boolean mHasFeatureLeanback;
+    private boolean mAdaptivePlayback;
 
     // The FullUserRecord of the current users. (i.e. The foreground user that isn't a profile)
     // It's always not null after the MediaSessionService is started.
@@ -200,6 +203,9 @@ public class MediaSessionService extends SystemService implements Monitor {
         mSettingsObserver.observe();
         mHasFeatureLeanback = mContext.getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_LEANBACK);
+        mAdaptivePlayback = EVSettings.System.getIntForUser(mContentResolver,
+                EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED,
+                0, UserHandle.USER_CURRENT) == 1;
 
         updateUser();
 
@@ -1115,10 +1121,16 @@ public class MediaSessionService extends SystemService implements Monitor {
         private void observe() {
             mContentResolver.registerContentObserver(mSecureSettingsUri,
                     false, this, USER_ALL);
+            mContentResolver.registerContentObserver(EVSettings.System.getUriFor(
+                    EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED), false, this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
+            mAdaptivePlayback = EVSettings.System.getIntForUser(mContentResolver,
+                            EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED,
+                            0, UserHandle.USER_CURRENT) == 1;
             updateActiveSessionListeners();
         }
     }
@@ -2069,7 +2081,7 @@ public class MediaSessionService extends SystemService implements Monitor {
                             + ". flags=" + flags + ", preferSuggestedStream="
                             + preferSuggestedStream + ", session=" + session);
                 }
-                if ((flags & AudioManager.FLAG_ACTIVE_MEDIA_ONLY) != 0
+                if ((flags & AudioManager.FLAG_ACTIVE_MEDIA_ONLY) != 0 && !mAdaptivePlayback
                         && !AudioSystem.isStreamActive(AudioManager.STREAM_MUSIC, 0)) {
                     if (DEBUG_KEY_EVENT) {
                         Log.d(TAG, "Nothing is playing on the music stream. Skipping volume event,"
