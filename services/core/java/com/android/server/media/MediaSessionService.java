@@ -40,6 +40,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.media.AudioPlaybackConfiguration;
 import android.media.AudioSystem;
@@ -58,6 +59,7 @@ import android.media.session.ISessionManager;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -89,6 +91,8 @@ import com.android.server.SystemService;
 import com.android.server.Watchdog;
 import com.android.server.Watchdog.Monitor;
 import com.android.server.am.ActivityManagerLocal;
+
+import evervolv.provider.EVSettings;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -141,6 +145,9 @@ public class MediaSessionService extends SystemService implements Monitor {
     private AudioManager mAudioManager;
     private boolean mHasFeatureLeanback;
     private ActivityManagerLocal mActivityManagerLocal;
+
+    private SettingsObserver mSettingsObserver;
+    private boolean mAdaptivePlayback;
 
     // The FullUserRecord of the current users. (i.e. The foreground user that isn't a profile)
     // It's always not null after the MediaSessionService is started.
@@ -212,6 +219,12 @@ public class MediaSessionService extends SystemService implements Monitor {
                 }, null /* handler */);
         mHasFeatureLeanback = mContext.getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_LEANBACK);
+
+        mSettingsObserver = new SettingsObserver();
+        mSettingsObserver.observe();
+        mAdaptivePlayback = EVSettings.System.getIntForUser(mContext.getContentResolver(),
+                EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED,
+                0, UserHandle.USER_CURRENT) == 1;
 
         updateUser();
 
@@ -1165,6 +1178,26 @@ public class MediaSessionService extends SystemService implements Monitor {
             synchronized (mLock) {
                 mSession2TokensListenerRecords.remove(this);
             }
+        }
+    }
+
+    final class SettingsObserver extends ContentObserver {
+        private SettingsObserver() {
+            super(null);
+        }
+
+        private void observe() {
+            mContext.getContentResolver().registerContentObserver(EVSettings.System.getUriFor(
+                    EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED), false, this,
+                    UserHandle.USER_ALL);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            mAdaptivePlayback = EVSettings.System.getIntForUser(mContext.getContentResolver(),
+                            EVSettings.System.ADAPTIVE_PLAYBACK_ENABLED,
+                            0, UserHandle.USER_CURRENT) == 1;
+            updateActiveSessionListeners();
         }
     }
 
@@ -2174,7 +2207,8 @@ public class MediaSessionService extends SystemService implements Monitor {
                             + ". flags=" + flags + ", preferSuggestedStream="
                             + preferSuggestedStream + ", session=" + session);
                 }
-                if (musicOnly && !AudioSystem.isStreamActive(AudioManager.STREAM_MUSIC, 0)) {
+                if (musicOnly && !AudioSystem.isStreamActive(AudioManager.STREAM_MUSIC, 0)
+                        && !mAdaptivePlayback) {
                     if (DEBUG_KEY_EVENT) {
                         Log.d(TAG, "Nothing is playing on the music stream. Skipping volume event,"
                                 + " flags=" + flags);
