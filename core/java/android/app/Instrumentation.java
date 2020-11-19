@@ -41,7 +41,6 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
-import android.os.SystemProperties;
 import android.os.TestLooperManager;
 import android.os.UserHandle;
 import android.util.AndroidRuntimeException;
@@ -57,11 +56,11 @@ import android.view.Window;
 import android.view.WindowManagerGlobal;
 
 import com.android.internal.content.ReferrerIntent;
+import com.android.internal.util.PixelPropsUtils;
 
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -1190,7 +1189,7 @@ public class Instrumentation {
         Application app = getFactory(context.getPackageName())
                 .instantiateApplication(cl, className);
         app.attach(context);
-        updateApplicationInfo(app);
+        PixelPropsUtils.setProps(app.getPackageName());
         return app;
     }
     
@@ -1208,60 +1207,8 @@ public class Instrumentation {
             ClassNotFoundException {
         Application app = (Application)clazz.newInstance();
         app.attach(context);
-        updateApplicationInfo(app);
+        PixelPropsUtils.setProps(app.getPackageName());
         return app;
-    }
-
-    private static void setBuildField(String key, String value) {
-        /*
-         * This would be much prettier if we just removed "final" from the Build fields,
-         * but that requires changing the API.
-         *
-         * While this an awful hack, it's technically safe because the fields are
-         * populated at runtime.
-         */
-        try {
-            Field field = Build.class.getDeclaredField(key);
-            field.setAccessible(true);
-            field.set(null, value);
-            field.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-        }
-    }
-
-    private static void updateApplicationInfo(Application app) {
-        String packageName = app.getPackageName();
-        String processName = app.getProcessName();
-
-        // Disable Next-Generation Assistant
-        final boolean disableNga = SystemProperties.getBoolean("ro.product.needs_model_edit", false);
-        if (disableNga &&
-                packageName.startsWith("com.google.android.googlequicksearchbox")) {
-            setBuildField("MODEL", "Pixel 3 XL");
-        }
-
-        // SafetyNet work around
-        final String fingerprintOverride = SystemProperties.get("ro.build.stock_fingerprint");
-        if (fingerprintOverride != null &&
-                packageName.equals("com.google.android.gms") &&
-                processName.equals("com.google.android.gms.unstable")) {
-            setBuildField("FINGERPRINT", fingerprintOverride);
-        }
-
-        // Set proper indexing fingerprint
-        if (packageName.equals("com.google.android.settings.intelligence")){
-            setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
-        }
-
-        // Pixel 2016 Exclusive
-        if (packageName.equals("com.google.android.apps.photos")){
-            setBuildField("BRAND", "google");
-            setBuildField("MANUFACTURER", "Google");
-            setBuildField("DEVICE", "marlin");
-            setBuildField("PRODUCT", "marlin");
-            setBuildField("MODEL", "Pixel XL");
-            setBuildField("FINGERPRINT", "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys");
-        }
     }
 
     /**
