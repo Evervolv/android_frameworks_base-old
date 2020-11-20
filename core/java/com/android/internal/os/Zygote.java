@@ -819,6 +819,11 @@ public final class Zygote {
                 packageName.startsWith("com.google.android.gms")) {
             setBuildField("FINGERPRINT", fingerprintOverride);
         }
+
+        // Set proper indexing fingerprint
+        if (packageName.equals("com.google.android.settings.intelligence")){
+            setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
+        }
     }
 
     static void setAppProcessName(ZygoteArguments args, String loggingTag) {
