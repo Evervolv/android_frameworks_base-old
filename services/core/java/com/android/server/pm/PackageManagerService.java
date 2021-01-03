@@ -18259,7 +18259,7 @@ public class PackageManagerService extends IPackageManager.Stub
                     for (ActivityIntentInfo filter : a.intents) {
                         // Run verification against hosts mentioned in any web-nav intent filter,
                         // even if the filter matches non-web schemes as well
-                        if (filter.handlesWebUris(false /*onlyWebSchemes*/)) {
+                        if (filter.handlesWebUris(false)) {
                             if (DEBUG_DOMAIN_VERIFICATION) Slog.d(TAG,
                                     "Verification needed for IntentFilter:" + filter.toString());
                             mIntentFilterVerifier.addOneIntentFilterVerification(
