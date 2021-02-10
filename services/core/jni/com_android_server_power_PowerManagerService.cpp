@@ -26,6 +26,7 @@
 #include <android/system/suspend/ISuspendControlService.h>
 #include <nativehelper/JNIHelp.h>
 #include <vendor/evervolv/power/1.0/IEvervolvPower.h>
+#include <vendor/evervolv/power/IPower.h>
 #include "jni.h"
 
 #include <nativehelper/ScopedUtfChars.h>
@@ -62,7 +63,11 @@ using IPowerV1_1 = android::hardware::power::V1_1::IPower;
 using IPowerV1_0 = android::hardware::power::V1_0::IPower;
 using IPowerAidl = android::hardware::power::IPower;
 using IEvervolvPowerV1_0 = vendor::evervolv::power::V1_0::IEvervolvPower;
-using vendor::evervolv::power::V1_0::EvervolvFeature;
+using IEvervolvPowerAidl = vendor::evervolv::power::IPower;
+using EvervolvBoostAidl = vendor::evervolv::power::Boost;
+using EvervolvFeatureV1_0 = vendor::evervolv::power::V1_0::EvervolvFeature;
+using EvervolvFeatureAidl = vendor::evervolv::power::Feature;
+using EvervolvPowerHint1_0 = vendor::evervolv::power::V1_0::EvervolvPowerHint;
 
 namespace android {
 
@@ -79,8 +84,9 @@ static sp<IPowerV1_0> gPowerHalHidlV1_0_ = nullptr;
 static sp<IPowerV1_1> gPowerHalHidlV1_1_ = nullptr;
 static sp<IPowerAidl> gPowerHalAidl_ = nullptr;
 static sp<IEvervolvPowerV1_0> gEvervolvPowerHalV1_0_ = nullptr;
-static bool gEvervolvPowerHalExists = true;
+static sp<IEvervolvPowerAidl> gEvervolvPowerHalAidl_ = nullptr;
 static std::mutex gPowerHalMutex;
+static std::mutex gEvervolvPowerHalMutex;
 
 enum class HalVersion {
     NONE,
@@ -148,18 +154,39 @@ static HalVersion connectPowerHalLocked() {
     return HalVersion::NONE;
 }
 
-// Check validity of current handle to the Evervolv power HAL service, and call getService() if necessary.
-// The caller must be holding gPowerHalMutex.
-void connectEvervolvPowerHalLocked() {
-    if (gEvervolvPowerHalExists && gEvervolvPowerHalV1_0_ == nullptr) {
-        gEvervolvPowerHalV1_0_ = IEvervolvPowerV1_0::getService();
-        if (gEvervolvPowerHalV1_0_ != nullptr) {
-            ALOGI("Loaded power HAL service");
+// Check validity of current handle to the Evervolv power HAL service, and connect to it if necessary.
+// The caller must be holding gEvervolvPowerHalMutex.
+static HalVersion connectEvervolvPowerHalLocked() {
+    static bool gPowerHalHidlExists = true;
+    static bool gPowerHalAidlExists = true;
+    if (!gPowerHalHidlExists && !gPowerHalAidlExists) {
+        return HalVersion::NONE;
+    }
+    if (gPowerHalAidlExists) {
+        if (!gEvervolvPowerHalAidl_) {
+            gEvervolvPowerHalAidl_ = waitForVintfService<IEvervolvPowerAidl>();
+        }
+        if (gEvervolvPowerHalAidl_) {
+            ALOGV("Successfully connected to Evervolv Power HAL AIDL service.");
+            return HalVersion::AIDL;
         } else {
-            ALOGI("Couldn't load power HAL service");
-            gEvervolvPowerHalExists = false;
+            gPowerHalAidlExists = false;
         }
     }
+    if (gPowerHalHidlExists && gEvervolvPowerHalV1_0_ == nullptr) {
+        gEvervolvPowerHalV1_0_ = IEvervolvPowerV1_0::getService();
+        if (gEvervolvPowerHalV1_0_) {
+            ALOGV("Successfully connected to Evervolv Power HAL HIDL 1.0 service.");
+        } else {
+            ALOGV("Couldn't load Evervolv power HAL HIDL service");
+            gPowerHalHidlExists = false;
+            return HalVersion::NONE;
+        }
+    }
+    if (gEvervolvPowerHalV1_0_) {
+        return HalVersion::HIDL_1_0;
+    }
+    return HalVersion::NONE;
 }
 
 // Retrieve a copy of PowerHAL HIDL V1_0
@@ -183,11 +210,14 @@ sp<IPowerV1_1> getPowerHalHidlV1_1() {
     return nullptr;
 }
 
-// Retrieve a copy of EvervolvPowerHAL V1_0
-sp<IEvervolvPowerV1_0> getEvervolvPowerHalV1_0() {
-    std::lock_guard<std::mutex> lock(gPowerHalMutex);
-    connectEvervolvPowerHalLocked();
-    return gEvervolvPowerHalV1_0_;
+// Retrieve a copy of EvervolvPowerHAL AIDL
+sp<IEvervolvPowerAidl> getEvervolvPowerHalAidl() {
+    std::lock_guard<std::mutex> lock(gEvervolvPowerHalMutex);
+    if (connectEvervolvPowerHalLocked() == HalVersion::AIDL) {
+        return gEvervolvPowerHalAidl_;
+    }
+
+    return nullptr;
 }
 
 // Check if a call to a power HAL function failed; if so, log the failure and invalidate the
@@ -334,6 +364,17 @@ static void sendPowerHint(PowerHint hintId, uint32_t data) {
                 sp<IPowerAidl> handle = gPowerHalAidl_;
                 lock.unlock();
                 setPowerModeWithHandle(handle, Mode::VR, static_cast<bool>(data));
+                break;
+            // TODO: Fix evervolv sdk once killed hidl.
+            } else if (hintId == static_cast<PowerHint>(EvervolvPowerHint1_0::CPU_BOOST)) {
+                lock.unlock();
+                sp<IEvervolvPowerAidl> handle = getEvervolvPowerHalAidl();
+                handle->setBoost(EvervolvBoostAidl::CPU_BOOST, data);
+                break;
+            } else if (hintId == static_cast<PowerHint>(EvervolvPowerHint1_0::SET_PROFILE)) {
+                lock.unlock();
+                sp<IEvervolvPowerAidl> handle = getEvervolvPowerHalAidl();
+                handle->setBoost(EvervolvBoostAidl::SET_PROFILE, data);
                 break;
             } else {
                 ALOGE("Unsupported power hint: %s.", toString(hintId).c_str());
@@ -511,7 +552,7 @@ static jboolean nativeSetPowerMode(JNIEnv* /* env */, jclass /* clazz */, jint m
 }
 
 static void nativeSetFeature(JNIEnv* /* env */, jclass /* clazz */, jint featureId, jint data) {
-    std::unique_lock<std::mutex> lock(gPowerHalMutex);
+    std::unique_lock<std::mutex> lock(gEvervolvPowerHalMutex);
     switch (connectPowerHalLocked()) {
         case HalVersion::NONE:
             return;
@@ -545,12 +586,34 @@ static bool nativeForceSuspend(JNIEnv* /* env */, jclass /* clazz */) {
 
 static jint nativeGetFeature(JNIEnv* /* env */, jclass /* clazz */, jint featureId) {
     int value = -1;
-
-    sp<IEvervolvPowerV1_0> evervolvPowerHalV1_0 = getEvervolvPowerHalV1_0();
-    if (evervolvPowerHalV1_0 != nullptr) {
-        value = evervolvPowerHalV1_0->getFeature(static_cast<EvervolvFeature>(featureId));
+    std::unique_lock<std::mutex> lock(gPowerHalMutex);
+    switch (connectEvervolvPowerHalLocked()) {
+        case HalVersion::NONE:
+            break;
+        case HalVersion::HIDL_1_0: {
+            sp<IEvervolvPowerV1_0> handle = gEvervolvPowerHalV1_0_;
+            lock.unlock();
+            value = handle->getFeature(static_cast<EvervolvFeatureV1_0>(featureId));
+            break;
+        }
+        case HalVersion::AIDL: {
+            sp<IEvervolvPowerAidl> handle = gEvervolvPowerHalAidl_;
+            lock.unlock();
+            switch (static_cast<EvervolvFeatureV1_0>(featureId)) {
+                case EvervolvFeatureV1_0::SUPPORTED_PROFILES:
+                    handle->getFeature(EvervolvFeatureAidl::SUPPORTED_PROFILES, &value);
+                    break;
+                default:
+                    ALOGE("Unsupported power feature: %d.", featureId);
+                    break;
+            }
+            break;
+        }
+        default: {
+            ALOGE("Unknown Evervolv power HAL state");
+            break;
+        }
     }
-
     return static_cast<jint>(value);
 }
 
