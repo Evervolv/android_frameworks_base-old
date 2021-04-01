@@ -269,7 +269,8 @@ public class GlobalActionsDialog extends GlobalActionsDialogLite
                 this::getWalletViewController, mSysuiColorExtractor,
                 mStatusBarService, mNotificationShadeWindowController,
                 mSysUiState, this::onRotate, isKeyguardShowing(), mPowerAdapter, getEventLogger(),
-                getStatusBar(), getKeyguardUpdateMonitor(), mLockPatternUtils);
+                getStatusBar(), getKeyguardUpdateMonitor(), mLockPatternUtils,
+                mRestartAdapter, mUsersAdapter);
 
         if (shouldShowLockMessage(dialog)) {
             dialog.showLockMessage();
@@ -338,12 +339,14 @@ public class GlobalActionsDialog extends GlobalActionsDialogLite
                 SysUiState sysuiState, Runnable onRotateCallback, boolean keyguardShowing,
                 MyPowerOptionsAdapter powerAdapter, UiEventLogger uiEventLogger,
                 StatusBar statusBar, KeyguardUpdateMonitor keyguardUpdateMonitor,
-                LockPatternUtils lockPatternUtils) {
+                LockPatternUtils lockPatternUtils, MyRestartOptionsAdapter restartAdapter,
+                MyUsersAdapter usersAdapter) {
             super(context, com.android.systemui.R.style.Theme_SystemUI_Dialog_GlobalActions,
                     adapter, overflowAdapter, sysuiColorExtractor, statusBarService,
                     notificationShadeWindowController, sysuiState, onRotateCallback,
                     keyguardShowing, powerAdapter, uiEventLogger, null,
-                    statusBar, keyguardUpdateMonitor, lockPatternUtils);
+                    statusBar, keyguardUpdateMonitor, lockPatternUtils,
+                    restartAdapter, usersAdapter);
             mWalletFactory = walletFactory;
 
             // Update window attributes
