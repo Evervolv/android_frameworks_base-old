@@ -25,6 +25,7 @@ import android.net.Credentials;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.NetworkUtils;
+import android.os.Build;
 import android.os.FactoryTest;
 import android.os.IVold;
 import android.os.Process;
@@ -46,6 +47,7 @@ import java.io.DataOutputStream;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 
 /** @hide */
 public final class Zygote {
@@ -786,6 +788,39 @@ public final class Zygote {
 
     private static native void nativeBoostUsapPriority();
 
+    private static void setBuildField(String key, String value) {
+        /*
+         * This would be much prettier if we just removed "final" from the Build fields,
+         * but that requires changing the API.
+         *
+         * While this an awful hack, it's technically safe because the fields are
+         * populated at runtime.
+         */
+        try {
+            Field field = Build.class.getDeclaredField(key);
+            field.setAccessible(true);
+            field.set(null, value);
+            field.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+        }
+    }
+
+    private static void updatePackageArg(String packageName) {
+        // Disable Next-Generation Assistant
+        final boolean disableNga = SystemProperties.getBoolean("ro.product.needs_model_edit", false);
+        if (disableNga &&
+                packageName.startsWith("com.google.android.googlequicksearchbox")) {
+            setBuildField("MODEL", "Pixel 3 XL");
+        }
+
+        // SafetyNet work around
+        final String fingerprintOverride = SystemProperties.get("ro.build.stock_fingerprint");
+        if (fingerprintOverride != null &&
+                packageName.startsWith("com.google.android.gms")) {
+            setBuildField("FINGERPRINT", fingerprintOverride);
+        }
+    }
+
     static void setAppProcessName(ZygoteArguments args, String loggingTag) {
         if (args.mNiceName != null) {
             Process.setArgV0(args.mNiceName);
@@ -793,6 +828,10 @@ public final class Zygote {
             Process.setArgV0(args.mPackageName);
         } else {
             Log.w(loggingTag, "Unable to set package name.");
+        }
+
+        if (args.mPackageName != null) {
+            updatePackageArg(args.mPackageName);
         }
     }
 
