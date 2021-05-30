@@ -319,7 +319,8 @@ public class FODCircleView extends ImageView implements TunerService.Tunable {
     public void onTuningChanged(String key, String newValue) {
         if (key.equals(FOD_GESTURE)) {
             mFodGestureEnable = TunerService.parseIntegerSwitch(newValue, false);
-        } else {
+        }
+        if (key.equals(Settings.Secure.DOZE_ENABLED)) {
             mDozeEnabled = TunerService.parseIntegerSwitch(newValue, true);
         }
     }
