@@ -22,6 +22,7 @@ import static android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_M
 import static android.view.WindowManager.ScreenshotSource.SCREENSHOT_GLOBAL_ACTIONS;
 import static android.view.WindowManager.TAKE_SCREENSHOT_FULLSCREEN;
 import static android.view.WindowManager.TAKE_SCREENSHOT_SELECTED_REGION;
+import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_2BUTTON;
 
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.SOME_AUTH_REQUIRED_AFTER_USER_REQUEST;
 import static com.android.internal.widget.LockPatternUtils.StrongAuthTracker.STRONG_AUTH_NOT_REQUIRED;
@@ -145,8 +146,10 @@ import com.android.systemui.plugins.ActivityStarter;
 import com.android.systemui.plugins.GlobalActions.GlobalActionsManager;
 import com.android.systemui.plugins.GlobalActionsPanelPlugin;
 import com.android.systemui.settings.CurrentUserContextTracker;
+import com.android.systemui.statusbar.BlurUtils;
 import com.android.systemui.statusbar.NotificationShadeDepthController;
 import com.android.systemui.statusbar.phone.NotificationShadeWindowController;
+import com.android.systemui.statusbar.phone.ScrimController;
 import com.android.systemui.statusbar.policy.ConfigurationController;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.tuner.TunerService;
@@ -186,14 +189,6 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
     private static final String TAG = "GlobalActionsDialog";
 
     private static final boolean SHOW_SILENT_TOGGLE = true;
-
-    /* Valid settings for restart actions keys.
-     * see lineage-sdk config.xml config_restartActionsList */
-    private static final String RESTART_ACTION_KEY_RESTART = "restart";
-    private static final String RESTART_ACTION_KEY_RESTART_RECOVERY = "restart_recovery";
-    private static final String RESTART_ACTION_KEY_RESTART_BOOTLOADER = "restart_bootloader";
-    private static final String RESTART_ACTION_KEY_RESTART_DOWNLOAD = "restart_download";
-    private static final String RESTART_ACTION_KEY_RESTART_FASTBOOT = "restart_fastboot";
 
     public static final String PREFS_CONTROLS_SEEDING_COMPLETED = "SeedingCompleted";
     public static final String PREFS_CONTROLS_FILE = "controls_prefs";
@@ -273,6 +268,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
     private int mDialogPressDelay = DIALOG_PRESS_DELAY; // ms
     private Handler mMainHandler;
     private CurrentUserContextTracker mCurrentUserContextTracker;
+    private final BlurUtils mBlurUtils;
     @VisibleForTesting
     boolean mShowLockScreenCardsAndControls = false;
 
@@ -336,7 +332,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
             UiEventLogger uiEventLogger,
             RingerModeTracker ringerModeTracker, SysUiState sysUiState, @Main Handler handler,
             ControlsComponent controlsComponent,
-            CurrentUserContextTracker currentUserContextTracker) {
+            CurrentUserContextTracker currentUserContextTracker, BlurUtils blurUtils) {
         mContext = context;
         mWindowManagerFuncs = windowManagerFuncs;
         mAudioManager = audioManager;
@@ -367,6 +363,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
         mMainHandler = handler;
         mCurrentUserContextTracker = currentUserContextTracker;
         mGlobalActionManager = GlobalActionManager.getInstance(mContext);
+        mBlurUtils = blurUtils;
 
         // receive broadcasts
         IntentFilter filter = new IntentFilter();
@@ -715,15 +712,15 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
                 // If we already have added this, don't add it again.
                 continue;
             }
-            if (RESTART_ACTION_KEY_RESTART.equals(actionKey)) {
+            if (GLOBAL_ACTION_KEY_RESTART.equals(actionKey)) {
                 addIfShouldShowAction(mRestartItems, sysAction);
-            } else if (RESTART_ACTION_KEY_RESTART_RECOVERY.equals(actionKey)) {
+            } else if (GLOBAL_ACTION_KEY_RESTART_RECOVERY.equals(actionKey)) {
                 addIfShouldShowAction(mRestartItems, recAction);
-            } else if (RESTART_ACTION_KEY_RESTART_BOOTLOADER.equals(actionKey)) {
+            } else if (GLOBAL_ACTION_KEY_RESTART_BOOTLOADER.equals(actionKey)) {
                 addIfShouldShowAction(mRestartItems, blAction);
-            } else if (RESTART_ACTION_KEY_RESTART_DOWNLOAD.equals(actionKey)) {
+            } else if (GLOBAL_ACTION_KEY_RESTART_DOWNLOAD.equals(actionKey)) {
                 addIfShouldShowAction(mRestartItems, dlAction);
-            } else if (RESTART_ACTION_KEY_RESTART_FASTBOOT.equals(actionKey)) {
+            } else if (GLOBAL_ACTION_KEY_RESTART_FASTBOOT.equals(actionKey)) {
                 addIfShouldShowAction(mRestartItems, fbAction);
             }
             // Add here so we don't add more than one.
@@ -778,7 +775,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
                 mStatusBarService, mNotificationShadeWindowController,
                 controlsAvailable(), uiController,
                 mSysUiState, this::onRotate, mKeyguardShowing, mPowerAdapter, mRestartAdapter,
-                mUsersAdapter);
+                mUsersAdapter, mBlurUtils);
 
         if (shouldShowLockMessage(dialog)) {
             dialog.showLockMessage();
@@ -1155,6 +1152,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
 
     @VisibleForTesting
     class ScreenshotAction extends SinglePressAction implements LongPressAction {
+        final String KEY_SYSTEM_NAV_2BUTTONS = "system_nav_2buttons";
 
         public ScreenshotAction() {
             super(R.drawable.ic_screenshot, R.string.global_action_screenshot);
@@ -1186,6 +1184,19 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
         public boolean showBeforeProvisioning() {
             return false;
         }
+
+        @Override
+        public boolean shouldShow() {
+          // Include screenshot in power menu for legacy nav because it is not accessible
+          // through Recents in that mode
+            return is2ButtonNavigationEnabled();
+        }
+
+        boolean is2ButtonNavigationEnabled() {
+            return NAV_BAR_MODE_2BUTTON == mContext.getResources().getInteger(
+                    com.android.internal.R.integer.config_navBarInteractionMode);
+        }
+
 
         @Override
         public boolean onLongPress() {
@@ -2474,6 +2485,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
         private Dialog mUsersDialog;
         private final Runnable mOnRotateCallback;
         private final boolean mControlsAvailable;
+        private final BlurUtils mBlurUtils;
 
         private ControlsUiController mControlsUiController;
         private ViewGroup mControlsView;
@@ -2489,7 +2501,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
                 boolean controlsAvailable, @Nullable ControlsUiController controlsUiController,
                 SysUiState sysuiState, Runnable onRotateCallback, boolean keyguardShowing,
                 MyPowerOptionsAdapter powerAdapter, MyRestartOptionsAdapter restartAdapter,
-                MyUsersAdapter usersAdapter) {
+                MyUsersAdapter usersAdapter, BlurUtils blurUtils) {
             super(context, com.android.systemui.R.style.Theme_SystemUI_Dialog_GlobalActions);
             mContext = context;
             mAdapter = adapter;
@@ -2506,6 +2518,7 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
             mSysUiState = sysuiState;
             mOnRotateCallback = onRotateCallback;
             mKeyguardShowing = keyguardShowing;
+            mBlurUtils = blurUtils;
             mWalletFactory = walletFactory;
 
             // Window initialization
@@ -2696,7 +2709,8 @@ public class GlobalActionsDialog implements DialogInterface.OnDismissListener,
             initializeWalletView();
             if (mBackgroundDrawable == null) {
                 mBackgroundDrawable = new ScrimDrawable();
-                mScrimAlpha = 0.75f;
+                mScrimAlpha = mBlurUtils.supportsBlursOnWindows() ?
+                        ScrimController.BLUR_SCRIM_ALPHA : ScrimController.BUSY_SCRIM_ALPHA;
             }
             getWindow().setBackgroundDrawable(mBackgroundDrawable);
         }
