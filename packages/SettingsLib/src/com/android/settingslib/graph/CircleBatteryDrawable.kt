@@ -32,7 +32,6 @@ class CircleBatteryDrawable(private val context: Context, frameColor: Int) : Dra
     private val framePaint: Paint
     private val batteryPaint: Paint
     private val warningTextPaint: Paint
-    private val textPaint: Paint
     private val boltPaint: Paint
     private val plusPaint: Paint
     private val powerSavePaint: Paint
@@ -65,12 +64,6 @@ class CircleBatteryDrawable(private val context: Context, frameColor: Int) : Dra
         }
 
     var powerSaveEnabled = false
-        set(value) {
-            field = value
-            postInvalidate()
-        }
-
-    var showPercent = false
         set(value) {
             field = value
             postInvalidate()
@@ -220,20 +213,6 @@ class CircleBatteryDrawable(private val context: Context, frameColor: Int) : Dra
                 c.drawArc(frame, 270f, 3.6f * batteryLevel, false, batteryPaint)
             }
         }
-        // compute percentage text
-        if (!charging && batteryLevel != 100 && showPercent) {
-            textPaint.color = getColorForLevel(batteryLevel)
-            textPaint.textSize = height * 0.52f
-            val textHeight = -textPaint.fontMetrics.ascent
-            val pctText =
-                if (batteryLevel > criticalLevel)
-                    batteryLevel.toString()
-                else
-                    warningString
-            val pctX = width * 0.5f
-            val pctY = (height + textHeight) * 0.47f
-            c.drawText(pctText, pctX, pctY, textPaint)
-        }
     }
 
     // Some stuff required by Drawable.
@@ -303,9 +282,6 @@ class CircleBatteryDrawable(private val context: Context, frameColor: Int) : Dra
         framePaint.isDither = true
         batteryPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         batteryPaint.isDither = true
-        textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textPaint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
-        textPaint.textAlign = Paint.Align.CENTER
         warningTextPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         warningTextPaint.typeface = Typeface.create("sans-serif", Typeface.BOLD)
         warningTextPaint.textAlign = Paint.Align.CENTER
