@@ -1236,6 +1236,12 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
             resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.ACCESSIBILITY_SOFT_KEYBOARD_MODE), false, this, userId);
             if (mHardwareManager.isSupported(
+                    HardwareManager.FEATURE_HIGH_TOUCH_POLLING_RATE)) {
+                resolver.registerContentObserver(EVSettings.System.getUriFor(
+                        EVSettings.System.HIGH_TOUCH_POLLING_RATE_ENABLE),
+                        false, this, userId);
+            }
+            if (mHardwareManager.isSupported(
                     HardwareManager.FEATURE_HIGH_TOUCH_SENSITIVITY)) {
                 resolver.registerContentObserver(EVSettings.System.getUriFor(
                         EVSettings.System.HIGH_TOUCH_SENSITIVITY_ENABLE),
@@ -1253,6 +1259,8 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
                     Settings.Secure.SHOW_IME_WITH_HARD_KEYBOARD);
             final Uri accessibilityRequestingNoImeUri = Settings.Secure.getUriFor(
                     Settings.Secure.ACCESSIBILITY_SOFT_KEYBOARD_MODE);
+            final Uri highTouchPollingRateUri = EVSettings.System.getUriFor(
+                    EVSettings.System.HIGH_TOUCH_POLLING_RATE_ENABLE);
             final Uri touchSensitivityUri = EVSettings.System.getUriFor(
                     EVSettings.System.HIGH_TOUCH_SENSITIVITY_ENABLE);
             final Uri touchHoveringUri = EVSettings.Secure.getUriFor(
@@ -1277,6 +1285,8 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
                                 InputMethodManager.SHOW_IMPLICIT, null,
                                 SoftInputShowHideReason.SHOW_SETTINGS_ON_CHANGE);
                     }
+                } else if (highTouchPollingRateUri.equals(uri)) {
+                    updateTouchPollingRate();
                 } else if (touchSensitivityUri.equals(uri)) {
                     updateTouchSensitivity();
                 } else if (touchHoveringUri.equals(uri)) {
@@ -1951,6 +1961,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         }
 
         updateTouchHovering();
+        updateTouchPollingRate();
         updateTouchSensitivity();
 
         if (DEBUG) Slog.d(TAG, "Switching user stage 3/3. newUserId=" + newUserId
@@ -2007,6 +2018,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
                 mHardwareManager = HardwareManager.getInstance(mContext);
 
                 updateTouchHovering();
+                updateTouchPollingRate();
                 updateTouchSensitivity();
 
                 mKeyguardManager = mContext.getSystemService(KeyguardManager.class);
@@ -3545,6 +3557,15 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         mSwitchingController.resetCircularListLocked(mContext);
 
         sendOnNavButtonFlagsChangedLocked();
+    }
+
+    private void updateTouchPollingRate() {
+        if (!mHardwareManager.isSupported(HardwareManager.FEATURE_HIGH_TOUCH_POLLING_RATE)) {
+            return;
+        }
+        final boolean enabled = EVSettings.System.getInt(mContext.getContentResolver(),
+                EVSettings.System.HIGH_TOUCH_POLLING_RATE_ENABLE, 0) == 1;
+        mHardwareManager.setFeature(HardwareManager.FEATURE_HIGH_TOUCH_POLLING_RATE, enabled);
     }
 
     private void updateTouchSensitivity() {
