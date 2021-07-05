@@ -26,6 +26,7 @@ import com.android.keyguard.KeyguardUpdateMonitor;
 import com.android.keyguard.ViewMediatorCallback;
 import com.android.systemui.InitController;
 import com.android.systemui.assist.AssistManager;
+import com.android.systemui.biometrics.FODCircleViewImpl;
 import com.android.systemui.broadcast.BroadcastDispatcher;
 import com.android.systemui.bubbles.BubbleController;
 import com.android.systemui.colorextraction.SysuiColorExtractor;
@@ -94,6 +95,7 @@ import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.RemoteInputQuickSettingsDisabler;
 import com.android.systemui.statusbar.policy.UserInfoControllerImpl;
 import com.android.systemui.statusbar.policy.UserSwitcherController;
+import com.android.systemui.tuner.TunerService;
 import com.android.systemui.volume.VolumeComponent;
 
 import java.util.Optional;
@@ -182,7 +184,9 @@ public class UnusedStatusBar extends StatusBar {
             KeyguardIndicationController keyguardIndicationController,
             DismissCallbackRegistry dismissCallbackRegistry,
             Lazy<NotificationShadeDepthController> notificationShadeDepthControllerLazy,
-            StatusBarTouchableRegionManager statusBarTouchableRegionManager) {
+            StatusBarTouchableRegionManager statusBarTouchableRegionManager,
+            TunerService tunerService,
+            FODCircleViewImpl fodCircleViewImpl) {
         super(context, notificationsController, lightBarController, autoHideController,
                 keyguardUpdateMonitor, statusBarIconController, pulseExpansionHandler,
                 notificationWakeUpCoordinator, keyguardBypassController, keyguardStateController,
@@ -208,7 +212,8 @@ public class UnusedStatusBar extends StatusBar {
                 timeTickHandler, pluginDependencyProvider, keyguardDismissUtil, extensionController,
                 userInfoControllerImpl, phoneStatusBarPolicy, keyguardIndicationController,
                 dismissCallbackRegistry, notificationShadeDepthControllerLazy,
-                statusBarTouchableRegionManager);
+                statusBarTouchableRegionManager,
+                tunerService, fodCircleViewImpl);
     }
 
     @Override
