@@ -71,6 +71,8 @@ import com.android.server.sensors.SensorManagerInternal.ProximityActiveListener;
 import com.android.server.statusbar.StatusBarManagerInternal;
 import com.android.server.utils.DeviceConfigInterface;
 
+import evervolv.provider.EVSettings;
+
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1125,6 +1127,8 @@ public class DisplayModeDirector {
                 Settings.System.getUriFor(Settings.System.LOW_POWER_REFRESH_RATE);
         private final Uri mMatchContentFrameRateSetting =
                 Settings.Secure.getUriFor(Settings.Secure.MATCH_CONTENT_FRAME_RATE);
+        private final Uri mPreferredRefreshRateSetting =
+                EVSettings.System.getUriFor(EVSettings.System.PREFERRED_REFRESH_RATE);
 
         private final Context mContext;
         private float mDefaultPeakRefreshRate;
@@ -1152,6 +1156,8 @@ public class DisplayModeDirector {
                     UserHandle.USER_SYSTEM);
             cr.registerContentObserver(mMatchContentFrameRateSetting, false /*notifyDescendants*/,
                     this);
+            cr.registerContentObserver(mPreferredRefreshRateSetting, false /*notifyDescendants*/, this,
+                    UserHandle.USER_SYSTEM);
 
             Float deviceConfigDefaultPeakRefresh =
                     mDeviceConfigDisplaySettings.getDefaultPeakRefreshRate();
@@ -1191,7 +1197,8 @@ public class DisplayModeDirector {
         public void onChange(boolean selfChange, Uri uri, int userId) {
             synchronized (mLock) {
                 if (mPeakRefreshRateSetting.equals(uri)
-                        || mMinRefreshRateSetting.equals(uri)) {
+                        || mMinRefreshRateSetting.equals(uri)
+                        || mPreferredRefreshRateSetting.equals(uri)) {
                     updateRefreshRateSettingLocked();
                 } else if (mLowPowerModeSetting.equals(uri)
                         || mLowPowerRefreshRateSetting.equals(uri)) {
@@ -1223,7 +1230,9 @@ public class DisplayModeDirector {
                     Settings.System.MIN_REFRESH_RATE, 0f, cr.getUserId());
             float peakRefreshRate = Settings.System.getFloatForUser(cr,
                     Settings.System.PEAK_REFRESH_RATE, mDefaultPeakRefreshRate, cr.getUserId());
-            updateRefreshRateSettingLocked(minRefreshRate, peakRefreshRate, mDefaultRefreshRate);
+            float preferredRefreshRate = EVSettings.System.getFloatForUser(cr,
+                    EVSettings.System.PREFERRED_REFRESH_RATE, mDefaultRefreshRate, cr.getUserId());
+            updateRefreshRateSettingLocked(minRefreshRate, peakRefreshRate, preferredRefreshRate);
         }
 
         private void updateRefreshRateSettingLocked(
