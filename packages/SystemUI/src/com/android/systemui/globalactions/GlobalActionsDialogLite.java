@@ -804,9 +804,10 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
 
     @Override
     public void onConfigChanged(Configuration newConfig) {
-        if (mDialog != null && mDialog.isShowing()
-                && (newConfig.smallestScreenWidthDp != mSmallestScreenWidthDp)) {
-            mSmallestScreenWidthDp = newConfig.smallestScreenWidthDp;
+        if (mDialog != null) {
+            if (newConfig.smallestScreenWidthDp != mSmallestScreenWidthDp) {
+                mSmallestScreenWidthDp = newConfig.smallestScreenWidthDp;
+            }
             mDialog.refreshDialog();
         }
     }
