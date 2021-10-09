@@ -379,7 +379,7 @@ public class OverlayConfig {
 
         for (Map.Entry<String, String> target : new HashMap<String, String>() {{
                 put("/system/framework/framework-res.apk", "android");
-                put("/system/framework/com.evervolv.platform-res.apk", "evervolv.platform");
+                put("/system_ext/framework/com.evervolv.platform-res.apk", "evervolv.platform");
         }}.entrySet()) {
             final String targetPath = target.getKey();
             final String targetPackageName = target.getValue();
