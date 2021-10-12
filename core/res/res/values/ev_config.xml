@@ -36,4 +36,6 @@
     <string-array name="config_forceEnabledComponents" translatable="false">
     </string-array>
 
+    <bool name="config_deviceUseAttestationHooks">false</bool>
+
 </resources>
