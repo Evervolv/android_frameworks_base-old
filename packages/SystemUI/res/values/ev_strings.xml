@@ -2,7 +2,11 @@
 <!--
 /**
  * Copyright (c) 2015, The CyanogenMod Project
+<<<<<<< HEAD
  * Copyright (c) 2017-2021 The LineageOS Project
+=======
+ * Copyright (c) 2017-2018, The LineageOS Project
+>>>>>>> ec9a2fa92bdf (Adapt tuner prefs to S settings style & cleanup)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,4 +50,7 @@
     <!-- Label for current user in power menu options dialog -->
     <string name="global_action_current_user">Current</string>
     <string name="global_action_users">Users</string>
+
+    <!-- Status bar - icons -->
+    <string name="status_bar_icons_title">Status bar icons</string>
 </resources>
