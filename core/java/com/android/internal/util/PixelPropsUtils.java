@@ -130,7 +130,7 @@ public class PixelPropsUtils {
         }
 
         if (isPixelDevice){
-            if (packageName.equals("com.google.android.gms")){
+            if (sIsGms){
                 setPropValue("MODEL", Build.MODEL + " ");
             }
         }
