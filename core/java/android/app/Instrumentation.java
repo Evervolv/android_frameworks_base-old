@@ -1219,6 +1219,7 @@ public class Instrumentation {
 
     private static void updateApplicationInfo(Application app) {
         String packageName = app.getPackageName();
+        String processName = app.getProcessName();
 
         // Disable Next-Generation Assistant
         final boolean disableNga = SystemProperties.getBoolean("ro.product.needs_model_edit", false);
@@ -1230,7 +1231,8 @@ public class Instrumentation {
         // SafetyNet work around
         final String fingerprintOverride = SystemProperties.get("ro.build.stock_fingerprint");
         if (fingerprintOverride != null &&
-                packageName.startsWith("com.google.android.gms")) {
+                packageName.equals("com.google.android.gms") &&
+                processName.equals("com.google.android.gms.unstable")) {
             setBuildField("FINGERPRINT", fingerprintOverride);
         }
 
