@@ -305,6 +305,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -2614,6 +2615,17 @@ public class NetworkPolicyManagerService extends INetworkPolicyManager.Stub {
         } finally {
             IoUtils.closeQuietly(fis);
         }
+
+        final int POLICY_REJECT_ALL = 0x40000;
+        final int[] uidsWithPolicy = getUidsWithPolicy(POLICY_REJECT_ALL);
+        Set<Integer> uidsAllowedOnRestrictedNetworks =
+                ConnectivitySettingsManager.getUidsAllowedOnRestrictedNetworks(mContext);
+        uidsAllowedOnRestrictedNetworks.removeAll(Collections.singleton(uidsWithPolicy));
+        for (int uid : uidsWithPolicy) {
+            removeUidPolicy(uid, POLICY_REJECT_ALL);
+        }
+        ConnectivitySettingsManager.setUidsAllowedOnRestrictedNetworks(mContext,
+                uidsAllowedOnRestrictedNetworks);
     }
 
     /**
