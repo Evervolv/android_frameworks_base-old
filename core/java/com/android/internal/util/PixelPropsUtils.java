@@ -18,6 +18,7 @@ package com.android.internal.util;
 
 import android.app.Application;
 import android.os.Build;
+import android.os.SystemProperties;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -29,6 +30,7 @@ import java.util.Map;
 public class PixelPropsUtils {
 
     private static final String TAG = "PixelPropsUtils";
+    private static final String DEVICE = "ro.evervolv.device";
     private static final boolean DEBUG = false;
 
     private static volatile boolean sIsGms = false;
@@ -61,6 +63,20 @@ public class PixelPropsUtils {
         "com.google.android.apps.recorder"
     };
 
+    // Codenames for currently supported Pixels by Google
+    private static final String[] pixelCodenames = {
+            "oriole",
+            "raven",
+            "redfin",
+            "barbet",
+            "bramble",
+            "sunfish",
+            "coral",
+            "flame",
+            "bonito",
+            "sargo"
+    };
+
     static {
         propsToKeep = new HashMap<>();
         propsToChange = new HashMap<>();
@@ -91,8 +107,10 @@ public class PixelPropsUtils {
             sIsGms = true;
         }
 
-        if ((packageName.startsWith("com.google.") && !Arrays.asList(packagesToKeep).contains(packageName))
-                || Arrays.asList(extraPackagesToChange).contains(packageName)) {
+        boolean isPixelDevice = Arrays.asList(pixelCodenames).contains(SystemProperties.get(DEVICE));
+        if (!isPixelDevice && 
+            ((packageName.startsWith("com.google.") && !Arrays.asList(packagesToKeep).contains(packageName))
+                || Arrays.asList(extraPackagesToChange).contains(packageName))) {
             if (DEBUG) Log.d(TAG, "Defining props for: " + packageName);
             if (Arrays.asList(packagesToChangeP1).contains(packageName)) {
                 propsToChange.putAll(propsToChangeP1);
