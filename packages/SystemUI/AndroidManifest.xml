@@ -293,6 +293,9 @@
     <protected-broadcast android:name="com.android.settingslib.action.UNREGISTER_SLICE_RECEIVER" />
     <protected-broadcast android:name="com.android.settings.flashlight.action.FLASHLIGHT_CHANGED" />
 
+    <!-- MotoActions -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+
     <application
         android:name=".SystemUIApplication"
         android:persistent="true"
