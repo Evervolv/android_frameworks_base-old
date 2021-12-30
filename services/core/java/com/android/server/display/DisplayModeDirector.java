@@ -182,6 +182,7 @@ public class DisplayModeDirector {
      * is ready.
      */
     public void start(SensorManager sensorManager) {
+        mSettingsObserver.observe();
         mDisplayObserver.observe();
         mBrightnessObserver.observe(sensorManager);
         mSensorObserver.observe();
@@ -190,7 +191,6 @@ public class DisplayModeDirector {
         synchronized (mLock) {
             // We may have a listener already registered before the call to start, so go ahead and
             // notify them to pick up our newly initialized state.
-            mSettingsObserver.updateRefreshRateSettingLocked();
             notifyDesiredDisplayModeSpecsChangedLocked();
         }
     }
@@ -1220,7 +1220,7 @@ public class DisplayModeDirector {
         private void updateRefreshRateSettingLocked() {
             final ContentResolver cr = mContext.getContentResolver();
             float minRefreshRate = Settings.System.getFloatForUser(cr,
-                    Settings.System.MIN_REFRESH_RATE, 60.00f, cr.getUserId());
+                    Settings.System.MIN_REFRESH_RATE, 0f, cr.getUserId());
             float peakRefreshRate = Settings.System.getFloatForUser(cr,
                     Settings.System.PEAK_REFRESH_RATE, mDefaultPeakRefreshRate, cr.getUserId());
             updateRefreshRateSettingLocked(minRefreshRate, peakRefreshRate, mDefaultRefreshRate);
