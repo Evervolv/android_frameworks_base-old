@@ -1252,6 +1252,16 @@ public class Instrumentation {
         if (packageName.equals("com.google.android.settings.intelligence")){
             setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
         }
+
+        // Pixel 2016 Exclusive
+        if (packageName.equals("com.google.android.apps.photos")){
+            setBuildField("BRAND", "google");
+            setBuildField("MANUFACTURER", "Google");
+            setBuildField("DEVICE", "marlin");
+            setBuildField("PRODUCT", "marlin");
+            setBuildField("MODEL", "Pixel XL");
+            setBuildField("FINGERPRINT", "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys");
+        }
     }
 
     /**
