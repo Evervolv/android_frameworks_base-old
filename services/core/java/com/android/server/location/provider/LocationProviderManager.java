@@ -1003,7 +1003,7 @@ public class LocationProviderManager extends
 
                 @Override
                 public void onPostExecute(boolean success) {
-                    if (!success && useWakeLock) {
+                    if (!success && useWakeLock && mWakeLock.isHeld()) {
                         mWakeLock.release();
                     }
 
