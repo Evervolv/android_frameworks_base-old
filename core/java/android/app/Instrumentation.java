@@ -1219,36 +1219,29 @@ public class Instrumentation {
 
     private static void updateApplicationInfo(Application app) {
         String packageName = app.getPackageName();
-        String processName = app.getProcessName();
-
-        // Disable Next-Generation Assistant
-        final boolean disableNga = SystemProperties.getBoolean("ro.product.needs_model_edit", false);
-        if (disableNga &&
-                packageName.startsWith("com.google.android.googlequicksearchbox")) {
-            setBuildField("MODEL", "Pixel 3 XL");
-        }
-
-        // SafetyNet work around
-        final String fingerprintOverride = SystemProperties.get("ro.build.stock_fingerprint");
-        if (fingerprintOverride != null &&
-                packageName.equals("com.google.android.gms") &&
-                processName.equals("com.google.android.gms.unstable")) {
-            setBuildField("FINGERPRINT", fingerprintOverride);
-        }
-
-        // Set proper indexing fingerprint
-        if (packageName.equals("com.google.android.settings.intelligence")){
+        if (packageName.equals("com.google.android.settings.intelligence")) {
             setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
-        }
-
-        // Pixel 2016 Exclusive
-        if (packageName.equals("com.google.android.apps.photos")){
-            setBuildField("BRAND", "google");
-            setBuildField("MANUFACTURER", "Google");
-            setBuildField("DEVICE", "marlin");
-            setBuildField("PRODUCT", "marlin");
+        } else if (packageName.equals("com.google.android.gms")) {
+            final String fingerprintOverride = SystemProperties.get("ro.build.stock_fingerprint");
+            if (fingerprintOverride != null && app.getProcessName().equals("com.google.android.gms.unstable")){
+                setBuildField("FINGERPRINT", fingerprintOverride);
+            }
+        } else if (packageName.equals("com.google.android.apps.photos")){
             setBuildField("MODEL", "Pixel XL");
-            setBuildField("FINGERPRINT", "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys");
+        } else if (packageName.startsWith("com.google.android.googlequicksearchbox")) {
+            boolean disableNga = SystemProperties.getBoolean("ro.product.needs_model_edit", false);
+            if (disableNga) {
+                setBuildField("MODEL", "Pixel 3 XL");
+            } else {
+                setBuildField("MODEL", "Pixel 5");
+            }
+        } else if (packageName.startsWith("com.google.android.tts")
+                || packageName.startsWith("com.google.android.apps.recorder")) {
+            setBuildField("MODEL", "Pixel 5");
+        } else if (packageName.startsWith("com.google.")
+                || packageName.equals("com.android.chrome")
+                || packageName.equals("com.breel.wallpapers20")) {
+            setBuildField("MODEL", "Pixel 6 Pro");
         }
     }
 
