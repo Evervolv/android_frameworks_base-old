@@ -82,6 +82,7 @@ public class DozeSensors {
     private boolean mListening;
     private boolean mListeningTouchScreenSensors;
     private boolean mListeningProxSensors;
+    private boolean mSupportProximitySensor;
 
     // whether to only register sensors that use prox when the display state is dozing or off
     private boolean mSelectivelyRegisterProxSensors;
@@ -117,7 +118,8 @@ public class DozeSensors {
         mCallback = callback;
         mProximitySensor = proximitySensor;
         mProximitySensor.setTag(TAG);
-        mSelectivelyRegisterProxSensors = dozeParameters.getSelectivelyRegisterSensorsUsingProx();
+        mSupportProximitySensor = mContext.getResources().getBoolean(R.bool.doze_proximity_sensor_supported);
+        mSelectivelyRegisterProxSensors = dozeParameters.getSelectivelyRegisterSensorsUsingProx() && mSupportProximitySensor;
         mListeningProxSensors = !mSelectivelyRegisterProxSensors;
         mScreenOffUdfpsEnabled =
                 config.screenOffUdfpsEnabled(KeyguardUpdateMonitor.getCurrentUser());
@@ -125,6 +127,7 @@ public class DozeSensors {
         boolean udfpsEnrolled =
                 authController.isUdfpsEnrolled(KeyguardUpdateMonitor.getCurrentUser());
         boolean alwaysOn = mConfig.alwaysOnEnabled(UserHandle.USER_CURRENT);
+
         mSensors = new TriggerSensor[] {
                 new TriggerSensor(
                         mSensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION),
@@ -211,8 +214,7 @@ public class DozeSensors {
                         false /* touchscreen */, dozeLog),
         };
 
-        boolean supportProximitySensor = mContext.getResources().getBoolean(R.bool.doze_proximity_sensor_supported);
-        if (!supportProximitySensor) {
+        if (!mSupportProximitySensor) {
             return;
         }
 
@@ -392,6 +394,9 @@ public class DozeSensors {
      * @return true if prox is currently near, false if far or null if unknown.
      */
     public Boolean isProximityCurrentlyNear() {
+        if (!mSupportProximitySensor) {
+            return false;
+        }
         return mProximitySensor.isNear();
     }
 
