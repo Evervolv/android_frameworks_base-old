@@ -21,6 +21,8 @@ import android.app.WallpaperColors
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.om.FabricatedOverlay
+import android.database.ContentObserver
+import android.net.Uri
 import android.os.Handler
 import android.os.UserManager
 import android.provider.Settings
@@ -51,6 +53,7 @@ import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlin.math.log10
 import kotlin.math.pow
+import org.json.JSONObject
 
 @SysUISingleton
 class EVThemeOverlayController @Inject constructor(
@@ -84,12 +87,16 @@ class EVThemeOverlayController @Inject constructor(
     featureFlags,
     wakefulnessLifecycle,
 ) {
-    private val cond: Zcam.ViewingConditions
-    private val targets: MaterialYouTargets
+    private var cond: Zcam.ViewingConditions
+    private var targets: MaterialYouTargets
 
-    private val colorOverride = Settings.Secure.getString(mContext.contentResolver, PREF_COLOR_OVERRIDE)
-    private val chromaFactor = Settings.Secure.getFloat(mContext.contentResolver, PREF_CHROMA_FACTOR, 1.0f).toDouble()
-    private val accurateShades = Settings.Secure.getInt(mContext.contentResolver, PREF_ACCURATE_SHADES, 1) != 0
+    private val colorOverride get() = Settings.Secure.getString(mContext.contentResolver, PREF_COLOR_OVERRIDE)
+    private val chromaFactor get() = Settings.Secure.getFloat(mContext.contentResolver, PREF_CHROMA_FACTOR, 1.0f).toDouble()
+    private val accurateShades get() = Settings.Secure.getInt(mContext.contentResolver, PREF_ACCURATE_SHADES, 1) != 0
+
+    private val linearLightness get() = Settings.Secure.getInt(mContext.contentResolver, PREF_LINEAR_LIGHTNESS, 0) != 0
+    private val whiteLuminance get() = parseWhiteLuminanceUser(
+            Settings.Secure.getInt(mContext.contentResolver, PREF_WHITE_LUMINANCE, WHITE_LUMINANCE_USER_DEFAULT))
 
     init {
         val whiteLuminance = parseWhiteLuminanceUser(
@@ -115,6 +122,7 @@ class EVThemeOverlayController @Inject constructor(
             useLinearLightness = linearLightness,
             cond = cond,
         )
+        ThemeSettingsObserver(bgHandler).observe()
     }
 
     // Seed colors
@@ -125,7 +133,7 @@ class EVThemeOverlayController @Inject constructor(
         // Generate color scheme
         val colorScheme = DynamicColorScheme(
             targets = targets,
-            seedColor = if (colorOverride != null) Srgb(colorOverride) else Srgb(primaryColor),
+            seedColor = Srgb(primaryColor),
             chromaFactor = chromaFactor,
             cond = cond,
             accurateShades = accurateShades,
@@ -161,6 +169,65 @@ class EVThemeOverlayController @Inject constructor(
         }
     }
 
+    inner class ThemeSettingsObserver(handler: Handler?) : ContentObserver(handler) {
+        private val COLOR_OVERRIDE_URI = Settings.Secure.getUriFor(PREF_COLOR_OVERRIDE)
+
+        fun observe() {
+            val resolver = mContext.contentResolver
+            resolver.registerContentObserver(COLOR_OVERRIDE_URI, false, this)
+            resolver.registerContentObserver(Settings.Secure.getUriFor(PREF_CHROMA_FACTOR), false, this)
+            resolver.registerContentObserver(Settings.Secure.getUriFor(PREF_ACCURATE_SHADES), false, this)
+            resolver.registerContentObserver(Settings.Secure.getUriFor(PREF_LINEAR_LIGHTNESS), false, this)
+            resolver.registerContentObserver(Settings.Secure.getUriFor(PREF_WHITE_LUMINANCE), false, this)
+        }
+
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            if (uri == COLOR_OVERRIDE_URI) {
+                val color = Settings.Secure.getInt(mContext.contentResolver, PREF_COLOR_OVERRIDE)
+                var jsonObj = JSONObject(Settings.Secure.getString(mContext.contentResolver, Settings.Secure.THEME_CUSTOMIZATION_OVERLAY_PACKAGES))
+                jsonObj.remove(OVERLAY_CATEGORY_ACCENT_COLOR)
+                jsonObj.remove(OVERLAY_COLOR_SOURCE)
+                jsonObj.remove(OVERLAY_CATEGORY_SYSTEM_PALETTE)
+                if (color != -1) {
+                    val colorStr = String.format("#%08x", color or (0xff shl 24))
+                    jsonObj.put(OVERLAY_COLOR_SOURCE, COLOR_SOURCE_PRESET)
+                    jsonObj.put(OVERLAY_CATEGORY_ACCENT_COLOR, colorStr)
+                    jsonObj.put(OVERLAY_CATEGORY_SYSTEM_PALETTE, colorStr)
+                    jsonObj.put(TIMESTAMP_FIELD, System.currentTimeMillis())
+                } else {
+                    jsonObj.put(OVERLAY_SOURCE_BOTH, 1)
+                    jsonObj.put(OVERLAY_COLOR_SOURCE, "home_wallpaper")
+                    jsonObj.put(TIMESTAMP_FIELD, System.currentTimeMillis())
+                }
+                Settings.Secure.putString(mContext.contentResolver, Settings.Secure.THEME_CUSTOMIZATION_OVERLAY_PACKAGES, jsonObj.toString())
+            } else {
+                // update fields not taken care of in getOverlay()
+                cond = Zcam.ViewingConditions(
+                    surroundFactor = Zcam.ViewingConditions.SURROUND_AVERAGE,
+                    // sRGB
+                    adaptingLuminance = 0.4 * whiteLuminance,
+                    // Gray world
+                    backgroundLuminance = CieLab(
+                        L = 50.0,
+                        a = 0.0,
+                        b = 0.0,
+                    ).toXyz().y * whiteLuminance,
+                    referenceWhite = Illuminants.D65.toAbs(whiteLuminance),
+                )
+
+                targets = MaterialYouTargets(
+                    chromaFactor = chromaFactor,
+                    useLinearLightness = linearLightness,
+                    cond = cond,
+                )
+                // Just do a dummy update, update timestamp_field
+                var jsonObj = JSONObject(Settings.Secure.getString(mContext.contentResolver, Settings.Secure.THEME_CUSTOMIZATION_OVERLAY_PACKAGES))
+                jsonObj.put(TIMESTAMP_FIELD, System.currentTimeMillis())
+                Settings.Secure.putString(mContext.contentResolver, Settings.Secure.THEME_CUSTOMIZATION_OVERLAY_PACKAGES, jsonObj.toString())
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "EVThemeOverlayController"
 
@@ -170,6 +237,14 @@ class EVThemeOverlayController @Inject constructor(
         private const val PREF_ACCURATE_SHADES = "${PREF_PREFIX}_accurate_shades"
         private const val PREF_LINEAR_LIGHTNESS = "${PREF_PREFIX}_linear_lightness"
         private const val PREF_WHITE_LUMINANCE = "${PREF_PREFIX}_white_luminance_user"
+
+        private const val OVERLAY_PREFIX = "android.theme.customization"
+        private const val OVERLAY_CATEGORY_ACCENT_COLOR = "${OVERLAY_PREFIX}.accent_color"
+        private const val OVERLAY_CATEGORY_SYSTEM_PALETTE = "${OVERLAY_PREFIX}.system_palette"
+        private const val OVERLAY_COLOR_SOURCE = "${OVERLAY_PREFIX}.color_source"
+        private const val OVERLAY_SOURCE_BOTH = "${OVERLAY_PREFIX}.color_both"
+        private const val COLOR_SOURCE_PRESET = "preset"
+        private const val TIMESTAMP_FIELD = "_applied_timestamp"
 
         private const val WHITE_LUMINANCE_MIN = 1.0
         private const val WHITE_LUMINANCE_MAX = 10000.0
