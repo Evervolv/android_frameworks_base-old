@@ -128,6 +128,12 @@ public class PixelPropsUtils {
                 setPropValue(key, value);
             }
         }
+
+        if (isPixelDevice){
+            if (packageName.equals("com.google.android.gms")){
+                setPropValue("MODEL", Build.MODEL + " ");
+            }
+        }
     }
 
     private static void setPropValue(String key, Object value){
