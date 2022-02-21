@@ -39,4 +39,7 @@
     <!-- Allow overriding the audio panel location to the left side. -->
     <bool name="config_audioPanelOnLeftSide">false</bool>
 
+    <!-- Udfps display mode provider class name -->
+    <string name="config_udfpsDisplayModeProviderComponent">com.android.systemui.biometrics.DummyUdfpsDisplayModeProvider</string>
+
 </resources>
