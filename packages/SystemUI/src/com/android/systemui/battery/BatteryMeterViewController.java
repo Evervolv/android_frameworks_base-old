@@ -210,7 +210,7 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
             if (TextUtils.equals(uri.getLastPathSegment(),
                     EVSettings.System.STATUS_BAR_BATTERY_STYLE)) {
                 int batteryStyle = EVSettings.System.getInt(mContentResolver,
-                        EVSettings.System.STATUS_BAR_BATTERY_STYLE, BATTERY_STYLE_PORTRAIT);
+                        EVSettings.System.STATUS_BAR_BATTERY_STYLE, 0);
                 mView.setBatteryStyle(batteryStyle);
             }
         }
