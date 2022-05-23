@@ -4392,6 +4392,12 @@ public class NotificationPanelViewController extends PanelViewController {
         }
 
         @Override
+        public void onUiModeChanged() {
+            if (DEBUG) Log.d(TAG, "onUiModeChanged");
+            resetViews(true);
+        }
+
+        @Override
         public void onSmallestScreenWidthChanged() {
             if (DEBUG) Log.d(TAG, "onSmallestScreenWidthChanged");
 
