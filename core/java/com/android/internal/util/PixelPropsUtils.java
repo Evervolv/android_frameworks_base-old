@@ -56,7 +56,8 @@ public class PixelPropsUtils {
         "com.google.android.UltraCVM",
         "com.google.android.apps.cameralite",
         "com.google.ar.core",
-        "com.google.android.apps.wearables.maestro.companion"
+        "com.google.android.apps.wearables.maestro.companion",
+        "com.google.android.apps.recorder"
     };
 
     static {
