@@ -1,5 +1,5 @@
 <!--
-     Copyright (C) 2018-2019 The LineageOS Project
+     Copyright (C) 2018-2022 The LineageOS Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -22,5 +22,8 @@
     <integer name="config_maxVisibleNotificationIcons">4</integer>
     <integer name="config_maxVisibleNotificationIconsOnAod">3</integer>
     <integer name="config_maxVisibleNotificationIconsOnLock">3</integer>
+
+    <!-- Doze: does the double tap sensor need a proximity check? -->
+    <bool name="doze_double_tap_proximity_check">false</bool>
 
 </resources>
