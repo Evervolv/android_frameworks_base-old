@@ -325,6 +325,7 @@ public interface StatusBarIconController {
         // Whether or not these icons show up in dumpsys
         protected boolean mShouldLog = false;
         private StatusBarIconController mController;
+        private boolean mShowWifiStandard;
 
         // Enables SystemUI demo mode to take effect in this group
         protected boolean mDemoable = true;
@@ -429,6 +430,10 @@ public interface StatusBarIconController {
                 view = wifiView;
             }
             mGroup.addView(view, index, onCreateLayoutParams());
+
+            mShowWifiStandard = mContext.getResources().getBoolean(
+                    R.bool.config_wifi_standard_distinguishable);
+            updateShowWifiStandard();
 
             if (mIsInDemoMode) {
                 mDemoStatusIcons.addDemoWifiView(state);
@@ -620,6 +625,16 @@ public interface StatusBarIconController {
 
         protected DemoStatusIcons createDemoStatusIcons() {
             return new DemoStatusIcons((LinearLayout) mGroup, mIconSize);
+        }
+
+        private void updateShowWifiStandard() {
+            for (int i = 0; i < mGroup.getChildCount(); i++) {
+                View child = mGroup.getChildAt(i);
+                if (child instanceof StatusBarWifiView) {
+                    ((StatusBarWifiView) child).updateWifiState(mShowWifiStandard);
+                    return;
+                }
+            }
         }
     }
 }
