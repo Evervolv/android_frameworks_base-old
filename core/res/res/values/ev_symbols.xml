@@ -52,4 +52,12 @@
   <!-- For dynamic default font styles -->
   <java-symbol type="string" name="config_bodyFontFamily" />
 
+  <!-- Property imitation values, used to override device properties for specific apps -->
+  <java-symbol type="array" name="config_propImitationStockValues" />
+  <java-symbol type="array" name="config_propImitationFeatureValues" />
+  <java-symbol type="array" name="config_propImitationFeaturePackages" />
+  <java-symbol type="string" name="config_propImitationPackagePrefix" />
+  <java-symbol type="array" name="config_propImitationStockPackages" />
+  <java-symbol type="array" name="config_propImitationSkipPackages" />
+
 </resources>

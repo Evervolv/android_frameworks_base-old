@@ -36,4 +36,47 @@
     <string-array name="config_forceEnabledComponents" translatable="false">
     </string-array>
 
+    <!-- Configuration that imitates properties from the device of choice.
+         Please refer to the configuration in com/android/internal/util/PropImitationFactory.java
+         to determine which device to use with this config.
+         This config requires values for the following properties.
+         ex. BRAND: google	
+             MANUFACTURER: Google
+             DEVICE: redfin	
+             PRODUCT: redfin
+             MODEL: Pixel 5
+             FINGERPRINT: google/redfin/redfin:12/SQ3A.220705.003.A1/8672226:user/release-keys -->
+    <string-array name="config_propImitationStockValues" translatable="false">
+    </string-array>
+
+    <!-- Configuration that imitates properties from the device of choice.
+         Please refer to the configuration in com/android/internal/util/PropImitationFactory.java
+         to determine which device to use with this config.
+         This config requires values for the following properties.
+         ex. BRAND: google	
+             MANUFACTURER: Google
+             DEVICE: marlin	
+             PRODUCT: marlin
+             MODEL: Pixel XL
+             FINGERPRINT: google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys -->
+    <string-array name="config_propImitationFeatureValues" translatable="false">
+    </string-array>
+
+    <!-- List of packages to handle during property imitation,
+         Properties are used from config_propImitationFeatureValues -->
+    <string-array name="config_propImitationFeaturePackages" translatable="false">
+    </string-array>
+
+    <!-- Prefix for packages to handle during property imitation. Example: com.google. -->
+    <string name="config_propImitationPackagePrefix" translatable="false"></string>
+
+    <!-- List of packages to handle during property imitation,
+         Properties are used from config_propImitationStockValues -->
+    <string-array name="config_propImitationStockPackages" translatable="false">
+    </string-array>
+
+    <!-- List of packages to skip during property imitation. -->
+    <string-array name="config_propImitationSkipPackages" translatable="false">
+    </string-array>
+
 </resources>
