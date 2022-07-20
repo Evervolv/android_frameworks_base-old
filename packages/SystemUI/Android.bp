@@ -127,6 +127,7 @@ android_library {
         "LowLightDreamLib",
         "com.evervolv.platform.internal",
         "vendor.lineage.powershare-V1.0-java",
+        "bcsmartspace-google",
     ],
     manifest: "AndroidManifest.xml",
 
