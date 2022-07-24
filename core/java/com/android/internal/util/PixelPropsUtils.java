@@ -129,10 +129,8 @@ public class PixelPropsUtils {
             }
         }
 
-        if (isPixelDevice){
-            if (sIsGms){
-                setPropValue("MODEL", Build.MODEL + " ");
-            }
+        if (sIsGms) {
+            setPropValue("MODEL", Build.MODEL + " ");
         }
     }
 
