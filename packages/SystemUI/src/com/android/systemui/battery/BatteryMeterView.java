@@ -16,6 +16,7 @@
 package com.android.systemui.battery;
 
 import static android.provider.Settings.System.SHOW_BATTERY_PERCENT;
+import static evervolv.provider.EVSettings.System.STATUS_BAR_BATTERY_STYLE;
 
 import static com.android.systemui.DejankUtils.whitelistIpcs;
 
@@ -53,6 +54,8 @@ import com.android.systemui.animation.Interpolators;
 import com.android.systemui.plugins.DarkIconDispatcher;
 import com.android.systemui.plugins.DarkIconDispatcher.DarkReceiver;
 import com.android.systemui.statusbar.policy.BatteryController;
+
+import evervolv.provider.EVSettings;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -314,15 +317,7 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         }
     }
 
-    void setBatteryStyle(int style) {
-        if (mBatteryStyle == style) {
-            return;
-        }
-        mBatteryStyle = style;
-        updateBatteryIcon();
-    }
-
-    private void updateBatteryIcon() {
+    void updateBatteryIcon() {
         if (mBatteryIconView != null) {
             removeView(mBatteryIconView);
         }
@@ -330,7 +325,9 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         final Context context = getContext();
         mBatteryIconView = new ImageView(context);
 
-        switch (mBatteryStyle) {
+        int batteryStyle = EVSettings.System.getIntForUser(context.getContentResolver(),
+                STATUS_BAR_BATTERY_STYLE, BATTERY_STYLE_PORTRAIT, UserHandle.USER_CURRENT);
+        switch (batteryStyle) {
             case BATTERY_STYLE_DOTTED_CIRCLE:
             case BATTERY_STYLE_CIRCLE:
                 mCircleDrawable.setUsePathEffect(mBatteryStyle == BATTERY_STYLE_DOTTED_CIRCLE);
@@ -339,6 +336,10 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
             default:
                 mBatteryIconView.setImageDrawable(mDrawable);
                 break;
+        }
+
+        if (mBatteryStyle != batteryStyle) {
+            mBatteryStyle = batteryStyle;
         }
 
         if (mBatteryStateUnknown) {
