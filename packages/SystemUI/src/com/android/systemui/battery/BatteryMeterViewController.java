@@ -16,6 +16,7 @@
 package com.android.systemui.battery;
 
 import static android.provider.Settings.System.SHOW_BATTERY_PERCENT;
+import static evervolv.provider.EVSettings.System.STATUS_BAR_BATTERY_STYLE;
 
 import android.app.ActivityManager;
 import android.content.ContentResolver;
@@ -43,9 +44,6 @@ import javax.inject.Inject;
 /** Controller for {@link BatteryMeterView}. **/
 public class BatteryMeterViewController extends ViewController<BatteryMeterView> {
 
-    private static final String STATUS_BAR_BATTERY_STYLE =
-            "evsystem:" + EVSettings.System.STATUS_BAR_BATTERY_STYLE;
-
     private final ConfigurationController mConfigurationController;
     private final TunerService mTunerService;
     private final ContentResolver mContentResolver;
@@ -70,9 +68,6 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
                 ArraySet<String> icons = StatusBarIconController.getIconHideList(
                         getContext(), newValue);
                 mView.setVisibility(icons.contains(mSlotBattery) ? View.GONE : View.VISIBLE);
-            } else if (STATUS_BAR_BATTERY_STYLE.equals(key)) {
-                int batteryStyle = newValue != null ? Integer.parseInt(newValue) : 0;
-                mView.setBatteryStyle(batteryStyle);
             }
         }
     };
@@ -165,8 +160,7 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
             return;
         }
 
-        mTunerService.addTunable(mTunable, StatusBarIconController.ICON_HIDE_LIST,
-                STATUS_BAR_BATTERY_STYLE);
+        mTunerService.addTunable(mTunable, StatusBarIconController.ICON_HIDE_LIST);
         mIsSubscribedForTunerUpdates = true;
     }
 
@@ -182,6 +176,11 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
     private void registerShowBatteryPercentObserver(int user) {
         mContentResolver.registerContentObserver(
                 Settings.System.getUriFor(SHOW_BATTERY_PERCENT),
+                false,
+                mSettingObserver,
+                user);
+        mContentResolver.registerContentObserver(
+                EVSettings.System.getUriFor(STATUS_BAR_BATTERY_STYLE),
                 false,
                 mSettingObserver,
                 user);
@@ -207,6 +206,12 @@ public class BatteryMeterViewController extends ViewController<BatteryMeterView>
                     Settings.Global.BATTERY_ESTIMATES_LAST_UPDATE_TIME)) {
                 // update the text for sure if the estimate in the cache was updated
                 mView.updatePercentText();
+            }
+            if (TextUtils.equals(uri.getLastPathSegment(),
+                    EVSettings.System.STATUS_BAR_BATTERY_STYLE)) {
+                int batteryStyle = EVSettings.System.getInt(mContentResolver,
+                        EVSettings.System.STATUS_BAR_BATTERY_STYLE, BATTERY_STYLE_PORTRAIT);
+                mView.setBatteryStyle(batteryStyle);
             }
         }
     }
