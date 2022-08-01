@@ -79,4 +79,8 @@
     <string-array name="config_propImitationSkipPackages" translatable="false">
     </string-array>
 
+    <!-- List of devices to skip during property imitation. -->
+    <string-array name="config_propImitationSkipDeviceList" translatable="false">
+    </string-array>
+
 </resources>

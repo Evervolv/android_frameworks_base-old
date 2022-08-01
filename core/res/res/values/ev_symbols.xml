@@ -59,5 +59,6 @@
   <java-symbol type="string" name="config_propImitationPackagePrefix" />
   <java-symbol type="array" name="config_propImitationStockPackages" />
   <java-symbol type="array" name="config_propImitationSkipPackages" />
+  <java-symbol type="array" name="config_propImitationSkipDeviceList" />
 
 </resources>
