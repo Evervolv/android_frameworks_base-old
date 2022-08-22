@@ -35,6 +35,7 @@ public class CardPagerAdapter extends PagerAdapter {
     private final List<SmartspaceTarget> mMediaTargets = new ArrayList();
     private boolean mHasOnlyDefaultDateCard = false;
     private final SparseArray<ViewHolder> mHolders = new SparseArray<>();
+    public boolean mIsDreaming = false;
     private float mDozeAmount = 0.0f;
     private int mDozeColor = -1;
     private String mDndDescription = null;
@@ -183,13 +184,14 @@ public class CardPagerAdapter extends PagerAdapter {
                         .setFeatureType(smartspaceTarget.getFeatureType())
                         .setDisplaySurface(
                                 BcSmartSpaceUtil.getLoggingDisplaySurface(
-                                        mRoot.getContext().getPackageName(), mDozeAmount))
+                                        mRoot.getContext().getPackageName(), mDozeAmount, mIsDreaming))
                         .setRank(viewHolder.position)
                         .setCardinality(mSmartspaceTargets.size())
                         .setSubcardInfo(
                                 BcSmartspaceCardLoggerUtil.createSubcardLoggingInfo(
                                         smartspaceTarget))
                         .build();
+        bcSmartspaceCard.mIsDreaming = mIsDreaming;
         final BcSmartspaceDataPlugin bcSmartspaceDataPlugin = mDataProvider;
         if (bcSmartspaceDataPlugin == null) {
             smartspaceEventNotifier = null;
@@ -270,6 +272,10 @@ public class CardPagerAdapter extends PagerAdapter {
         return mDozeAmount;
     }
 
+    public boolean getIsDreaming() {
+        return mIsDreaming;
+    }
+
     public void setDnd(Drawable drawable, String str) {
         mDndImage = drawable;
         mDndDescription = str;
@@ -327,6 +333,10 @@ public class CardPagerAdapter extends PagerAdapter {
             mSmartspaceTargets = mMediaTargets;
             notifyDataSetChanged();
         }
+    }
+
+    public SparseArray<ViewHolder> getViewHolder() {
+        return mHolders;
     }
 
     public static class ViewHolder {
