@@ -145,6 +145,36 @@ public class BcSmartspaceView extends FrameLayout
         super(context, attributeSet);
     }
 
+    @Override // com.android.systemui.plugins.BcSmartspaceDataPlugin.SmartspaceView
+    public final int getCurrentCardTopPadding() {
+        BcSmartspaceCard bcSmartspaceCard;
+        CardPagerAdapter.ViewHolder viewHolder = mAdapter.getViewHolder().get(mViewPager.getCurrentItem());
+        ViewGroup viewGroup = null;
+        if (viewHolder == null) {
+            bcSmartspaceCard = null;
+        } else {
+            bcSmartspaceCard = viewHolder.card;
+        }
+        if (bcSmartspaceCard != null) {
+            CardPagerAdapter.ViewHolder viewHolder2 = mAdapter.getViewHolder().get(mViewPager.getCurrentItem());
+            if (viewHolder2 != null) {
+                viewGroup = viewHolder2.card;
+            }
+            return viewGroup.getPaddingTop();
+        }
+        return 0;
+    }
+
+    @Override // com.android.systemui.plugins.BcSmartspaceDataPlugin.SmartspaceView
+    public final int getSelectedPage() {
+        return mViewPager.getCurrentItem();
+    }
+
+    @Override // com.android.systemui.plugins.BcSmartspaceDataPlugin.SmartspaceView
+    public final void setIsDreaming(boolean z) {
+        mAdapter.mIsDreaming = z;
+    }
+
     @Override
     public void onVisibilityAggregated(boolean z) {
         super.onVisibilityAggregated(z);
@@ -331,7 +361,7 @@ public class BcSmartspaceView extends FrameLayout
                         .setFeatureType(smartspaceTarget.getFeatureType())
                         .setDisplaySurface(
                                 BcSmartSpaceUtil.getLoggingDisplaySurface(
-                                        getContext().getPackageName(), mAdapter.getDozeAmount()))
+                                        getContext().getPackageName(), mAdapter.getDozeAmount(), mAdapter.getIsDreaming()))
                         .setRank(i)
                         .setCardinality(mAdapter.getCount())
                         .setReceivedLatency(i2)
@@ -403,7 +433,7 @@ public class BcSmartspaceView extends FrameLayout
         mAdapter.setDozeAmount(f);
         int loggingDisplaySurface =
                 BcSmartSpaceUtil.getLoggingDisplaySurface(
-                        getContext().getPackageName(), mAdapter.getDozeAmount());
+                        getContext().getPackageName(), mAdapter.getDozeAmount(), mAdapter.getIsDreaming());
         if (loggingDisplaySurface == -1 || loggingDisplaySurface == sLastSurface) {
             return;
         }

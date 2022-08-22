@@ -42,6 +42,7 @@ public class BcSmartspaceCard extends LinearLayout {
     private ViewGroup mExtrasGroup;
     private DoubleShadowIconDrawable mIconDrawable;
     private int mIconTintColor;
+    public boolean mIsDreaming;
     private BcSmartspaceCardLoggingInfo mLoggingInfo;
     private ImageView mNextAlarmImageView;
     private TextView mNextAlarmTextView;
@@ -59,6 +60,7 @@ public class BcSmartspaceCard extends LinearLayout {
     public BcSmartspaceCard(Context context, AttributeSet attributeSet) {
         super(context, attributeSet);
         mSecondaryCard = null;
+        mIsDreaming = false;
         mIconTintColor = GraphicsUtils.getAttrColor(getContext(), 16842806);
         mDateView = null;
         mTitleTextView = null;
@@ -472,7 +474,7 @@ public class BcSmartspaceCard extends LinearLayout {
                             .setFeatureType(23)
                             .setDisplaySurface(
                                     BcSmartSpaceUtil.getLoggingDisplaySurface(
-                                            getContext().getPackageName(), mDozeAmount))
+                                            getContext().getPackageName(), mDozeAmount, mIsDreaming))
                             .build();
         } else {
             bcSmartspaceCardLoggingInfo =
@@ -481,7 +483,7 @@ public class BcSmartspaceCard extends LinearLayout {
                             .setFeatureType(smartspaceTarget.getFeatureType())
                             .setDisplaySurface(
                                     BcSmartSpaceUtil.getLoggingDisplaySurface(
-                                            getContext().getPackageName(), mDozeAmount))
+                                            getContext().getPackageName(), mDozeAmount, mIsDreaming))
                             .build();
         }
         BcSmartSpaceUtil.setOnClickListener(

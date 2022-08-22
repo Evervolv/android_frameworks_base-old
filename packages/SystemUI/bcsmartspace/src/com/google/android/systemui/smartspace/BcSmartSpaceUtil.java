@@ -194,7 +194,7 @@ public final class BcSmartSpaceUtil {
         return Log.isLoggable(str, 2);
     }
 
-    public static int getLoggingDisplaySurface(String str, float f) {
+    public static int getLoggingDisplaySurface(String str, float f, boolean z) {
         str.hashCode();
         if (!str.equals("com.google.android.apps.nexuslauncher")) {
             if (!str.equals("com.android.systemui")) {
@@ -202,6 +202,9 @@ public final class BcSmartSpaceUtil {
             }
             if (f == 1.0f) {
                 return 3;
+            }
+            if (z) {
+                return 5;
             }
             return f == 0.0f ? 2 : -1;
         }
