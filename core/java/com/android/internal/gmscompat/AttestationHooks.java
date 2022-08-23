@@ -93,6 +93,9 @@ public final class AttestationHooks {
                     setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S_V2);
                 }
             }
+        } else if (packageName.equals("com.google.android.settings.intelligence")) {
+            // Set proper indexing fingerprint
+            setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
         }
     }
 
