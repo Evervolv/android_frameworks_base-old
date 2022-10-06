@@ -19,6 +19,7 @@ cc_library_shared {
     name: "libandroid_runtime",
     host_supported: true,
     cflags: [
+        "-O3",
         "-Wno-unused-parameter",
         "-Wno-non-virtual-dtor",
         "-Wno-maybe-uninitialized",
@@ -38,7 +39,7 @@ cc_library_shared {
         "-DNAMESPACE_FOR_HASH_FUNCTIONS=farmhash",
     ],
 
-    cppflags: ["-Wno-conversion-null"],
+    cppflags: ["-Wno-conversion-null", "-O3"],
 
     product_variables: {
         eng: {
@@ -440,8 +441,7 @@ cc_library_shared {
         },
     },
 
-    // Workaround Clang LTO crash.
     lto: {
-        never: true,
+        thin: true,
     },
 }
