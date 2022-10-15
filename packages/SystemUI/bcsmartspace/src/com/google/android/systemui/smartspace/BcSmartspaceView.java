@@ -165,6 +165,11 @@ public class BcSmartspaceView extends FrameLayout
         return 0;
     }
 
+    public void setSelectedPage(int page) {
+        mViewPager.setCurrentItem(page, false);
+        mPageIndicator.setPageOffset(page, 0.0f);
+    }
+
     @Override // com.android.systemui.plugins.BcSmartspaceDataPlugin.SmartspaceView
     public final int getSelectedPage() {
         return mViewPager.getCurrentItem();
