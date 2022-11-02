@@ -334,6 +334,7 @@ java_defaults {
         "framework-permission-aidl-java",
         "spatializer-aidl-java",
         "audiopolicy-types-aidl-java",
+        "com.evervolv.platform.resources",
     ],
 }
 
