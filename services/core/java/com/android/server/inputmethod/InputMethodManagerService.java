@@ -3565,7 +3565,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         }
         final boolean enabled = EVSettings.System.getInt(mContext.getContentResolver(),
                 EVSettings.System.HIGH_TOUCH_POLLING_RATE_ENABLE, 0) == 1;
-        mHardwareManager.set(HardwareManager.FEATURE_HIGH_TOUCH_POLLING_RATE, enabled);
+        mHardwareManager.setFeature(HardwareManager.FEATURE_HIGH_TOUCH_POLLING_RATE, enabled);
     }
 
     private void updateTouchSensitivity() {
@@ -3574,7 +3574,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         }
         final boolean enabled = EVSettings.System.getInt(mContext.getContentResolver(),
                 EVSettings.System.HIGH_TOUCH_SENSITIVITY_ENABLE, 0) == 1;
-        mHardwareManager.set(HardwareManager.FEATURE_HIGH_TOUCH_SENSITIVITY, enabled);
+        mHardwareManager.setFeature(HardwareManager.FEATURE_HIGH_TOUCH_SENSITIVITY, enabled);
     }
 
     private void updateTouchHovering() {
@@ -3583,7 +3583,7 @@ public final class InputMethodManagerService extends IInputMethodManager.Stub
         }
         final boolean enabled = EVSettings.Secure.getInt(mContext.getContentResolver(),
                 EVSettings.Secure.FEATURE_TOUCH_HOVERING, 0) == 1;
-        mHardwareManager.set(HardwareManager.FEATURE_TOUCH_HOVERING, enabled);
+        mHardwareManager.setFeature(HardwareManager.FEATURE_TOUCH_HOVERING, enabled);
     }
 
     @GuardedBy("ImfLock.class")

@@ -697,7 +697,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     private static final int MSG_RINGER_TOGGLE_CHORD = 24;
     private static final int MSG_CAMERA_LONG_PRESS = 25;
 
-    private HardwareManager mHardware;
+    private HardwareManager mHardwareManager;
 
     private SwipeToScreenshotListener mSwipeToScreenshot;
 
@@ -2731,8 +2731,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_CURRENT);
             if (forceNavbar != mForceNavbar) {
                 mForceNavbar = forceNavbar;
-                if (mHardware.isSupported(HardwareManager.FEATURE_KEY_DISABLE)) {
-                    mHardware.set(HardwareManager.FEATURE_KEY_DISABLE,
+                if (mHardwareManager.isSupported(HardwareManager.FEATURE_KEY_DISABLE)) {
+                    mHardwareManager.setFeature(HardwareManager.FEATURE_KEY_DISABLE,
                             mForceNavbar == 1);
                 }
             }
@@ -5543,7 +5543,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mVrManagerInternal.addPersistentVrModeStateListener(mPersistentVrModeListener);
         }
 
-        mHardware = HardwareManager.getInstance(mContext);
+        mHardwareManager = HardwareManager.getInstance(mContext);
         // Ensure observe happens in systemReady() since we need
         // LineageHardwareService to be up and running
         mSettingsObserver.observe();
