@@ -38,7 +38,7 @@ import com.android.systemui.qs.QSHost;
 import com.android.systemui.qs.logging.QSLogger;
 import com.android.systemui.qs.tileimpl.QSTileImpl;
 
-import evervolv.hardware.HardwareManager;
+import evervolv.hardware.LiveDisplayManager;
 
 import javax.inject.Inject;
 
@@ -48,7 +48,7 @@ public class ReadingModeTile extends QSTileImpl<BooleanState> {
 
     private static final Intent DISPLAY_SETTINGS = new Intent("android.settings.DISPLAY_SETTINGS");
 
-    private HardwareManager mHardware;
+    private LiveDisplayManager mLiveDisplay;
 
     @Inject
     public ReadingModeTile(
@@ -63,7 +63,7 @@ public class ReadingModeTile extends QSTileImpl<BooleanState> {
     ) {
         super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
                 statusBarStateController, activityStarter, qsLogger);
-        mHardware = HardwareManager.getInstance(mContext);
+        mLiveDisplay = LiveDisplayManager.getInstance(mContext);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ReadingModeTile extends QSTileImpl<BooleanState> {
     @Override
     protected void handleClick(@Nullable View view) {
         boolean newStatus = !isReadingModeEnabled();
-        mHardware.set(HardwareManager.FEATURE_READING_ENHANCEMENT, newStatus);
+        mLiveDisplay.setFeature(LiveDisplayManager.FEATURE_READING_ENHANCEMENT, newStatus);
         refreshState();
     }
 
@@ -85,7 +85,7 @@ public class ReadingModeTile extends QSTileImpl<BooleanState> {
 
     @Override
     public boolean isAvailable() {
-        return mHardware.isSupported(HardwareManager.FEATURE_READING_ENHANCEMENT);
+        return mLiveDisplay.getConfig().hasFeature(LiveDisplayManager.FEATURE_READING_ENHANCEMENT);
     }
 
     @Override
@@ -114,6 +114,6 @@ public class ReadingModeTile extends QSTileImpl<BooleanState> {
     }
 
     private boolean isReadingModeEnabled() {
-        return mHardware.get(HardwareManager.FEATURE_READING_ENHANCEMENT);
+        return mLiveDisplay.getFeature(LiveDisplayManager.FEATURE_READING_ENHANCEMENT);
     }
 }
