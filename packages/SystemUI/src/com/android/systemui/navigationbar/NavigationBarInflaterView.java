@@ -20,9 +20,12 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON;
 
 import android.annotation.Nullable;
+import android.app.ActivityManager;
 import android.content.Context;
+import android.content.ContentResolver;
 import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
@@ -138,11 +141,17 @@ public class NavigationBarInflaterView extends FrameLayout
     }
 
     protected String getDefaultLayout() {
+        final boolean navigation_bar_swap = (Settings.Secure.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.Secure.NAV_BAR_BUTTON_SWAP_ENABLED, 0,
+                ActivityManager.getCurrentUser()) == 1);
         final int defaultResource = QuickStepContract.isGesturalMode(mNavBarMode)
                 ? R.string.config_navBarLayoutHandle
                 : mOverviewProxyService.shouldShowSwipeUpUI()
                         ? R.string.config_navBarLayoutQuickstep
-                        : R.string.config_navBarLayout;
+                        : navigation_bar_swap
+                                ? R.string.config_navBarLayoutReverse
+                                : R.string.config_navBarLayout;
         return getContext().getString(defaultResource);
     }
 

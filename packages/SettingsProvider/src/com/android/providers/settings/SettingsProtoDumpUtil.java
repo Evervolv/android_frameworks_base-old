@@ -2256,6 +2256,9 @@ class SettingsProtoDumpUtil {
         dumpSetting(s, p,
                 Settings.Secure.NAV_BAR_KIDS_MODE,
                 SecureSettingsProto.NavBar.NAV_BAR_KIDS_MODE);
+        dumpSetting(s, p,
+                Settings.Secure.NAV_BAR_BUTTON_SWAP_ENABLED,
+                SecureSettingsProto.NavBar.NAV_BAR_BUTTON_SWAP_ENABLED);
         p.end(navBar);
 
         dumpSetting(s, p,

@@ -5950,4 +5950,7 @@
          TODO(b/236022708) Move rear display state to device state config file
     -->
     <integer name="config_deviceStateRearDisplay">-1</integer>
+
+    <!-- Whether the swap navbar feature is available -->
+    <bool name="config_navBarButtonSwapAvailable">false</bool>
 </resources>

@@ -392,6 +392,8 @@ message SecureSettingsProto {
         optional SettingProto nav_bar_force_visible = 1 [ (android.privacy).dest = DEST_AUTOMATIC ];
         // Indicates whether the device is in kids nav mode.
         optional SettingProto nav_bar_kids_mode = 2 [ (android.privacy).dest = DEST_AUTOMATIC ];
+        // Indicates whether the back/recents buttons should be swapped.
+        optional SettingProto nav_bar_button_swap_enabled = 3 [ (android.privacy).dest = DEST_AUTOMATIC ];
     }
     optional NavBar nav_bar = 92;
     reserved 91; // Formerly nav_bar_kids_mode
