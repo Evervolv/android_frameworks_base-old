@@ -46,5 +46,5 @@
     <color name="config_udfpsColor">#ffffffff</color>
 
     <!-- Control whether status bar should distinguish wifi standard inside the icon on devices. -->
-    <bool name="config_wifi_standard_distinguishable">true</bool>
+    <bool name="config_wifi_standard_distinguishable">false</bool>
 </resources>
