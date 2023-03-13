@@ -580,6 +580,12 @@ public class DeviceIdleController extends SystemService
     private final SparseBooleanArray mPowerSaveWhitelistSystemAppIds = new SparseBooleanArray();
 
     /**
+     * Current system app IDs that are in the complete power save white list.  This array can
+     * be shared with others because it will not be modified once set.
+     */
+    private int[] mPowerSaveWhitelistSystemAppIdArray = new int[0];
+
+    /**
      * App IDs that have been white-listed to opt out of power save restrictions, except
      * for device idle modes.
      */
@@ -2375,9 +2381,13 @@ public class DeviceIdleController extends SystemService
             return DeviceIdleController.this.isAppOnWhitelistInternal(appid);
         }
 
-        @Override
         public String[] getFullPowerWhitelistExceptIdle() {
             return DeviceIdleController.this.getFullPowerWhitelistInternalUnchecked();
+        }
+
+        @Override
+        public int[] getPowerSaveWhitelistSystemAppIds() {
+            return DeviceIdleController.this.getPowerSaveWhitelistSystemAppIds();
         }
 
         /**
@@ -2605,6 +2615,12 @@ public class DeviceIdleController extends SystemService
         }
     }
 
+    int[] getPowerSaveWhitelistSystemAppIds() {
+        synchronized (this) {
+            return mPowerSaveWhitelistSystemAppIdArray;
+        }
+    }
+
     int[] getPowerSaveWhitelistUserAppIds() {
         synchronized (this) {
             return mPowerSaveWhitelistUserAppIdArray;
@@ -2613,6 +2629,16 @@ public class DeviceIdleController extends SystemService
 
     private static File getSystemDir() {
         return new File(Environment.getDataDirectory(), "system");
+    }
+
+    /** Returns the keys of a SparseBooleanArray, paying no attention to its values. */
+    private static int[] keysToIntArray(final SparseBooleanArray sparseArray) {
+        final int size = sparseArray.size();
+        final int[] array = new int[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = sparseArray.keyAt(i);
+        }
+        return array;
     }
 
     @Override
@@ -2651,6 +2677,7 @@ public class DeviceIdleController extends SystemService
                 } catch (PackageManager.NameNotFoundException e) {
                 }
             }
+            mPowerSaveWhitelistSystemAppIdArray = keysToIntArray(mPowerSaveWhitelistSystemAppIds);
 
             mConstants = mInjector.getConstants(this, mHandler, getContext().getContentResolver());
 
@@ -4452,6 +4479,7 @@ public class DeviceIdleController extends SystemService
 
     private void passWhiteListsToForceAppStandbyTrackerLocked() {
         mAppStateTracker.setPowerSaveExemptionListAppIds(
+                mPowerSaveWhitelistSystemAppIdArray,
                 mPowerSaveWhitelistExceptIdleAppIdArray,
                 mPowerSaveWhitelistUserAppIdArray,
                 mTempWhitelistAppIdArray);
