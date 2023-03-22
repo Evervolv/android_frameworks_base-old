@@ -52,6 +52,15 @@ public final class AttestationHooks {
                 && PROCESS_GMS.equals(processName);
         sIsFinsky = PACKAGE_FINSKY.equals(packageName);
 
+        if (sIsGms || sIsFinsky) {
+            if (!Build.IS_USER) {
+                setBuildField("TYPE", "user");
+            }
+            if (!Build.TAGS.equals("release-keys")) {
+                setBuildField("TAGS", "release-keys");
+            }
+        }
+
         if (sIsGms) {
             final boolean attestationEnabled =
                     context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
