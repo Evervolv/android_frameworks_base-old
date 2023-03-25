@@ -18,6 +18,9 @@ package com.android.internal.gmscompat;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
@@ -52,7 +55,19 @@ public final class AttestationHooks {
                 && PROCESS_GMS.equals(processName);
         sIsFinsky = PACKAGE_FINSKY.equals(packageName);
 
-        if (sIsGms || sIsFinsky) {
+        boolean isSystemApp = false;
+        PackageManager pm = context.getPackageManager();
+        try {
+            isSystemApp = (pm.getApplicationInfo(packageName, 0).flags
+                    & (ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
+        } catch (NameNotFoundException e) {
+            isSystemApp = false;
+        }
+
+        boolean overrideSystemApp = (isSystemApp
+                && packageName.startsWith("com.google."))
+                && sIsGms || sIsFinsky;
+        if (!isSystemApp || overrideSystemApp) {
             if (!Build.IS_USER) {
                 setBuildField("TYPE", "user");
             }
