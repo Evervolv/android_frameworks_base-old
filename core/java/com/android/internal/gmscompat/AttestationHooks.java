@@ -16,12 +16,17 @@
 
 package com.android.internal.gmscompat;
 
+import android.app.ActivityTaskManager;
 import android.app.Application;
+import android.app.TaskStackListener;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
+import android.os.Binder;
+import android.os.Process;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -36,6 +41,8 @@ public final class AttestationHooks {
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PACKAGE_GMS = "com.google.android.gms";
     private static final String PROCESS_GMS = PACKAGE_GMS + ".unstable";
+    private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
+            PACKAGE_GMS  + "/.auth.uiflows.minutemaid.MinuteMaidActivity");
 
     private static volatile boolean sIsGms = false;
     private static volatile boolean sIsFinsky = false;
@@ -77,26 +84,65 @@ public final class AttestationHooks {
         }
 
         if (sIsGms) {
-            final boolean attestationEnabled =
-                    context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
-            if (attestationEnabled) {
-                /* Set certified properties for GMSCore if supplied */
-                setBuildField("FINGERPRINT", "google/marlin/marlin:7.1.2/NJH47F/4146041:user/release-keys");
-                setBuildField("PRODUCT", "marlin");
-                setBuildField("DEVICE", "marlin");
-                setBuildField("MODEL", "Pixel XL");
-                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N_MR1);
-            } else {
-                // Alter model name to avoid hardware attestation enforcement
-                setBuildField("MODEL", Build.MODEL + "\u200b");
-                if (Build.VERSION.DEVICE_INITIAL_SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S_V2);
+            final boolean skipCurrentActivity = isGmsAccountActivity();
+            final TaskStackListener taskStackListener = new TaskStackListener() {
+                @Override
+                public void onTaskStackChanged() {
+                    final boolean skipActivity = isGmsAccountActivity();
+                    if (skipActivity ^ skipCurrentActivity) {
+                        Process.killProcess(Process.myPid());
+                    }
+                }
+            };
+
+            if (!skipCurrentActivity) {
+                final boolean attestationEnabled =
+                        context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
+                if (attestationEnabled) {
+                    /* Set certified properties for GMSCore if supplied */
+                    setBuildField("FINGERPRINT", "google/marlin/marlin:7.1.2/NJH47F/4146041:user/release-keys");
+                    setBuildField("PRODUCT", "marlin");
+                    setBuildField("DEVICE", "marlin");
+                    setBuildField("MODEL", "Pixel XL");
+                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N_MR1);
+                } else {
+                    // Alter model name to avoid hardware attestation enforcement
+                    setBuildField("MODEL", Build.MODEL + "\u200b");
+                    if (Build.VERSION.DEVICE_INITIAL_SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S_V2);
+                    }
                 }
             }
+
+            try {
+                ActivityTaskManager.getService().registerTaskStackListener(taskStackListener);
+            } catch (Exception e) { }
         } else if (packageName.equals("com.google.android.settings.intelligence")) {
             // Set proper indexing fingerprint
             setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
         }
+    }
+
+    private static boolean isGmsAccountActivity() {
+        try {
+            final ActivityTaskManager.RootTaskInfo focusedTask =
+                    ActivityTaskManager.getService().getFocusedRootTaskInfo();
+            return focusedTask != null && focusedTask.topActivity != null
+                    && focusedTask.topActivity.equals(GMS_ADD_ACCOUNT_ACTIVITY);
+        } catch (Exception e) { }
+        return false;
+    }
+
+    public static boolean isPackageUidGms(Context context) {
+        // GMS doesn't have MANAGE_ACTIVITY_TASKS permission
+        final int callingUid = Binder.getCallingUid();
+        final int gmsUid;
+        try {
+            gmsUid = context.getPackageManager().getApplicationInfo(PACKAGE_GMS, 0).uid;
+        } catch (Exception e) {
+            return false;
+        }
+        return gmsUid == callingUid;
     }
 
     private static boolean isCallerSafetyNet() {
