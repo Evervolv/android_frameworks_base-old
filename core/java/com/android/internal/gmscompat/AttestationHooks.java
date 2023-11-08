@@ -100,11 +100,11 @@ public final class AttestationHooks {
                         context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
                 if (attestationEnabled) {
                     /* Set certified properties for GMSCore if supplied */
-                    setBuildField("FINGERPRINT", "google/marlin/marlin:7.1.2/NJH47F/4146041:user/release-keys");
-                    setBuildField("PRODUCT", "marlin");
-                    setBuildField("DEVICE", "marlin");
-                    setBuildField("MODEL", "Pixel XL");
-                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N_MR1);
+                    setBuildField("FINGERPRINT", "google/bullhead/bullhead:8.0.0/OPR6.170623.013/4283548:user/release-keys");
+                    setBuildField("PRODUCT", "bullhead");
+                    setBuildField("DEVICE", "bullhead");
+                    setBuildField("MODEL", "Nexus 5X");
+                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N);
                 } else {
                     // Alter model name to avoid hardware attestation enforcement
                     setBuildField("MODEL", Build.MODEL + "\u200b");
