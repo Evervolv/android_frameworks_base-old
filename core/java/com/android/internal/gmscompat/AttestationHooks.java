@@ -34,18 +34,31 @@ import com.android.internal.R;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Calendar;
 
 /** @hide */
 public final class AttestationHooks {
     private static final String TAG = "GmsCompat/Attestation";
     private static final String PACKAGE_FINSKY = "com.android.vending";
     private static final String PACKAGE_GMS = "com.google.android.gms";
+    private static final String PACKAGE_PHOTOS = "com.google.android.apps.photos";
     private static final String PROCESS_GMS = PACKAGE_GMS + ".unstable";
     private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
             PACKAGE_GMS  + "/.auth.uiflows.minutemaid.MinuteMaidActivity");
 
+    private static final String NEXUS_EXCLUSIVE_FEATURE = "com.google.android.apps.photos.NEXUS_PRELOAD";
+
+    private static final int PIXEL_BASE_FEATURE_YEAR = 2016;
+    private static final String PIXEL_EXCLUSIVE_FEATURES[] = {
+        "com.google.android.feature.PIXEL_%s_PRELOAD",
+        "com.google.android.feature.PIXEL_%s_MIDYEAR_PRELOAD",
+        "com.google.android.feature.PIXEL_%s_EXPERIENCE",
+        "com.google.android.feature.PIXEL_%s_MIDYEAR_EXPERIENCE"
+    };
+
     private static volatile boolean sIsGms = false;
     private static volatile boolean sIsFinsky = false;
+    private static volatile boolean sIsPhotos = false;
 
     private AttestationHooks() { }
 
@@ -61,6 +74,7 @@ public final class AttestationHooks {
         sIsGms = PACKAGE_GMS.equals(packageName)
                 && PROCESS_GMS.equals(processName);
         sIsFinsky = PACKAGE_FINSKY.equals(packageName);
+        sIsPhotos = PACKAGE_PHOTOS.equals(packageName);
 
         boolean isSystemApp = false;
         PackageManager pm = context.getPackageManager();
@@ -83,8 +97,8 @@ public final class AttestationHooks {
             }
         }
 
-        if (sIsGms) {
-            final boolean skipCurrentActivity = isGmsAccountActivity();
+        if (sIsGms || sIsPhotos) {
+            final boolean skipCurrentActivity = sIsGms && isGmsAccountActivity();
             final TaskStackListener taskStackListener = new TaskStackListener() {
                 @Override
                 public void onTaskStackChanged() {
@@ -95,15 +109,17 @@ public final class AttestationHooks {
                 }
             };
 
-            if (!skipCurrentActivity) {
-                final boolean attestationEnabled =
-                        context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
+            final boolean attestationEnabled =
+                    context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
+            if (!skipCurrentActivity || sIsPhotos) {
                 if (attestationEnabled) {
                     /* Set certified properties for GMSCore if supplied */
                     setBuildField("FINGERPRINT", "google/bullhead/bullhead:8.0.0/OPR6.170623.013/4283548:user/release-keys");
                     setBuildField("PRODUCT", "bullhead");
                     setBuildField("DEVICE", "bullhead");
                     setBuildField("MODEL", "Nexus 5X");
+                    setBuildField("BRAND", "google");
+                    setBuildField("MANUFACTURER", "LGE");
                     setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N);
                 } else {
                     // Alter model name to avoid hardware attestation enforcement
@@ -114,13 +130,34 @@ public final class AttestationHooks {
                 }
             }
 
-            try {
-                ActivityTaskManager.getService().registerTaskStackListener(taskStackListener);
-            } catch (Exception e) { }
+            if (sIsGms) {
+                try {
+                    ActivityTaskManager.getService().registerTaskStackListener(taskStackListener);
+                } catch (Exception e) { }
+            }
         } else if (packageName.equals("com.google.android.settings.intelligence")) {
             // Set proper indexing fingerprint
             setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
         }
+    }
+
+    public static boolean hasSystemFeature(String name, boolean hasFeature) {
+        if (!sIsPhotos) {
+            return hasFeature;
+        }
+
+        if (hasFeature) {
+            int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+            for (int year = PIXEL_BASE_FEATURE_YEAR; year <= currentYear; year++) {
+                for (String feature : PIXEL_EXCLUSIVE_FEATURES) {
+                    final String formattedFeature = feature.replace("%s", String.valueOf(year));
+                    if (name.equalsIgnoreCase(formattedFeature)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return hasFeature || name.equalsIgnoreCase(NEXUS_EXCLUSIVE_FEATURE);
     }
 
     private static boolean isGmsAccountActivity() {
