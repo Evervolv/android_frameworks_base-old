@@ -27,6 +27,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.os.Binder;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -110,7 +111,8 @@ public final class AttestationHooks {
             };
 
             final boolean attestationEnabled =
-                    context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks);
+                    context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks)
+                    || SystemProperties.getBoolean("sys.gms.attestation_hooks", false);
             if (!skipCurrentActivity || sIsPhotos) {
                 if (attestationEnabled) {
                     /* Set certified properties for GMSCore if supplied */
