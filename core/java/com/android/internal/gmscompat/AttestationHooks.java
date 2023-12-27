@@ -122,7 +122,8 @@ public final class AttestationHooks {
                     setBuildField("MODEL", "Nexus 5X");
                     setBuildField("BRAND", "google");
                     setBuildField("MANUFACTURER", "LGE");
-                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.N);
+                    setBuildField("ID", "OPR6.170623.013");
+                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.M);
                 } else {
                     // Alter model name to avoid hardware attestation enforcement
                     setBuildField("MODEL", Build.MODEL + "\u200b");
