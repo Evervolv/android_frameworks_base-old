@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Binder;
 import android.os.Process;
@@ -57,6 +58,9 @@ public final class AttestationHooks {
         "com.google.android.feature.PIXEL_%s_MIDYEAR_EXPERIENCE"
     };
 
+    private static boolean sAttestationHooks =
+            Resources.getSystem().getBoolean(R.bool.config_deviceUseAttestationHooks);
+
     private static volatile boolean sIsGms = false;
     private static volatile boolean sIsFinsky = false;
     private static volatile boolean sIsPhotos = false;
@@ -69,6 +73,15 @@ public final class AttestationHooks {
 
         if (TextUtils.isEmpty(packageName) || TextUtils.isEmpty(processName)) {
             Log.e(TAG, "Null package or process name");
+            return;
+        }
+
+        if (packageName.equals("com.google.android.settings.intelligence")) {
+            // Set proper indexing fingerprint
+            setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
+        }
+
+        if (!sAttestationHooks) {
             return;
         }
 
@@ -110,27 +123,16 @@ public final class AttestationHooks {
                 }
             };
 
-            final boolean attestationEnabled =
-                    context.getResources().getBoolean(R.bool.config_deviceUseAttestationHooks)
-                    || SystemProperties.getBoolean("sys.gms.attestation_hooks", false);
-            if (!skipCurrentActivity || sIsPhotos) {
-                if (attestationEnabled) {
-                    /* Set certified properties for GMSCore if supplied */
-                    setBuildField("FINGERPRINT", "google/bullhead/bullhead:8.0.0/OPR6.170623.013/4283548:user/release-keys");
-                    setBuildField("PRODUCT", "bullhead");
-                    setBuildField("DEVICE", "bullhead");
-                    setBuildField("MODEL", "Nexus 5X");
-                    setBuildField("BRAND", "google");
-                    setBuildField("MANUFACTURER", "LGE");
-                    setBuildField("ID", "OPR6.170623.013");
-                    setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.M);
-                } else {
-                    // Alter model name to avoid hardware attestation enforcement
-                    setBuildField("MODEL", Build.MODEL + "\u200b");
-                    if (Build.VERSION.DEVICE_INITIAL_SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.S_V2);
-                    }
-                }
+            if (!skipCurrentActivity) {
+                /* Set certified properties for GMSCore if supplied */
+                setBuildField("FINGERPRINT", "google/bullhead/bullhead:8.0.0/OPR6.170623.013/4283548:user/release-keys");
+                setBuildField("PRODUCT", "bullhead");
+                setBuildField("DEVICE", "bullhead");
+                setBuildField("MODEL", "Nexus 5X");
+                setBuildField("BRAND", "google");
+                setBuildField("MANUFACTURER", "LGE");
+                setBuildField("ID", "OPR6.170623.013");
+                setVersionField("DEVICE_INITIAL_SDK_INT", Build.VERSION_CODES.M);
             }
 
             if (sIsGms) {
@@ -138,14 +140,11 @@ public final class AttestationHooks {
                     ActivityTaskManager.getService().registerTaskStackListener(taskStackListener);
                 } catch (Exception e) { }
             }
-        } else if (packageName.equals("com.google.android.settings.intelligence")) {
-            // Set proper indexing fingerprint
-            setBuildField("FINGERPRINT", Build.VERSION.INCREMENTAL);
         }
     }
 
     public static boolean hasSystemFeature(String name, boolean hasFeature) {
-        if (!sIsPhotos) {
+        if (!sAttestationHooks || !sIsPhotos) {
             return hasFeature;
         }
 
@@ -192,7 +191,7 @@ public final class AttestationHooks {
 
     public static void onEngineGetCertificateChain() {
         // Check stack for SafetyNet or Play Integrity
-        if (isCallerSafetyNet() || sIsFinsky) {
+        if (sAttestationHooks && (isCallerSafetyNet() || sIsFinsky)) {
             throw new UnsupportedOperationException();
         }
     }
