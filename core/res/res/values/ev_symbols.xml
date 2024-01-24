@@ -44,6 +44,4 @@
   <java-symbol type="string" name="global_action_restart_download_progress" />
   <java-symbol type="string" name="global_action_restart_fastboot_progress" />
 
-  <java-symbol type="bool" name="config_deviceUseAttestationHooks" />
-
 </resources>
