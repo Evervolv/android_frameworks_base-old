@@ -205,6 +205,7 @@ public class CaptionWindowDecorViewModel implements WindowDecorViewModel {
         private final WindowContainerToken mTaskToken;
         private final DragPositioningCallback mDragPositioningCallback;
         private final DragDetector mDragDetector;
+        private final int mDisplayId;
 
         private int mDragPointerId = -1;
         private boolean mIsDragging;
@@ -216,6 +217,7 @@ public class CaptionWindowDecorViewModel implements WindowDecorViewModel {
             mTaskToken = taskInfo.token;
             mDragPositioningCallback = dragPositioningCallback;
             mDragDetector = new DragDetector(this);
+            mDisplayId = taskInfo.displayId;
         }
 
         @Override
@@ -224,7 +226,7 @@ public class CaptionWindowDecorViewModel implements WindowDecorViewModel {
             if (id == R.id.close_window) {
                 mTaskOperations.closeTask(mTaskToken);
             } else if (id == R.id.back_button) {
-                mTaskOperations.injectBackKey();
+                mTaskOperations.injectBackKey(mDisplayId);
             } else if (id == R.id.minimize_window) {
                 mTaskOperations.minimizeTask(mTaskToken);
             } else if (id == R.id.maximize_window) {
